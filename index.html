@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BUSE Panel Maker v2</title>
+    <title>BUSE Panel Maker v3</title>
     <style>
         :root {
             --orange: #ff8c00;
@@ -19,11 +19,10 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            padding: 20px;
+            padding: 10px;
             margin: 0;
+            touch-action: none; /* Brání posouvání stránky při kreslení */
         }
-
-        h1 { color: var(--orange); margin-bottom: 5px; text-transform: uppercase; }
 
         .toolbar { 
             background: var(--panel-bg); 
@@ -36,46 +35,49 @@
             align-items: flex-end;
             border: 1px solid #444;
             margin-bottom: 20px;
+            width: 90%;
         }
 
         .tool-group { display: flex; flex-direction: column; gap: 5px; }
         .tool-group label { font-size: 11px; text-transform: uppercase; color: #888; font-weight: bold; }
 
-        .canvas-container {
+        .canvas-area {
             background: #000;
-            border: 3px solid #444;
-            overflow: auto;
-            max-width: 95vw;
+            border: 2px solid #555;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
             cursor: crosshair;
+            overflow: auto;
+            max-width: 100%;
         }
 
         canvas { 
             image-rendering: pixelated; 
             display: block;
+            /* Mřížka v pozadí */
             background-image:
                 linear-gradient(to right, #222 1px, transparent 1px),
                 linear-gradient(to bottom, #222 1px, transparent 1px);
         }
 
         button { 
-            padding: 10px 15px; 
+            padding: 12px 15px; 
             cursor: pointer; 
             border: none; 
-            border-radius: 5px; 
+            border-radius: 6px; 
             font-weight: bold; 
-            transition: 0.2s;
             background: #444;
             color: white;
+            transition: 0.2s;
         }
 
-        input[type="number"] {
+        input[type="number"], input[type="range"] {
             background: #111;
             border: 1px solid #555;
             color: var(--orange);
             padding: 8px;
             border-radius: 4px;
-            width: 70px;
-            font-weight: bold;
+            width: 80px;
         }
 
         .btn-orange { background: var(--orange); color: black; }
@@ -84,28 +86,28 @@
         .btn-clear { background: #f44336; color: white; }
         .btn-save { background: #2196f3; color: white; }
 
-        button:hover { opacity: 0.8; transform: translateY(-1px); }
-        button.active { outline: 2px solid white; box-shadow: 0 0 10px rgba(255,255,255,0.3); }
-
-        .status { margin-top: 10px; font-family: monospace; color: var(--orange); }
-        .hint { font-size: 12px; color: #666; margin-top: 5px; }
+        button.active { outline: 3px solid white; transform: scale(1.05); }
+        
+        .status { font-family: monospace; color: var(--orange); margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-    <h1>BUSE Panel Maker</h1>
+    <h2 style="color: var(--orange); margin-bottom: 10px;">BUSE Panel Maker</h2>
 
     <div class="toolbar">
+        <!-- Rozměry - nyní s okamžitou reakcí -->
         <div class="tool-group">
             <label>Vodorovně (Šířka)</label>
-            <input type="number" id="widthInput" value="90">
+            <input type="number" id="widthInput" value="90" oninput="initCanvas()">
         </div>
         <div class="tool-group">
             <label>Svisle (Výška)</label>
-            <input type="number" id="heightInput" value="20">
+            <input type="number" id="heightInput" value="20" oninput="initCanvas()">
         </div>
         <div class="tool-group">
-            <button onclick="initCanvas()" class="btn-green">Použít rozměry</button>
+            <label>Zoom (Velikost)</label>
+            <input type="range" id="zoomInput" min="5" max="40" value="15" oninput="updateZoom()">
         </div>
 
         <div class="tool-group">
@@ -118,130 +120,124 @@
         </div>
 
         <div class="tool-group">
-            <label>Speciální</label>
-            <button id="fillBtn" class="btn-fill" onclick="setTool('fill')">Vyplnit (Výběr)</button>
+            <label>Nástroj</label>
+            <button id="fillBtn" class="btn-fill" onclick="setTool('fill')">Vyplnit Oblast</button>
         </div>
         
         <div class="tool-group">
-            <label>Soubor</label>
+            <label>Export</label>
             <div style="display:flex; gap:5px;">
-                <button class="btn-clear" onclick="clearCanvas()">Vymazat</button>
-                <button class="btn-save" onclick="download()">Download PNG</button>
+                <button class="btn-clear" onclick="clearCanvas()">Smazat</button>
+                <button class="btn-save" onclick="download()">Uložit PNG</button>
             </div>
         </div>
     </div>
 
-    <div class="canvas-container">
+    <div class="status" id="status">Režim: Kreslení</div>
+
+    <div class="canvas-area" id="scrollArea">
         <canvas id="pixelCanvas"></canvas>
     </div>
-
-    <div id="status" class="status">Režim: Kreslení (Oranžová)</div>
-    <div id="fillHint" class="hint" style="display:none;">Klikni na první bod, potom na druhý bod pro vyplnění obdélníku.</div>
 
     <script>
         const canvas = document.getElementById('pixelCanvas');
         const ctx = canvas.getContext('2d');
         const statusDiv = document.getElementById('status');
-        const fillHint = document.getElementById('fillHint');
 
         let currentColor = '#ff8c00';
-        let mode = 'draw'; // 'draw', 'eraser', 'fill'
+        let mode = 'draw'; 
         let isDrawing = false;
         let fillPoint1 = null;
-        let zoom = 15;
 
+        // Funkce pro nastavení plochy
         function initCanvas() {
-            const w = parseInt(document.getElementById('widthInput').value);
-            const h = parseInt(document.getElementById('heightInput').value);
+            const w = parseInt(document.getElementById('widthInput').value) || 1;
+            const h = parseInt(document.getElementById('heightInput').value) || 1;
+            
+            // Uložíme si obsah, abychom ho neztratili při změně velikosti
+            const tempImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            
             canvas.width = w;
             canvas.height = h;
-            canvas.style.width = (w * zoom) + 'px';
-            canvas.style.height = (h * zoom) + 'px';
-            canvas.style.backgroundSize = `${zoom}px ${zoom}px`;
             
+            updateZoom(); // Přepočítá vizuální velikost
+            
+            // Vyplníme černou (základ BUSE)
             ctx.fillStyle = "#000000";
             ctx.fillRect(0, 0, w, h);
-            fillPoint1 = null;
+            
+            // Vrátíme původní kresbu zpět (pokud se vejde)
+            ctx.putImageData(tempImage, 0, 0);
+        }
+
+        // Změna vizuální velikosti (Zoom)
+        function updateZoom() {
+            const zoom = document.getElementById('zoomInput').value;
+            canvas.style.width = (canvas.width * zoom) + 'px';
+            canvas.style.height = (canvas.height * zoom) + 'px';
+            canvas.style.backgroundSize = `${zoom}px ${zoom}px`;
         }
 
         function setTool(tool) {
-            // Resetování stavů
             fillPoint1 = null;
-            fillHint.style.display = 'none';
+            if (tool === 'eraser') mode = 'eraser';
+            else if (tool === 'fill') mode = 'fill';
+            else { mode = 'draw'; currentColor = tool; }
 
-            if (tool === 'eraser') {
-                mode = 'eraser';
-            } else if (tool === 'fill') {
-                mode = 'fill';
-                fillHint.style.display = 'block';
-            } else {
-                mode = 'draw';
-                currentColor = tool;
-            }
-
-            // Vizuální tlačítka
             document.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
             if (mode === 'eraser') document.getElementById('eraser').classList.add('active');
             else if (mode === 'fill') document.getElementById('fillBtn').classList.add('active');
             else if (currentColor === '#ff8c00') document.getElementById('colorOrange').classList.add('active');
             else if (currentColor === '#4caf50') document.getElementById('colorGreen').classList.add('active');
-
-            updateStatus();
+            
+            statusDiv.innerText = mode === 'fill' ? "Vyplňování: Klikni na 1. a 2. bod" : "Režim: " + mode;
         }
 
-        function handlePointer(e) {
+        function handleInput(e) {
+            const zoom = document.getElementById('zoomInput').value;
             const rect = canvas.getBoundingClientRect();
-            const x = Math.floor((e.clientX - rect.left) / zoom);
-            const y = Math.floor((e.clientY - rect.top) / zoom);
+            
+            // Podpora pro myš i dotyk
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-            if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) return;
+            const x = Math.floor((clientX - rect.left) / zoom);
+            const y = Math.floor((clientY - rect.top) / zoom);
 
-            if (mode === 'fill') {
-                if (!fillPoint1) {
-                    fillPoint1 = {x, y};
-                    statusDiv.innerText = "Bod 1 vybrán. Klikni na druhý roh.";
+            if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
+                if (mode === 'fill') {
+                    if (!fillPoint1) {
+                        fillPoint1 = {x, y};
+                        statusDiv.innerText = "Bod 1 OK, klikni na druhý roh";
+                    } else {
+                        const xStart = Math.min(fillPoint1.x, x);
+                        const yStart = Math.min(fillPoint1.y, y);
+                        const w = Math.abs(fillPoint1.x - x) + 1;
+                        const h = Math.abs(fillPoint1.y - y) + 1;
+                        ctx.fillStyle = currentColor;
+                        ctx.fillRect(xStart, yStart, w, h);
+                        fillPoint1 = null;
+                        statusDiv.innerText = "Vyplněno!";
+                    }
                 } else {
-                    fillArea(fillPoint1.x, fillPoint1.y, x, y);
-                    fillPoint1 = null;
-                    statusDiv.innerText = "Oblast vyplněna!";
+                    ctx.fillStyle = (mode === 'eraser') ? "#000000" : currentColor;
+                    ctx.fillRect(x, y, 1, 1);
                 }
-            } else {
-                ctx.fillStyle = (mode === 'eraser') ? "#000000" : currentColor;
-                ctx.fillRect(x, y, 1, 1);
             }
         }
 
-        function fillArea(x1, y1, x2, y2) {
-            const startX = Math.min(x1, x2);
-            const endX = Math.max(x1, x2);
-            const startY = Math.min(y1, y2);
-            const endY = Math.max(y1, y2);
-
-            ctx.fillStyle = currentColor;
-            ctx.fillRect(startX, startY, endX - startX + 1, endY - startY + 1);
-        }
-
-        function updateStatus() {
-            let text = "Režim: ";
-            if (mode === 'draw') text += "Kreslení (" + (currentColor === '#ff8c00' ? "Oranžová" : "Zelená") + ")";
-            else if (mode === 'eraser') text += "Guma";
-            else if (mode === 'fill') text += "Vyplňování (Čekám na kliknutí)";
-            statusDiv.innerText = text;
-        }
-
-        canvas.addEventListener('mousedown', (e) => {
-            if (mode !== 'fill') isDrawing = true;
-            handlePointer(e);
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            if (isDrawing && mode !== 'fill') handlePointer(e);
-        });
-
+        // Události myši
+        canvas.addEventListener('mousedown', (e) => { if(mode!=='fill') isDrawing = true; handleInput(e); });
+        canvas.addEventListener('mousemove', (e) => { if(isDrawing) handleInput(e); });
         window.addEventListener('mouseup', () => isDrawing = false);
 
+        // Události dotyku (pro mobily)
+        canvas.addEventListener('touchstart', (e) => { if(mode!=='fill') isDrawing = true; handleInput(e); e.preventDefault(); }, {passive: false});
+        canvas.addEventListener('touchmove', (e) => { if(isDrawing) handleInput(e); e.preventDefault(); }, {passive: false});
+        canvas.addEventListener('touchend', () => isDrawing = false);
+
         function clearCanvas() {
-            if(confirm("Smazat vše?")) {
+            if(confirm("Opravdu smazat?")) {
                 ctx.fillStyle = "#000000";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
@@ -249,7 +245,7 @@
 
         function download() {
             const link = document.createElement('a');
-            link.download = `buse-panel-${Date.now()}.png`;
+            link.download = `buse-panel.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
         }
