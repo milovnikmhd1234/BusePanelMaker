@@ -3,20 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BUSE Panel Maker v6</title>
+    <title>BUSE Panel Maker Pro - Petr's Plays CZ</title>
     <style>
         :root {
             --orange: #ff8c00;
             --green: #4caf50;
             --blue: #2196f3;
-            --dark-bg: #121212;
-            --panel-bg: #222;
+            --purple: #9c27b0;
+            --dark-bg: #0f0f0f;
+            --panel-bg: #1e1e1e;
+            --border-color: #3d3d3d;
+            --text-main: #e0e0e0;
         }
 
+        /* Základní rozvržení */
         body { 
-            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
             background: var(--dark-bg); 
-            color: white; 
+            color: var(--text-main); 
             margin: 0; 
             display: flex; 
             flex-direction: column; 
@@ -24,294 +28,451 @@
             overflow: hidden;
         }
 
-        /* Horní ovládací panel */
-        .toolbar {
+        /* Horní Toolbar */
+        .header-toolbar {
             background: var(--panel-bg);
-            padding: 15px;
-            border-bottom: 2px solid #444;
+            padding: 10px 20px;
+            border-bottom: 2px solid var(--border-color);
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 20px;
             justify-content: center;
-            align-items: flex-end;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
             z-index: 100;
         }
 
-        .tool-group { display: flex; flex-direction: column; gap: 5px; }
-        .tool-group label { font-size: 11px; text-transform: uppercase; color: #888; font-weight: bold; }
+        .control-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
-        input[type="number"], input[type="range"] {
-            background: #111;
-            border: 1px solid #555;
+        .control-section label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #888;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* Styly vstupů */
+        input[type="number"] {
+            background: #000;
+            border: 1px solid var(--border-color);
             color: var(--orange);
             padding: 8px;
             border-radius: 4px;
-            width: 80px;
+            width: 75px;
             font-weight: bold;
+            outline: none;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--orange);
+        }
+
+        input[type="range"] {
+            width: 100px;
+            cursor: pointer;
         }
 
         /* Tlačítka */
-        button { 
-            padding: 10px 15px; 
-            cursor: pointer; 
-            border: none; 
-            border-radius: 6px; 
-            font-weight: bold; 
-            transition: 0.2s;
-            color: white;
-            background: #444;
+        .btn-group {
             display: flex;
-            align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
 
-        .btn-ora { background: var(--orange); color: black; }
-        .btn-gre { background: var(--green); color: black; }
-        .btn-fill { background: #673ab7; }
-        .btn-save { background: var(--blue); }
-        .btn-delete { background: #f44336; }
-        
-        button:hover { opacity: 0.8; transform: translateY(-1px); }
-        button.active { outline: 3px solid white; box-shadow: 0 0 10px rgba(255,255,255,0.3); }
-
-        /* Hlavní pracovní plocha s posuvem */
-        .viewport {
-            flex: 1;
-            overflow: auto; /* Tady probíhá ten swipe pro dlouhé panely */
-            padding: 40px;
-            background: #1a1a1a;
+        button { 
+            padding: 10px 14px; 
+            cursor: pointer; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 6px; 
+            font-weight: 700; 
+            font-size: 13px;
+            transition: all 0.2s ease;
+            color: white;
+            background: #333;
             display: flex;
-            justify-content: flex-start;
-            align-items: flex-start;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-width: 44px;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .btn-orange { background: var(--orange); color: #000; border: none; }
+        .btn-green { background: var(--green); color: #000; border: none; }
+        .btn-fill { background: var(--purple); }
+        .btn-save { background: var(--blue); }
+        .btn-delete { background: #d32f2f; }
+        .btn-move { background: #555; }
+
+        button.active { 
+            outline: 3px solid white; 
+            outline-offset: -1px;
+            box-shadow: 0 0 15px rgba(255,255,255,0.2);
+        }
+
+        /* Pracovní plocha */
+        .main-viewport {
+            flex: 1;
+            overflow: auto; 
+            padding: 60px;
+            background: radial-gradient(circle, #252525 0%, #0f0f0f 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
             -webkit-overflow-scrolling: touch;
         }
 
-        .canvas-container {
+        /* Obal plátna */
+        .canvas-wrapper {
+            position: relative;
             background: #000;
-            border: 2px solid #555;
+            border: 4px solid var(--border-color);
             line-height: 0;
-            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+            box-shadow: 0 0 50px rgba(0,0,0,0.9);
+            transition: border-color 0.3s;
+        }
+
+        .canvas-wrapper.move-active {
+            border-color: var(--blue);
+            cursor: grab;
+        }
+
+        .canvas-wrapper.move-active:active {
+            cursor: grabbing;
         }
 
         canvas { 
             image-rendering: pixelated; 
             background-image:
-                linear-gradient(to right, #222 1px, transparent 1px),
-                linear-gradient(to bottom, #222 1px, transparent 1px);
-            touch-action: none; /* Prst na plátně kreslí, prst mimo plátno posouvá */
+                linear-gradient(to right, #1a1a1a 1px, transparent 1px),
+                linear-gradient(to bottom, #1a1a1a 1px, transparent 1px);
+            touch-action: none; /* Řízeno skriptem */
         }
 
-        .status-bar {
+        /* Spodní lišta */
+        .footer-info {
             background: #000;
-            padding: 8px;
-            font-family: monospace;
-            font-size: 13px;
+            padding: 10px 20px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
             color: var(--orange);
-            text-align: center;
-            border-top: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid var(--border-color);
+            z-index: 100;
         }
 
-        .hint { color: #666; font-size: 11px; }
+        .hint-text {
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Overlay pro indikaci vyplňování */
+        #fillIndicator {
+            position: fixed;
+            pointer-events: none;
+            border: 2px dashed white;
+            display: none;
+            z-index: 50;
+        }
     </style>
 </head>
 <body>
 
-<div class="toolbar">
+<div class="header-toolbar">
     <!-- Rozměry -->
-    <div class="tool-group">
+    <div class="control-section">
         <label>Vodorovně (Šířka)</label>
-        <input type="number" id="wIn" value="120" oninput="resizeCanvas()">
+        <div class="input-row">
+            <input type="number" id="inputWidth" value="120" min="1" max="500" oninput="handleResize()">
+        </div>
     </div>
-    <div class="tool-group">
+    
+    <div class="control-section">
         <label>Svisle (Výška)</label>
-        <input type="number" id="hIn" value="20" oninput="resizeCanvas()">
+        <div class="input-row">
+            <input type="number" id="inputHeight" value="20" min="1" max="200" oninput="handleResize()">
+        </div>
     </div>
-    <div class="tool-group">
-        <label>Zoom (Lupa)</label>
-        <input type="range" id="zIn" min="5" max="50" value="15" oninput="updateZoom()">
+
+    <!-- Zoom -->
+    <div class="control-section">
+        <label>Přiblížení (Zoom)</label>
+        <div class="input-row">
+            <input type="range" id="inputZoom" min="2" max="60" value="15" oninput="applyZoom()">
+        </div>
     </div>
 
     <!-- Barvy -->
-    <div class="tool-group">
-        <label>Barva diod</label>
-        <div style="display:flex; gap:5px;">
-            <button id="bOra" class="btn-ora active" onclick="setMode('#ff8c00')">Oranžová</button>
-            <button id="bGre" class="btn-gre" onclick="setMode('#4caf50')">Zelená</button>
+    <div class="control-section">
+        <label>Dioda</label>
+        <div class="btn-group">
+            <button id="modeOra" class="btn-orange active" onclick="changeTool('#ff8c00')">ORA</button>
+            <button id="modeGre" class="btn-green" onclick="changeTool('#4caf50')">ZEL</button>
         </div>
     </div>
 
-    <!-- Funkce -->
-    <div class="tool-group">
+    <!-- Nástroje -->
+    <div class="control-section">
         <label>Nástroje</label>
-        <div style="display:flex; gap:5px;">
-            <button id="bFill" class="btn-fill" onclick="setMode('fill')">Vyplnit oblast</button>
-            <button id="bErase" onclick="setMode('erase')">Guma 🧽</button>
+        <div class="btn-group">
+            <button id="modeFill" class="btn-fill" onclick="changeTool('fill')">VYPLNIT</button>
+            <button id="modeErase" onclick="changeTool('erase')">GUMA</button>
+            <button id="modeMove" class="btn-move" onclick="toggleMoveMode()">POHYB ✋</button>
         </div>
     </div>
 
-    <!-- Export -->
-    <div class="tool-group">
-        <label>Akce</label>
-        <div style="display:flex; gap:5px;">
-            <button class="btn-delete" onclick="clearCanvas()">Vymazat vše 🗑️</button>
-            <button class="btn-save" onclick="download()">Uložit PNG 💾</button>
+    <!-- Akce -->
+    <div class="control-section">
+        <label>Soubor</label>
+        <div class="btn-group">
+            <button class="btn-delete" onclick="clearAll()">SMAZAT</button>
+            <button class="btn-save" onclick="exportImage()">ULOŽIT PNG</button>
         </div>
     </div>
 </div>
 
-<div class="viewport">
-    <div class="canvas-container">
-        <canvas id="mainCanvas"></canvas>
+<div class="main-viewport" id="viewport">
+    <div class="canvas-wrapper" id="wrapper">
+        <canvas id="buseCanvas"></canvas>
     </div>
 </div>
 
-<div class="status-bar" id="stat">
-    Režim: Kreslení (Oranžová) | Rozlišení: 120x20
+<div id="fillIndicator"></div>
+
+<div class="footer-info">
+    <div id="statusMsg">REŽIM: KRESLENÍ (ORANŽOVÁ)</div>
+    <div id="resDisplay">ROZLIŠENÍ: 120 x 20 PX</div>
+    <div class="hint-text">BUSE Panel Maker v7.0 | Petr's Plays CZ</div>
 </div>
 
 <script>
-    const canvas = document.getElementById('mainCanvas');
+    /**
+     * KONFIGURACE A PROMĚNNÉ
+     */
+    const canvas = document.getElementById('buseCanvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    const stat = document.getElementById('stat');
+    const wrapper = document.getElementById('wrapper');
+    const statusMsg = document.getElementById('statusMsg');
+    const resDisplay = document.getElementById('resDisplay');
+    const viewport = document.getElementById('viewport');
 
-    let currentColor = '#ff8c00';
-    let mode = 'draw'; // draw, erase, fill
-    let isDrawing = false;
-    let fillPoint1 = null;
+    let activeColor = '#ff8c00';
+    let activeTool = 'draw'; // draw, erase, fill
+    let isMoving = false; // Pro režim pohybu
+    let isPainting = false; // Pro kreslení
+    let firstFillPoint = null;
 
-    // Inicializace a změna velikosti bez ztráty dat
-    function resizeCanvas() {
-        const w = parseInt(document.getElementById('wIn').value) || 1;
-        const h = parseInt(document.getElementById('hIn').value) || 1;
+    /**
+     * INICIALIZACE A ROZMĚRY
+     */
+    function handleResize() {
+        const newW = parseInt(document.getElementById('inputWidth').value) || 1;
+        const newH = parseInt(document.getElementById('inputHeight').value) || 1;
         
-        // Záloha aktuální kresby
-        const tempImageData = ctx.getImageData(0, 0, canvas.width || 1, canvas.height || 1);
+        // Uchování dat před změnou velikosti
+        let backup = null;
+        if (canvas.width > 0 && canvas.height > 0) {
+            backup = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }
+
+        canvas.width = newW;
+        canvas.height = h = newH;
         
-        canvas.width = w;
-        canvas.height = h;
-        
-        // Vyplnění pozadí na černo
+        // Reset na černou
         ctx.fillStyle = "#000000";
-        ctx.fillRect(0, 0, w, h);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Navrácení dat
-        ctx.putImageData(tempImageData, 0, 0);
-        
-        updateZoom();
-        updateStatus();
+        // Obnova dat
+        if (backup) {
+            ctx.putImageData(backup, 0, 0);
+        }
+
+        applyZoom();
+        updateMetadata();
     }
 
-    function updateZoom() {
-        const z = document.getElementById('zIn').value;
+    function applyZoom() {
+        const z = document.getElementById('inputZoom').value;
         canvas.style.width = (canvas.width * z) + 'px';
         canvas.style.height = (canvas.height * z) + 'px';
         canvas.style.backgroundSize = `${z}px ${z}px`;
     }
 
-    function setMode(m) {
-        fillPoint1 = null;
-        if (m === 'erase') mode = 'erase';
-        else if (m === 'fill') mode = 'fill';
-        else {
-            mode = 'draw';
-            currentColor = m;
+    function updateMetadata() {
+        resDisplay.innerText = `ROZLIŠENÍ: ${canvas.width} x ${canvas.height} PX`;
+    }
+
+    /**
+     * LOGIKA NÁSTROJŮ
+     */
+    function changeTool(tool) {
+        // Vypneme režim pohybu, pokud byl zapnutý
+        isMoving = false;
+        canvas.style.touchAction = "none";
+        wrapper.classList.remove('move-active');
+
+        firstFillPoint = null;
+        if (tool === 'erase') {
+            activeTool = 'erase';
+        } else if (tool === 'fill') {
+            activeTool = 'fill';
+        } else {
+            activeTool = 'draw';
+            activeColor = tool;
         }
 
-        // UI tlačítka
-        document.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
-        if (mode === 'erase') document.getElementById('bErase').classList.add('active');
-        else if (mode === 'fill') document.getElementById('bFill').classList.add('active');
-        else if (currentColor === '#ff8c00') document.getElementById('bOra').classList.add('active');
-        else if (currentColor === '#4caf50') document.getElementById('bGre').classList.add('active');
+        updateUIButtons();
+    }
+
+    function toggleMoveMode() {
+        isMoving = !isMoving;
+        firstFillPoint = null;
         
-        updateStatus();
+        if (isMoving) {
+            canvas.style.touchAction = "auto"; // Povolí nativní scroll prohlížeče na canvasu
+            wrapper.classList.add('move-active');
+            statusMsg.innerText = "REŽIM: PROHLÍŽENÍ (POHYB PO PANELU)";
+        } else {
+            canvas.style.touchAction = "none";
+            wrapper.classList.remove('move-active');
+            updateUIButtons();
+        }
+        
+        document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        if (isMoving) document.getElementById('modeMove').classList.add('active');
+        else updateUIButtons();
     }
 
-    function updateStatus() {
-        let txt = `Rozlišení: ${canvas.width}x${canvas.height} | Režim: `;
-        if (mode === 'fill') txt += "VYPLŇOVÁNÍ (Klikni na 2 body)";
-        else if (mode === 'erase') txt += "GUMA";
-        else txt += "KRESLENÍ (" + (currentColor === '#ff8c00' ? "Oranžová" : "Zelená") + ")";
-        stat.innerText = txt;
+    function updateUIButtons() {
+        if (isMoving) return;
+
+        document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        
+        if (activeTool === 'erase') document.getElementById('modeErase').classList.add('active');
+        else if (activeTool === 'fill') document.getElementById('modeFill').classList.add('active');
+        else if (activeColor === '#ff8c00') document.getElementById('modeOra').classList.add('active');
+        else if (activeColor === '#4caf50') document.getElementById('modeGre').classList.add('active');
+
+        let toolName = activeTool.toUpperCase();
+        if (activeTool === 'draw') toolName = activeColor === '#ff8c00' ? "ORANŽOVÁ" : "ZELENÁ";
+        statusMsg.innerText = `REŽIM: ${toolName}`;
     }
 
-    function getMousePos(e) {
+    /**
+     * EVENTY - KRESLENÍ
+     */
+    function getCoords(e) {
         const rect = canvas.getBoundingClientRect();
-        const z = document.getElementById('zIn').value;
+        const zoom = document.getElementById('inputZoom').value;
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
         return {
-            x: Math.floor((clientX - rect.left) / z),
-            y: Math.floor((clientY - rect.top) / z)
+            x: Math.floor((clientX - rect.left) / zoom),
+            y: Math.floor((clientY - rect.top) / zoom)
         };
     }
 
-    function draw(e) {
-        const pos = getMousePos(e);
+    function processAction(e) {
+        if (isMoving) return; // V režimu pohybu nekreslíme
+
+        const pos = getCoords(e);
         if (pos.x < 0 || pos.x >= canvas.width || pos.y < 0 || pos.y >= canvas.height) return;
 
-        if (mode === 'fill') {
+        if (activeTool === 'fill') {
             if (e.type === 'mousedown' || e.type === 'touchstart') {
-                if (!fillPoint1) {
-                    fillPoint1 = pos;
-                    stat.innerText = "Bod 1 nastaven. Klikni na protější roh.";
+                if (!firstFillPoint) {
+                    firstFillPoint = pos;
+                    statusMsg.innerText = "BOD 1: [" + pos.x + "," + pos.y + "] - KLIKNI NA DRUHÝ ROH";
                 } else {
-                    const xStart = Math.min(fillPoint1.x, pos.x);
-                    const yStart = Math.min(fillPoint1.y, pos.y);
-                    const w = Math.abs(fillPoint1.x - pos.x) + 1;
-                    const h = Math.abs(fillPoint1.y - pos.y) + 1;
-                    ctx.fillStyle = currentColor;
-                    ctx.fillRect(xStart, yStart, w, h);
-                    fillPoint1 = null;
-                    updateStatus();
+                    const x1 = Math.min(firstFillPoint.x, pos.x);
+                    const y1 = Math.min(firstFillPoint.y, pos.y);
+                    const w = Math.abs(firstFillPoint.x - pos.x) + 1;
+                    const h = Math.abs(firstFillPoint.y - pos.y) + 1;
+                    
+                    ctx.fillStyle = activeColor;
+                    ctx.fillRect(x1, y1, w, h);
+                    firstFillPoint = null;
+                    updateUIButtons();
                 }
             }
         } else {
-            ctx.fillStyle = (mode === 'erase') ? "#000000" : currentColor;
+            ctx.fillStyle = (activeTool === 'erase') ? "#000000" : activeColor;
             ctx.fillRect(pos.x, pos.y, 1, 1);
         }
     }
 
-    // Eventy pro PC i Mobil
-    canvas.addEventListener('mousedown', (e) => { if(mode!=='fill') isDrawing = true; draw(e); });
-    canvas.addEventListener('mousemove', (e) => { if(isDrawing) draw(e); });
-    window.addEventListener('mouseup', () => isDrawing = false);
+    // Myš
+    canvas.addEventListener('mousedown', (e) => {
+        if (!isMoving && activeTool !== 'fill') isPainting = true;
+        processAction(e);
+    });
 
-    canvas.addEventListener('touchstart', (e) => { 
-        if(e.touches.length === 1) {
-            if(mode!=='fill') isDrawing = true; 
-            draw(e); 
-            e.preventDefault(); 
+    window.addEventListener('mousemove', (e) => {
+        if (isPainting) processAction(e);
+    });
+
+    window.addEventListener('mouseup', () => {
+        isPainting = false;
+    });
+
+    // Dotyk
+    canvas.addEventListener('touchstart', (e) => {
+        if (isMoving) return; // Necháme prohlížeč scrollovat
+        if (e.touches.length === 1) {
+            if (activeTool !== 'fill') isPainting = true;
+            processAction(e);
+            e.preventDefault();
         }
-    }, {passive: false});
+    }, { passive: false });
 
-    canvas.addEventListener('touchmove', (e) => { 
-        if(isDrawing && e.touches.length === 1) { 
-            draw(e); 
-            e.preventDefault(); 
+    canvas.addEventListener('touchmove', (e) => {
+        if (isPainting && !isMoving) {
+            processAction(e);
+            e.preventDefault();
         }
-    }, {passive: false});
+    }, { passive: false });
 
-    window.addEventListener('touchend', () => isDrawing = false);
+    canvas.addEventListener('touchend', () => {
+        isPainting = false;
+    });
 
-    function clearCanvas() {
-        if(confirm("Opravdu vymazat celý panel?")) {
+    /**
+     * POMOCNÉ FUNKCE
+     */
+    function clearAll() {
+        if (confirm("OPRAVDU SMAZAT CELOU PLOCHU?")) {
             ctx.fillStyle = "#000000";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            firstFillPoint = null;
         }
     }
 
-    function download() {
+    function exportImage() {
         const link = document.createElement('a');
-        link.download = `buse-panel-${canvas.width}x${canvas.height}.png`;
+        const timestamp = new Date().getTime();
+        link.download = `buse_export_${timestamp}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
     }
 
-    // První start
-    resizeCanvas();
-</script>
+    // Spuštění aplikace
+    window.onload = handleResize;
 
+</script>
 </body>
 </html>
