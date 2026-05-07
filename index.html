@@ -3,123 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Petr's Plays CZ - Pixel Editor</title>
+    <title>BUSE Panel Maker</title>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .controls { background: #333; padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; align-items: center; }
-        .canvas-container { background: #fff; line-height: 0; box-shadow: 0 0 20px rgba(0,0,0,0.5); cursor: crosshair; border: 2px solid #555; }
-        canvas { image-rendering: pixelated; max-width: 100%; height: auto; }
-        button { padding: 10px 15px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; transition: 0.2s; }
-        .btn-orange { background: #ff8c00; color: white; }
-        .btn-green { background: #4caf50; color: white; }
-        .btn-delete { background: #f44336; color: white; }
-        .btn-download { background: #2196f3; color: white; }
-        button:hover { opacity: 0.8; transform: scale(1.05); }
-        button.active { outline: 3px solid white; }
-        input { padding: 8px; width: 60px; border-radius: 5px; border: none; }
-        label { font-size: 0.9em; font-weight: bold; }
+        :root {
+            --orange: #ff8c00;
+            --green: #4caf50;
+            --dark-bg: #121212;
+            --panel-bg: #222;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--dark-bg); 
+            color: white; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 { color: var(--orange); letter-spacing: 2px; margin-bottom: 5px; }
+        p { color: #888; margin-bottom: 20px; }
+
+        .toolbar { 
+            background: var(--panel-bg); 
+            padding: 20px; 
+            border-radius: 12px; 
+            display: flex; 
+            gap: 20px; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            align-items: center;
+            border: 1px solid #444;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+
+        .tool-group { display: flex; flex-direction: column; gap: 8px; }
+        .tool-group label { font-size: 12px; text-transform: uppercase; color: #aaa; font-weight: bold; }
+
+        .canvas-area {
+            position: relative;
+            background: #000;
+            padding: 2px;
+            border: 2px solid #555;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            overflow: auto;
+            max-width: 95vw;
+        }
+
+        /* Mřížka implementovaná přes CSS background */
+        canvas { 
+            image-rendering: pixelated; 
+            display: block;
+            background-size: 20px 20px;
+            background-image:
+                linear-gradient(to right, #333 1px, transparent 1px),
+                linear-gradient(to bottom, #333 1px, transparent 1px);
+        }
+
+        button { 
+            padding: 10px 18px; 
+            cursor: pointer; 
+            border: none; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="number"] {
+            background: #333;
+            border: 1px solid #555;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            width: 60px;
+        }
+
+        .btn-orange { background: var(--orange); color: black; }
+        .btn-green { background: var(--green); color: black; }
+        .btn-eraser { background: #444; color: white; }
+        .btn-clear { background: #f44336; color: white; }
+        .btn-save { background: #2196f3; color: white; }
+
+        button:hover { transform: translateY(-2px); filter: brightness(1.2); }
+        button.active { ring: 3px solid white; outline: 3px solid white; }
+
+        .status-bar { margin-top: 15px; font-size: 14px; color: #666; }
     </style>
 </head>
 <body>
 
-    <h2>🎨 Petr's Plays CZ: Pixel Art Tool</h2>
+    <h1>BUSE PANEL MAKER</h1>
+    <p>Nástroj pro tvorbu digitálních cílů pro MHD</p>
 
-    <div class="controls">
-        <!-- Rozlišení -->
-        <div>
-            <label>Šířka:</label>
-            <input type="number" id="widthInput" value="16" min="1" max="100">
-            <label>Výška:</label>
-            <input type="number" id="heightInput" value="16" min="1" max="100">
-            <button onclick="initCanvas()" class="btn-green">Nastavit plochu</button>
+    <div class="toolbar">
+        <!-- Rozměry -->
+        <div class="tool-group">
+            <label>Rozměry (px)</label>
+            <div style="display:flex; gap:5px;">
+                <input type="number" id="widthInput" value="90" title="Šířka">
+                <input type="number" id="heightInput" value="20" title="Výška">
+                <button onclick="initCanvas()" class="btn-green" style="padding: 8px;">OK</button>
+            </div>
         </div>
 
-        <hr style="width:100%; border: 0.5px solid #444;">
-
-        <!-- Barvy a nástroje -->
-        <button id="colorOrange" class="btn-orange active" onclick="setTool('#ff8c00')">Oranžová</button>
-        <button id="colorGreen" class="btn-green" onclick="setTool('#4caf50')">Zelená</button>
-        <button id="eraser" style="background: #eee; color: #333;" onclick="setTool('eraser')">Guma 🧽</button>
+        <!-- Barvy -->
+        <div class="tool-group">
+            <label>Barva diod</label>
+            <div style="display:flex; gap:10px;">
+                <button id="colorOrange" class="btn-orange active" onclick="setTool('#ff8c00')">Oranžová</button>
+                <button id="colorGreen" class="btn-green" onclick="setTool('#4caf50')">Zelená</button>
+                <button id="eraser" class="btn-eraser" onclick="setTool('eraser')">Guma</button>
+            </div>
+        </div>
         
         <!-- Akce -->
-        <button class="btn-delete" onclick="clearCanvas()">Vymazat vše 🗑️</button>
-        <button class="btn-download" onclick="download('png')">Stáhnout PNG</button>
-        <button class="btn-download" onclick="download('jpg')">Stáhnout JPG</button>
+        <div class="tool-group">
+            <label>Soubor</label>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-clear" onclick="clearCanvas()">Smazat</button>
+                <button class="btn-save" onclick="download('png')">Export PNG</button>
+            </div>
+        </div>
     </div>
 
-    <div class="canvas-container">
+    <div class="canvas-area">
         <canvas id="pixelCanvas"></canvas>
     </div>
+
+    <div class="status-bar" id="status">Rozlišení: 90x20 | Nástroj: Oranžová</div>
 
     <script>
         const canvas = document.getElementById('pixelCanvas');
         const ctx = canvas.getContext('2d');
+        const status = document.getElementById('status');
         let currentColor = '#ff8c00';
         let isEraser = false;
         let isDrawing = false;
+        let zoom = 15; // Velikost jednoho pixelu na obrazovce
 
-        // Inicializace plochy
         function initCanvas() {
-            const w = document.getElementById('widthInput').value;
-            const h = document.getElementById('heightInput').value;
+            const w = parseInt(document.getElementById('widthInput').value);
+            const h = parseInt(document.getElementById('heightInput').value);
+            
             canvas.width = w;
             canvas.height = h;
             
-            // Zvětšení zobrazení (zoom), aby to nebylo malinké
-            canvas.style.width = (w * 20) + 'px'; 
+            // Nastavení mřížky a zobrazení
+            canvas.style.width = (w * zoom) + 'px';
+            canvas.style.height = (h * zoom) + 'px';
+            canvas.style.backgroundSize = `${zoom}px ${zoom}px`;
             
-            // Vyčištění na bílo (kvůli JPG)
-            ctx.fillStyle = "#ffffff";
+            // Pozadí na černo (typické pro BUSE)
+            ctx.fillStyle = "#000000";
             ctx.fillRect(0, 0, w, h);
+            updateStatus();
         }
 
-        // Nastavení nástroje
         function setTool(tool) {
             isEraser = (tool === 'eraser');
             if (!isEraser) currentColor = tool;
             
-            // Vizuální zpětná vazba tlačítek
-            document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
             if (isEraser) document.getElementById('eraser').classList.add('active');
             else if (currentColor === '#ff8c00') document.getElementById('colorOrange').classList.add('active');
             else if (currentColor === '#4caf50') document.getElementById('colorGreen').classList.add('active');
+            updateStatus();
         }
 
-        // Kreslení "teček" (pixelů)
         function draw(e) {
             if (!isDrawing) return;
             
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const x = Math.floor((e.clientX - rect.left) * scaleX);
-            const y = Math.floor((e.clientY - rect.top) * scaleY);
+            const x = Math.floor((e.clientX - rect.left) / zoom);
+            const y = Math.floor((e.clientY - rect.top) / zoom);
 
-            ctx.fillStyle = isEraser ? "#ffffff" : currentColor;
-            ctx.fillRect(x, y, 1, 1);
+            if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
+                ctx.fillStyle = isEraser ? "#000000" : currentColor;
+                ctx.fillRect(x, y, 1, 1);
+            }
+        }
+
+        function updateStatus() {
+            const toolName = isEraser ? "Guma" : (currentColor === '#ff8c00' ? "Oranžová" : "Zelená");
+            status.innerText = `Rozlišení: ${canvas.width}x${canvas.height} | Nástroj: ${toolName}`;
         }
 
         canvas.addEventListener('mousedown', (e) => { isDrawing = true; draw(e); });
         canvas.addEventListener('mousemove', draw);
         window.addEventListener('mouseup', () => isDrawing = false);
 
-        // Vymazat plochu
         function clearCanvas() {
-            if(confirm("Opravdu vymazat celý obrázek?")) {
-                ctx.fillStyle = "#ffffff";
+            if(confirm("Vymazat celý panel?")) {
+                ctx.fillStyle = "#000000";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
         }
 
-        // Stahování
         function download(format) {
             const link = document.createElement('a');
-            link.download = `pixel-art.${format}`;
-            link.href = canvas.toDataURL(`image/${format === 'jpg' ? 'jpeg' : 'png'}`);
+            link.download = `buse-panel.${format}`;
+            link.href = canvas.toDataURL('image/png');
             link.click();
         }
 
-        // První spuštění
+        // Start
         initCanvas();
     </script>
 </body>
