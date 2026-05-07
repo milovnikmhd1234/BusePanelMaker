@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SIMT Panel Editor</title>
+    <style>
+        :root {
+            --bg: #1a1a1a;
+            --panel: #333;
+            --accent: #4CAF50;
+        }
+        body { 
+            background: var(--bg); 
+            color: white; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        h2 { margin-bottom: 10px; font-weight: 300; color: #aaa; }
+        
+        /* Styl kontejneru pro plátno */
+        .canvas-container {
+            background: #000;
+            padding: 10px;
+            border: 5px solid var(--panel);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        canvas { 
+            display: block;
+            background: black; 
+            image-rendering: pixelated; /* Důležité: udrží ostré pixely */
+            cursor: crosshair; 
+            touch-action: none; 
+            width: 320px; /* Zvětšeno pro pohodlné kreslení na mobilu */
+            height: auto;
+        }
+
+        .controls { 
+            margin-top: 20px; 
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 320px;
+        }
+
+        button { 
+            padding: 15px; 
+            font-size: 14px; 
+            font-weight: bold;
+            cursor: pointer; 
+            background: var(--panel); 
+            color: white; 
+            border: none; 
+            border-radius: 5px;
+            transition: 0.2s;
+        }
+
+        button.save { background: var(--accent); grid-column: span 2; font-size: 18px; }
+        button.clear { background: #f44336; }
+        button.color { border: 2px solid transparent; }
+        button.active { border-color: white; transform: scale(1.05); }
+
+        .info { margin-top: 15px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <h2>SIMT Panel (28x19)</h2>
+    
+    <div class="canvas-container">
+        <canvas id="panelCanvas" width="28" height="19"></canvas>
+    </div>
+
+    <div class="controls">
+        <button id="greenBtn" class="color active" style="background: #00FF00; color: black;" onclick="setColor('#00FF00', this)">ZELENÁ</button>
+        <button id="orangeBtn" class="color" style="background: #FF9800; color: black;" onclick="setColor('#FF9800', this)">ORANŽOVÁ</button>
+        <button class="clear" onclick="clearCanvas()">VYMAZAT</button>
+        <button style="background: #555;" onclick="erase()">GUMA</button>
+        <button class="save" onclick="downloadImage()">STÁHNOUT .JPG</button>
+    </div>
+
+    <p class="info">Rozlišení: 28x19 px | Vhodné pro SIMT MHD</p>
+
+    <script>
+        const canvas = document.getElementById('panelCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let currentColor = "#00FF00";
+
+        // Vyplnit černou barvou hned na začátku
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        function setColor(color, btn) {
+            currentColor = color;
+            document.querySelectorAll('.color').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function erase() {
+            currentColor = "black";
+            document.querySelectorAll('.color').forEach(b => b.classList.remove('active'));
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            const x = Math.floor((clientX - rect.left) / (rect.width / canvas.width));
+            const y = Math.floor((clientY - rect.top) / (rect.height / canvas.height));
+
+            if (x >= 0 && x < 28 && y >= 0 && y < 19) {
+                ctx.fillStyle = currentColor;
+                ctx.fillRect(x, y, 1, 1);
+            }
+        }
+
+        canvas.addEventListener('mousedown', () => isDrawing = true);
+        canvas.addEventListener('touchstart', (e) => { isDrawing = true; draw(e); });
+        window.addEventListener('mouseup', () => isDrawing = false);
+        window.addEventListener('touchend', () => isDrawing = false);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, { passive: false });
+
+        function clearCanvas() {
+            if(confirm("Opravdu vymazat celý panel?")) {
+                ctx.fillStyle = "black";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            const date = new Date().getTime();
+            link.download = `panel_${date}.jpg`;
+            // Export do JPG s maximální kvalitou
+            link.href = canvas.toDataURL('image/jpeg', 1.0);
+            link.click();
+        }
+    </script>
+</body>
+</html>
