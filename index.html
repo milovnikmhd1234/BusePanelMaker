@@ -3,444 +3,814 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BUSE Panel Maker Professional v11</title>
+    <title>BUSE Maker Enterprise v12 - Petr's Plays CZ Edition</title>
+    
     <style>
-        /* --- KRESEBNÝ DESIGN SYSTÉM --- */
+        /* ========================================
+           1. DESIGN SYSTÉM A PROMĚNNÉ
+           ========================================
+        */
         :root {
-            --ora: #ff8c00;
-            --gre: #4caf50;
-            --blu: #2196f3;
-            --pur: #9c27b0;
-            --red: #f44336;
-            --bg: #0a0a0a;
-            --ui: #1a1a1a;
-            --brd: #333;
-            --txt: #eee;
+            --buse-orange: #ff8c00;
+            --buse-green: #4caf50;
+            --buse-bg-dot: #1a1a1a;
+            --danger: #ff4444;
+            --success: #00c851;
+            --info: #33b5e5;
+            --ui-dark: #121212;
+            --ui-light: #1e1e1e;
+            --border-clr: #333333;
+            --text-main: #f0f0f0;
+            --text-muted: #888888;
+            --shadow: 0 10px 30px rgba(0,0,0,0.5);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
-            background: var(--bg); 
-            color: var(--txt); 
-            margin: 0; 
-            display: flex; 
-            flex-direction: column; 
+        /* ========================================
+           2. GLOBÁLNÍ RESETY A SCROLLBAR
+           ========================================
+        */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--ui-dark);
+            color: var(--text-main);
             height: 100vh;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
         }
 
-        /* --- TOOLBAR (HORNÍ LIŠTA) --- */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #050505;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #252525;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #333;
+        }
+
+        /* ========================================
+           3. TOOLBAR (HORNÍ LIŠTA)
+           ========================================
+        */
         header {
-            background: var(--ui);
-            border-bottom: 2px solid var(--brd);
-            padding: 12px 15px;
+            background: var(--ui-light);
+            border-bottom: 2px solid var(--border-clr);
+            padding: 15px 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.8);
+        }
+
+        .tool-section {
             display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tool-section label {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
-            z-index: 100;
         }
 
-        .tool-box { display: flex; flex-direction: column; gap: 4px; }
-        .tool-box label { font-size: 9px; font-weight: 800; color: #777; text-transform: uppercase; letter-spacing: 1px; }
-
+        /* Vstupy */
         input[type="number"] {
-            background: #000; border: 1px solid var(--brd); color: var(--ora);
-            padding: 8px; border-radius: 6px; width: 70px; font-weight: bold; font-family: monospace;
+            background: #000;
+            border: 1px solid var(--border-clr);
+            color: var(--buse-orange);
+            padding: 10px;
+            border-radius: 8px;
+            width: 80px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+            font-size: 14px;
+            transition: var(--transition);
         }
 
-        input[type="range"] { width: 100px; accent-color: var(--ora); }
+        input[type="number"]:focus {
+            border-color: var(--buse-orange);
+            outline: none;
+            box-shadow: 0 0 10px rgba(255, 140, 0, 0.2);
+        }
 
-        .btn-row { display: flex; gap: 5px; }
-        
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--buse-orange);
+        }
+
+        /* ========================================
+           4. TLAČÍTKA A STYLY NÁSTROJŮ
+           ========================================
+        */
+        .btn-flex {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
         button {
-            padding: 10px 14px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.05);
-            font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s;
-            background: #2a2a2a; color: #fff; display: flex; align-items: center; gap: 6px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.05);
+            background: #2a2a2a;
+            color: white;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
-        button:active { transform: scale(0.92); }
-        button:hover { background: #333; border-color: #555; }
+        button:hover {
+            background: #353535;
+            border-color: #444;
+            transform: translateY(-2px);
+        }
 
-        .btn-ora { background: var(--ora); color: #000; }
-        .btn-gre { background: var(--gre); color: #000; }
-        .btn-fill { background: var(--pur); }
-        .btn-move { background: var(--blu); }
-        .btn-undo { background: #444; }
+        button:active {
+            transform: translateY(1px) scale(0.95);
+        }
+
+        button.active {
+            outline: 3px solid white;
+            outline-offset: -1px;
+            background: #444;
+            box-shadow: 0 0 20px rgba(255,255,255,0.15);
+        }
+
+        /* Barevná tlačítka */
+        .btn-ora { background: var(--buse-orange); color: #000; border: none; }
+        .btn-gre { background: var(--buse-green); color: #000; border: none; }
+        .btn-fill { background: var(--pur); color: white; background: #6a1b9a; }
+        .btn-move { background: #0277bd; }
+        .btn-erase { background: #424242; color: white; }
+        .btn-undo { background: #37474f; }
         .btn-save { background: #2e7d32; }
-        .btn-help { background: transparent; border: 1px solid var(--ora); color: var(--ora); }
+        .btn-danger { background: #c62828; }
+        .btn-help { background: transparent; border: 1.5px solid var(--buse-orange); color: var(--buse-orange); }
 
-        button.active { 
-            outline: 3px solid #fff; 
-            outline-offset: -1px; 
-            box-shadow: 0 0 15px rgba(255,255,255,0.2); 
-        }
-
-        /* --- PRACOVNÍ PLOCHA --- */
+        /* ========================================
+           5. HLAVNÍ VIEWPORT A CANVAS
+           ========================================
+        */
         main {
             flex: 1;
             overflow: auto;
-            background: radial-gradient(circle, #1a1a1a 0%, #050505 100%);
+            background: 
+                radial-gradient(circle at 50% 50%, #1a1a1a 0%, #050505 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 100px;
-            -webkit-overflow-scrolling: touch;
+            padding: 150px;
             position: relative;
+            scrollbar-gutter: stable;
         }
 
-        .canvas-container {
+        #viewport-wrapper {
             position: relative;
             background: #000;
-            border: 6px solid #222;
-            box-shadow: 0 0 60px rgba(0,0,0,1);
+            border: 10px solid #222;
+            border-radius: 4px;
+            box-shadow: 0 30px 100px rgba(0,0,0,0.9);
             line-height: 0;
+            transition: border-color 0.4s;
         }
 
-        canvas { 
-            image-rendering: pixelated; 
-            touch-action: none; 
+        canvas {
+            image-rendering: pixelated;
+            touch-action: none;
             cursor: crosshair;
         }
 
-        .view-mode { cursor: grab !important; }
-        .view-mode canvas { touch-action: auto !important; }
+        .nav-active { cursor: grab !important; }
+        .nav-active canvas { touch-action: auto !important; }
 
-        /* --- MODÁLNÍ OKNO NÁPOVĚDY --- */
-        #help-modal {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #151515; border: 2px solid var(--ora); padding: 25px;
-            border-radius: 15px; z-index: 1000; display: none; width: 90%; max-width: 450px;
-            box-shadow: 0 0 150px rgba(0,0,0,1);
+        /* ========================================
+           6. MODÁLNÍ OKNA (NÁPOVĚDA / TOASTY)
+           ========================================
+        */
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: #181818;
+            border: 1px solid var(--border-clr);
+            padding: 30px;
+            border-radius: 20px;
+            z-index: 2000;
+            display: none;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 0 200px rgba(0,0,0,1);
+            opacity: 0;
+            transition: var(--transition);
         }
 
-        #help-modal h2 { color: var(--ora); margin-top: 0; font-size: 20px; }
-        #help-modal p { font-size: 14px; line-height: 1.5; color: #ccc; }
-        
-        .size-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;
+        .modal.open {
+            display: block;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
         }
 
-        .size-item {
-            background: #222; padding: 10px; border-radius: 8px; border: 1px solid #333;
-            cursor: pointer; text-align: center; transition: 0.2s;
+        .modal h2 {
+            color: var(--buse-orange);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .size-item:hover { background: #282828; border-color: var(--ora); }
-        .size-item b { display: block; color: var(--ora); font-size: 16px; }
-        .size-item span { font-size: 11px; color: #777; }
-
-        .close-help {
-            width: 100%; margin-top: 10px; background: var(--ora); color: #000;
-            justify-content: center; padding: 12px;
+        .modal p {
+            color: #aaa;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 14px;
         }
 
-        /* --- STATISTIKY (FOOTER) --- */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .preset-card {
+            background: #222;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .preset-card:hover {
+            border-color: var(--buse-orange);
+            background: #282828;
+        }
+
+        .preset-card b {
+            display: block;
+            font-size: 18px;
+            color: var(--buse-orange);
+            margin-bottom: 4px;
+        }
+
+        .preset-card span {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        /* ========================================
+           7. FOOTER (STAVOVÝ ŘÁDEK)
+           ========================================
+        */
         footer {
-            background: #000; padding: 10px 20px; border-top: 1px solid var(--brd);
-            display: flex; justify-content: space-between; align-items: center;
-            font-family: monospace; font-size: 12px; color: #666;
+            background: #000;
+            border-top: 1px solid var(--border-clr);
+            padding: 12px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #555;
+            z-index: 1000;
         }
 
-        #status-tool { color: var(--ora); font-weight: bold; }
-        #coords { background: #111; padding: 3px 8px; border-radius: 4px; color: #aaa; }
+        #status-display {
+            color: var(--buse-orange);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--buse-orange);
+            box-shadow: 0 0 10px var(--buse-orange);
+        }
+
+        .save-msg {
+            color: var(--success);
+            font-style: italic;
+            margin-left: 15px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        /* ========================================
+           8. ANIMACE
+           ========================================
+        */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .saving-pulse {
+            animation: pulse 1s infinite;
+        }
+
     </style>
 </head>
-<body onload="initApp()">
+<body>
 
     <header>
-        <div class="tool-box">
-            <label>Vodorovně (Šířka)</label>
-            <input type="number" id="wIn" value="120" onchange="rescalePanel()">
-        </div>
-        <div class="tool-box">
-            <label>Svisle (Výška)</label>
-            <input type="number" id="hIn" value="20" onchange="rescalePanel()">
-        </div>
-        <div class="tool-box">
-            <label>Zoom</label>
-            <input type="range" id="zIn" min="2" max="100" value="12" oninput="applyZoom()">
-        </div>
-
-        <div class="tool-box">
-            <label>Barva</label>
-            <div class="btn-row">
-                <button id="mOra" class="btn-ora active" onclick="setMode('#ff8c00')">ORA</button>
-                <button id="mGre" class="btn-gre" onclick="setMode('#4caf50')">ZEL</button>
+        <div class="tool-section">
+            <label>Geometrie Panelu</label>
+            <div class="input-group">
+                <input type="number" id="widthInput" value="120" title="Šířka v pixelech" onchange="App.handleResize()">
+                <input type="number" id="heightInput" value="20" title="Výška v pixelech" onchange="App.handleResize()">
             </div>
         </div>
 
-        <div class="tool-box">
-            <label>Nástroje</label>
-            <div class="btn-row">
-                <button id="mFill" class="btn-fill" onclick="setMode('fill')">VÝPLŇ</button>
-                <button id="mMove" class="btn-move" onclick="toggleMove()">POHYB ✋</button>
-                <button class="btn-help" onclick="toggleHelp()">NÁPOVĚDA ?</button>
+        <div class="tool-section">
+            <label>Zobrazení (Zoom)</label>
+            <div class="input-group">
+                <input type="range" id="zoomInput" min="2" max="120" value="15" oninput="App.updateZoom()">
             </div>
         </div>
 
-        <div class="tool-box">
-            <label>Systém</label>
-            <div class="btn-row">
-                <button class="btn-undo" onclick="undo()" title="Zpět (Ctrl+Z)">↩</button>
-                <button class="btn-save" onclick="smartSave()">ULOŽIT / SDÍLET</button>
+        <div class="tool-section">
+            <label>Paleta Diod</label>
+            <div class="btn-flex">
+                <button id="tool-ora" class="btn-ora active" onclick="App.setTool('draw', '#ff8c00')">ORANŽOVÁ</button>
+                <button id="tool-gre" class="btn-gre" onclick="App.setTool('draw', '#4caf50')">ZELENÁ</button>
+                <button id="tool-era" class="btn-erase" onclick="App.setTool('erase')">GUMA 🧹</button>
+            </div>
+        </div>
+
+        <div class="tool-section">
+            <label>Funkce</label>
+            <div class="btn-flex">
+                <button id="tool-fill" class="btn-fill" onclick="App.setTool('fill')">VÝPLŇ</button>
+                <button id="tool-move" class="btn-move" onclick="App.toggleNav()">POHYB ✋</button>
+                <button class="btn-help" onclick="App.ui.toggleHelp()">NÁPOVĚDA ?</button>
+            </div>
+        </div>
+
+        <div class="tool-section">
+            <label>Systémové Akce</label>
+            <div class="btn-flex">
+                <button class="btn-undo" onclick="App.engine.undo()" title="Zpět (Ctrl+Z)">↩</button>
+                <button class="btn-save" onclick="App.io.smartExport()">EXPORT</button>
+                <button class="btn-danger" onclick="App.engine.clearAll()">VYMAZAT</button>
             </div>
         </div>
     </header>
 
-    <main id="view">
-        <div class="canvas-container" id="cvs-wrap">
-            <canvas id="buse"></canvas>
+    <main id="main-viewport">
+        <div id="viewport-wrapper">
+            <canvas id="buse-canvas"></canvas>
         </div>
     </main>
 
-    <div id="help-modal">
-        <h2>📏 Rozměry & Nápověda</h2>
-        <p>Pro nejlepší výsledek jako na tvém obrázku <b>dpoEVENT</b>, vyber jeden z typických rozměrů:</p>
+    <div id="help-modal" class="modal">
+        <h2>📏 Profesionální Rozměry</h2>
+        <p>Vítej v BUSE Makeru. Pro dosažení nejlepších výsledků (jako byl tvůj "dpoEVENT") doporučujeme tyto standardy:</p>
         
-        <div class="size-grid">
-            <div class="size-item" onclick="setPreset(112, 19)">
+        <div class="preset-grid">
+            <div class="preset-card" onclick="App.setPreset(112, 19)">
                 <b>112 x 19</b>
-                <span>Standardní čelní panel</span>
+                <span>Čelní panel (Starší)</span>
             </div>
-            <div class="size-item" onclick="setPreset(120, 20)">
+            <div class="preset-card" onclick="App.setPreset(120, 20)">
                 <b>120 x 20</b>
-                <span>Moderní široký panel</span>
+                <span>Moderní čelní panel</span>
             </div>
-            <div class="size-item" onclick="setPreset(200, 16)">
+            <div class="preset-card" onclick="App.setPreset(200, 16)">
                 <b>200 x 16</b>
-                <span>Vnitřní LED informační</span>
+                <span>Vnitřní LED lišta</span>
             </div>
-            <div class="size-item" onclick="setPreset(28, 19)">
+            <div class="preset-card" onclick="App.setPreset(28, 19)">
                 <b>28 x 19</b>
-                <span>Číslo linky (kostka)</span>
+                <span>Boční číslo linky</span>
             </div>
         </div>
 
-        <p>💡 <b>Tip:</b> Režim <b>POHYB</b> ti umožní posouvat se po dlouhém panelu prstem, aniž bys do něj kreslil čáry.</p>
-        <button class="close-help" onclick="toggleHelp()">ROZUMÍM</button>
+        <p>💡 <b>Guma:</b> Nově přidaný nástroj pro mazání chyb.<br>
+           💾 <b>Auto-save:</b> Práce se automaticky ukládá do paměti prohlížeče.</p>
+        
+        <button class="close-help btn-ora" style="width: 100%;" onclick="App.ui.toggleHelp()">ZAVŘÍT</button>
     </div>
 
     <footer>
-        <div id="status-tool">REŽIM: KRESLENÍ (ORA)</div>
-        <div id="coords">X: 0, Y: 0</div>
-        <div>PETR'S PLAYS CZ | v11.0 PRO</div>
+        <div id="status-display">
+            <div class="indicator" id="status-indicator"></div>
+            <span id="status-text">PŘIPRAVEN</span>
+            <span id="save-msg" class="save-msg">Změny uloženy</span>
+        </div>
+        <div id="coord-display">X: 0, Y: 0 | PIXELY: 0/0</div>
+        <div>PETR'S PLAYS CZ | BUSE ENGINE v12.0.1</div>
     </footer>
 
     <script>
         /**
-         * --- JÁDRO APLIKACE BUSE PANEL MAKER ---
+         * Hlavní objekt aplikace sdružující veškerou logiku.
+         * Strukturováno pro maximální čitelnost a rozšiřitelnost.
          */
-        const canvas = document.getElementById('buse');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const view = document.getElementById('view');
-        const statusTxt = document.getElementById('status-tool');
-        const coordsTxt = document.getElementById('coords');
-        
-        let state = {
-            tool: 'draw',
-            color: '#ff8c00',
-            isNav: false,
-            isDown: false,
-            zoom: 12,
-            p1: null,
-            history: []
+        const App = {
+            // --- KONFIGURACE A STAV ---
+            config: {
+                canvas: document.getElementById('buse-canvas'),
+                ctx: document.getElementById('buse-canvas').getContext('2d', { willReadFrequently: true }),
+                viewport: document.getElementById('main-viewport'),
+                storageKey: 'buse_panel_data_v12',
+                historyLimit: 60
+            },
+
+            state: {
+                tool: 'draw',       // draw, erase, fill
+                color: '#ff8c00',   // Aktuální barva diody
+                isNav: false,       // Režim prohlížení/pohybu
+                isMouseDown: false, // Stav kliknutí
+                zoom: 15,           // Úroveň přiblížení
+                p1: null,           // První bod pro nástroj Výplň
+                history: [],        // Zásobník pro funkci Zpět
+                lastSaved: null
+            },
+
+            // --- INICIALIZACE ---
+            init() {
+                console.log("%c BUSE Maker Engine v12 startuje...", "color: #ff8c00; font-weight: bold; font-size: 16px;");
+                
+                // Registrace událostí myši
+                this.config.canvas.addEventListener('mousedown', (e) => this.events.handleDown(e));
+                window.addEventListener('mousemove', (e) => this.events.handleMove(e));
+                window.addEventListener('mouseup', () => this.events.handleUp());
+
+                // Registrace událostí dotyku (pro mobily)
+                this.config.canvas.addEventListener('touchstart', (e) => {
+                    if(!this.state.isNav) {
+                        e.preventDefault();
+                        this.events.handleDown(e);
+                    }
+                }, {passive: false});
+
+                this.config.canvas.addEventListener('touchmove', (e) => {
+                    if(!this.state.isNav) {
+                        e.preventDefault();
+                        this.events.handleMove(e);
+                    }
+                }, {passive: false});
+
+                this.config.canvas.addEventListener('touchend', () => this.events.handleUp());
+
+                // Klávesové zkratky
+                window.addEventListener('keydown', (e) => {
+                    if(e.ctrlKey && e.key === 'z') this.engine.undo();
+                    if(e.ctrlKey && e.key === 's') { e.preventDefault(); this.storage.save(); }
+                });
+
+                // Načtení dat z LocalStorage
+                this.storage.load();
+
+                // Prvotní vykreslení
+                this.handleResize();
+                
+                // Spuštění auto-save časovače (každých 30 sekund)
+                setInterval(() => this.storage.save(), 30000);
+            },
+
+            // --- UDÁLOSTI (EVENTS) ---
+            events: {
+                handleDown(e) {
+                    if(App.state.isNav) return;
+                    
+                    const pos = App.utils.getCoords(e);
+                    if(pos.x < 0 || pos.x >= App.config.canvas.width || pos.y < 0 || pos.y >= App.config.canvas.height) return;
+
+                    if(App.state.tool === 'fill') {
+                        if(!App.state.p1) {
+                            App.state.p1 = pos;
+                            App.ui.setStatus(`BOD 1: [${pos.x}, ${pos.y}] -> VYBER DRUHÝ ROH`);
+                        } else {
+                            App.engine.executeFill(App.state.p1, pos);
+                            App.state.p1 = null;
+                            App.engine.pushHistory();
+                            App.ui.updateModeText();
+                        }
+                    } else {
+                        App.state.isMouseDown = true;
+                        App.engine.drawPixel(pos.x, pos.y);
+                    }
+                },
+
+                handleMove(e) {
+                    const pos = App.utils.getCoords(e);
+                    App.ui.updateCoords(pos.x, pos.y);
+
+                    if(App.state.isMouseDown && !App.state.isNav) {
+                        App.engine.drawPixel(pos.x, pos.y);
+                    }
+                },
+
+                handleUp() {
+                    if(App.state.isMouseDown) {
+                        App.state.isMouseDown = false;
+                        App.engine.pushHistory();
+                        App.storage.save(); // Uložit do cache při každém dokončeném tahu
+                    }
+                }
+            },
+
+            // --- JÁDRO KRESLENÍ (ENGINE) ---
+            engine: {
+                drawPixel(x, y) {
+                    if(x < 0 || x >= App.config.canvas.width || y < 0 || y >= App.config.canvas.height) return;
+                    
+                    const ctx = App.config.ctx;
+                    // Pokud je nástroj Guma, kreslíme černou (barva pozadí)
+                    ctx.fillStyle = (App.state.tool === 'erase') ? '#000000' : App.state.color;
+                    ctx.fillRect(x, y, 1, 1);
+                },
+
+                executeFill(start, end) {
+                    const ctx = App.config.ctx;
+                    const x = Math.min(start.x, end.x);
+                    const y = Math.min(start.y, end.y);
+                    const w = Math.abs(start.x - end.x) + 1;
+                    const h = Math.abs(start.y - end.y) + 1;
+
+                    ctx.fillStyle = (App.state.tool === 'erase') ? '#000000' : App.state.color;
+                    ctx.fillRect(x, y, w, h);
+                    App.ui.setStatus("OBLAST VYPLNĚNA");
+                },
+
+                pushHistory() {
+                    const hist = App.state.history;
+                    if(hist.length >= App.config.historyLimit) hist.shift();
+                    
+                    hist.push(App.config.ctx.getImageData(0, 0, App.config.canvas.width, App.config.canvas.height));
+                },
+
+                undo() {
+                    const hist = App.state.history;
+                    if(hist.length > 1) {
+                        hist.pop(); // Odstranit aktuální stav
+                        const prevState = hist[hist.length - 1];
+                        App.config.ctx.putImageData(prevState, 0, 0);
+                        App.ui.setStatus("KROK ZPĚT PROVEDEN");
+                    } else {
+                        App.ui.setStatus("NENÍ CO VRÁTIT");
+                    }
+                },
+
+                clearAll() {
+                    if(confirm("Opravdu vymazat celou plochu? Tato akce smaže i LocalStorage zálohu.")) {
+                        App.config.ctx.fillStyle = "#000000";
+                        App.config.ctx.fillRect(0, 0, App.config.canvas.width, App.config.canvas.height);
+                        App.engine.pushHistory();
+                        App.storage.clear();
+                    }
+                }
+            },
+
+            // --- SPRÁVA PAMĚTI (STORAGE) ---
+            storage: {
+                save() {
+                    try {
+                        const data = {
+                            width: App.config.canvas.width,
+                            height: App.config.canvas.height,
+                            image: App.config.canvas.toDataURL(),
+                            timestamp: Date.now()
+                        };
+                        localStorage.setItem(App.config.storageKey, JSON.stringify(data));
+                        App.ui.showSaveIndicator();
+                    } catch (e) {
+                        console.error("Chyba při ukládání do LocalStorage:", e);
+                    }
+                },
+
+                load() {
+                    const raw = localStorage.getItem(App.config.storageKey);
+                    if(!raw) return;
+
+                    try {
+                        const data = JSON.parse(raw);
+                        document.getElementById('widthInput').value = data.width;
+                        document.getElementById('heightInput').value = data.height;
+                        
+                        const img = new Image();
+                        img.onload = () => {
+                            App.config.canvas.width = data.width;
+                            App.config.canvas.height = data.height;
+                            App.config.ctx.drawImage(img, 0, 0);
+                            App.engine.pushHistory(); // Vložit načtený stav do historie
+                            App.updateZoom();
+                        };
+                        img.src = data.image;
+                        App.ui.setStatus("PRÁCE OBNOVENA Z PAMĚTI");
+                    } catch (e) {
+                        console.warn("Nepodařilo se načíst data z paměti.");
+                    }
+                },
+
+                clear() {
+                    localStorage.removeItem(App.config.storageKey);
+                }
+            },
+
+            // --- EXPORT A IMPORT (IO) ---
+            io: {
+                async smartExport() {
+                    const cvs = App.config.canvas;
+                    const dataUrl = cvs.toDataURL('image/png');
+                    
+                    // Pokus o použití Web Share API (pro mobilní telefony)
+                    try {
+                        const blob = await (await fetch(dataUrl)).blob();
+                        const file = new File([blob], `buse_panel_${cvs.width}x${cvs.height}.png`, { type: 'image/png' });
+
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                                files: [file],
+                                title: 'BUSE Panel Maker',
+                                text: `Můj BUSE panel ${cvs.width}x${cvs.height}`
+                            });
+                        } else {
+                            this.downloadFallback(dataUrl);
+                        }
+                    } catch (err) {
+                        this.downloadFallback(dataUrl);
+                    }
+                },
+
+                downloadFallback(url) {
+                    const link = document.createElement('a');
+                    link.download = `buse_export_${Date.now()}.png`;
+                    link.href = url;
+                    link.click();
+                    App.ui.setStatus("OBRÁZEK STAŽEN DO SOUBORŮ");
+                }
+            },
+
+            // --- UI OVLÁDÁNÍ ---
+            ui: {
+                setStatus(msg) {
+                    document.getElementById('status-text').innerText = msg.toUpperCase();
+                },
+
+                updateCoords(x, y) {
+                    const w = App.config.canvas.width;
+                    const h = App.config.canvas.height;
+                    document.getElementById('coord-display').innerText = `X: ${x}, Y: ${y} | PIXELY: ${w}x${h}`;
+                },
+
+                updateModeText() {
+                    if(App.state.isNav) return;
+                    
+                    let t = App.state.tool.toUpperCase();
+                    if(App.state.tool === 'draw') {
+                        t = App.state.color === '#ff8c00' ? "KRESLENÍ (ORA)" : "KRESLENÍ (ZEL)";
+                    }
+                    this.setStatus(`REŽIM: ${t}`);
+                },
+
+                showSaveIndicator() {
+                    const msg = document.getElementById('save-msg');
+                    msg.style.opacity = "1";
+                    setTimeout(() => msg.style.opacity = "0", 2000);
+                },
+
+                toggleHelp() {
+                    const modal = document.getElementById('help-modal');
+                    modal.classList.toggle('open');
+                }
+            },
+
+            // --- POMOCNÉ FUNKCE (UTILS) ---
+            utils: {
+                getCoords(e) {
+                    const cvs = App.config.canvas;
+                    const rect = cvs.getBoundingClientRect();
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                    // Přepočet souřadnic s ohledem na zoom a pozici canvasu na obrazovce
+                    const scaleX = cvs.width / rect.width;
+                    const scaleY = cvs.height / rect.height;
+
+                    return {
+                        x: Math.floor((clientX - rect.left) * scaleX),
+                        y: Math.floor((clientY - rect.top) * scaleY)
+                    };
+                }
+            },
+
+            // --- GLOBÁLNÍ HANDLERY ---
+            handleResize() {
+                const w = parseInt(document.getElementById('widthInput').value) || 120;
+                const h = parseInt(document.getElementById('heightInput').value) || 20;
+                
+                // Pokud uživatel změní velikost, zachováme obsah (pokud je to možné)
+                const backup = App.config.ctx.getImageData(0, 0, App.config.canvas.width, App.config.canvas.height);
+                
+                App.config.canvas.width = w;
+                App.config.canvas.height = h;
+                
+                App.config.ctx.fillStyle = "#000000";
+                App.config.ctx.fillRect(0, 0, w, h);
+                App.config.ctx.putImageData(backup, 0, 0);
+
+                App.updateZoom();
+                App.engine.pushHistory();
+            },
+
+            updateZoom() {
+                App.state.zoom = document.getElementById('zoomInput').value;
+                const cvs = App.config.canvas;
+                cvs.style.width = (cvs.width * App.state.zoom) + 'px';
+                cvs.style.height = (cvs.height * App.state.zoom) + 'px';
+                
+                // Mřížka (optický efekt diod)
+                cvs.style.backgroundSize = `${App.state.zoom}px ${App.state.zoom}px`;
+            },
+
+            setTool(tool, color = null) {
+                App.state.isNav = false;
+                App.state.p1 = null;
+                App.state.tool = tool;
+                if(color) App.state.color = color;
+
+                document.getElementById('viewport-wrapper').classList.remove('nav-active');
+                
+                // Update aktivních tlačítek
+                document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                if(tool === 'erase') document.getElementById('tool-era').classList.add('active');
+                else if(tool === 'fill') document.getElementById('tool-fill').classList.add('active');
+                else if(color === '#ff8c00') document.getElementById('tool-ora').classList.add('active');
+                else if(color === '#4caf50') document.getElementById('tool-gre').classList.add('active');
+
+                App.ui.updateModeText();
+            },
+
+            setPreset(w, h) {
+                document.getElementById('widthInput').value = w;
+                document.getElementById('heightInput').value = h;
+                this.handleResize();
+                this.ui.toggleHelp();
+            },
+
+            toggleNav() {
+                App.state.isNav = !App.state.isNav;
+                App.state.p1 = null;
+                
+                const wrap = document.getElementById('viewport-wrapper');
+                if(App.state.isNav) {
+                    wrap.classList.add('nav-active');
+                    App.ui.setStatus("REŽIM: PROHLÍŽENÍ (POHYB)");
+                    document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    document.getElementById('tool-move').classList.add('active');
+                } else {
+                    wrap.classList.remove('nav-active');
+                    this.setTool('draw', App.state.color);
+                }
+            }
         };
 
-        const HISTORY_LIMIT = 50;
-
-        function initApp() {
-            // Myš
-            canvas.addEventListener('mousedown', onDown);
-            window.addEventListener('mousemove', onMove);
-            window.addEventListener('mouseup', onUp);
-
-            // Dotyk (iOS/Android)
-            canvas.addEventListener('touchstart', (e) => {
-                if(!state.isNav) { e.preventDefault(); onDown(e); }
-            }, {passive: false});
-            canvas.addEventListener('touchmove', (e) => {
-                if(!state.isNav) { e.preventDefault(); onMove(e); }
-            }, {passive: false});
-            canvas.addEventListener('touchend', onUp);
-
-            // Klávesy
-            window.addEventListener('keydown', (e) => {
-                if(e.ctrlKey && e.key === 'z') undo();
-            });
-
-            rescalePanel();
-        }
-
-        /** --- ROZMĚRY A ZOOM --- **/
-        function setPreset(w, h) {
-            document.getElementById('wIn').value = w;
-            document.getElementById('hIn').value = h;
-            rescalePanel();
-            toggleHelp();
-        }
-
-        function rescalePanel() {
-            const w = parseInt(document.getElementById('wIn').value) || 120;
-            const h = parseInt(document.getElementById('hIn').value) || 20;
-            
-            let backup = null;
-            if(canvas.width > 0) backup = ctx.getImageData(0,0,canvas.width,canvas.height);
-
-            canvas.width = w;
-            canvas.height = h;
-            
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0,0,w,h);
-
-            if(backup) ctx.putImageData(backup, 0, 0);
-
-            saveState();
-            applyZoom();
-            updateUI();
-        }
-
-        function applyZoom() {
-            state.zoom = parseInt(document.getElementById('zIn').value);
-            canvas.style.width = (canvas.width * state.zoom) + 'px';
-            canvas.style.height = (canvas.height * state.zoom) + 'px';
-            canvas.style.backgroundSize = `${state.zoom}px ${state.zoom}px`;
-        }
-
-        /** --- NÁSTROJE --- **/
-        function setMode(m) {
-            state.isNav = false;
-            state.p1 = null;
-            view.classList.remove('view-mode');
-            
-            if(m === 'fill') state.tool = 'fill';
-            else { state.tool = 'draw'; state.color = m; }
-            updateUI();
-        }
-
-        function toggleMove() {
-            state.isNav = !state.isNav;
-            state.p1 = null;
-            view.classList.toggle('view-mode', state.isNav);
-            updateUI();
-        }
-
-        function updateUI() {
-            document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-            if(state.isNav) {
-                document.getElementById('mMove').classList.add('active');
-                statusTxt.innerText = "POHYB ZAPNUT";
-            } else {
-                if(state.tool === 'fill') {
-                    document.getElementById('mFill').classList.add('active');
-                    statusTxt.innerText = "VÝPLŇ (KLIKNI NA 2 BODY)";
-                } else {
-                    const activeBtn = state.color === '#ff8c00' ? 'mOra' : 'mGre';
-                    document.getElementById(activeBtn).classList.add('active');
-                    statusTxt.innerText = `KRESLENÍ (${state.color === '#ff8c00' ? 'ORA' : 'ZEL'})`;
-                }
-            }
-        }
-
-        /** --- LOGIKA KRESLENÍ --- **/
-        function getCoords(e) {
-            const rect = canvas.getBoundingClientRect();
-            const cx = e.touches ? e.touches[0].clientX : e.clientX;
-            const cy = e.touches ? e.touches[0].clientY : e.clientY;
-            
-            return {
-                x: Math.floor((cx - rect.left) * (canvas.width / rect.width)),
-                y: Math.floor((cy - rect.top) * (canvas.height / rect.height))
-            };
-        }
-
-        function onDown(e) {
-            if(state.isNav) return;
-            const {x, y} = getCoords(e);
-            
-            if(state.tool === 'fill') {
-                if(!state.p1) {
-                    state.p1 = {x, y};
-                    statusTxt.innerText = `BOD 1: [${x},${y}] -> VYBER BOD 2`;
-                } else {
-                    const x1 = Math.min(state.p1.x, x);
-                    const y1 = Math.min(state.p1.y, y);
-                    const w = Math.abs(state.p1.x - x) + 1;
-                    const h = Math.abs(state.p1.y - y) + 1;
-                    ctx.fillStyle = state.color;
-                    ctx.fillRect(x1, y1, w, h);
-                    state.p1 = null;
-                    saveState();
-                    updateUI();
-                }
-            } else {
-                state.isDown = true;
-                draw(x, y);
-            }
-        }
-
-        function onMove(e) {
-            const {x, y} = getCoords(e);
-            coordsTxt.innerText = `X: ${x}, Y: ${y}`;
-            if(state.isDown && !state.isNav) draw(x, y);
-        }
-
-        function onUp() {
-            if(state.isDown) {
-                state.isDown = false;
-                saveState();
-            }
-        }
-
-        function draw(x, y) {
-            if(x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
-                ctx.fillStyle = state.color;
-                ctx.fillRect(x, y, 1, 1);
-            }
-        }
-
-        /** --- SYSTÉM (UNDO & SAVE) --- **/
-        function saveState() {
-            if(state.history.length >= HISTORY_LIMIT) state.history.shift();
-            state.history.push(ctx.getImageData(0,0,canvas.width,canvas.height));
-        }
-
-        function undo() {
-            if(state.history.length > 1) {
-                state.history.pop();
-                ctx.putImageData(state.history[state.history.length - 1], 0, 0);
-                statusTxt.innerText = "KROK ZPĚT";
-            }
-        }
-
-        async function smartSave() {
-            const dataUrl = canvas.toDataURL('image/png');
-            const blob = await (await fetch(dataUrl)).blob();
-            const file = new File([blob], `buse_panel_${canvas.width}x${canvas.height}.png`, {type: 'image/png'});
-
-            if(navigator.canShare && navigator.canShare({files: [file]})) {
-                await navigator.share({ files: [file], title: 'Export BUSE' });
-            } else {
-                const link = document.createElement('a');
-                link.download = `buse_export.png`;
-                link.href = dataUrl;
-                link.click();
-            }
-        }
-
-        function toggleHelp() {
-            const m = document.getElementById('help-modal');
-            m.style.display = m.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function autoCheck() {
-            if(document.getElementById('wIn').value > 1000) document.getElementById('wIn').value = 1000;
-        }
-        setInterval(autoCheck, 3000);
+        // --- SPUŠTĚNÍ APLIKACE ---
+        window.onload = () => App.init();
 
     </script>
 </body>
