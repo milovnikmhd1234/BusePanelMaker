@@ -3,373 +3,407 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BUSE SIMT Ultimate v17 | Petr's Plays CZ</title>
+    <title>BUSE SIMT MASTER v18 | Studio Edition</title>
     
     <style>
-        /* --- 1. GLOBÁLNÍ DESIGN (SIMT DARK THEME) --- */
         :root {
-            --simt-orange: #ff8c00;
-            --simt-orange-glow: rgba(255, 140, 0, 0.4);
-            --simt-bg-dark: #08080a;
-            --simt-panel: #121217;
-            --simt-card: #1c1c24;
-            --simt-border: rgba(255, 255, 255, 0.08);
-            --simt-text: #e0e0e0;
-            --simt-text-dim: #707080;
-            --font-main: 'Inter', -apple-system, sans-serif;
+            --buse-orange: #ff8c00;
+            --buse-orange-dim: #995400;
+            --buse-bg: #0a0a0c;
+            --buse-sidebar: #121216;
+            --buse-card: #1a1a20;
+            --buse-border: rgba(255, 140, 0, 0.15);
+            --text-main: #e0e0e0;
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-            --radius-lg: 16px;
-            --radius-md: 8px;
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-glow: 0 0 20px rgba(255, 140, 0, 0.2);
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; cursor: default; }
         
         body, html {
             margin: 0; padding: 0; height: 100%; width: 100%;
-            background-color: var(--simt-bg-dark);
-            color: var(--simt-text);
-            font-family: var(--font-main);
+            background-color: var(--buse-bg);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
             overflow: hidden;
-            display: flex; flex-direction: column;
         }
 
-        /* --- 2. LAYOUT STRUKTURA --- */
-        .app-container {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            grid-template-rows: 70px 1fr 35px;
-            grid-template-areas: 
-                "sidebar header"
-                "sidebar main"
-                "sidebar footer";
+        /* HLAVNÍ KONTEJNER */
+        .master-wrapper {
+            display: flex;
             height: 100vh;
+            width: 100vw;
         }
 
-        /* --- 3. HEADER (EXPORTNÍ ZÓNA) --- */
-        header {
-            grid-area: header;
-            background: var(--simt-panel);
-            border-bottom: 1px solid var(--simt-border);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 30px; z-index: 100;
+        /* BOČNÍ OVLÁDACÍ PANEL */
+        .control-sidebar {
+            width: 350px;
+            background: var(--buse-sidebar);
+            border-right: 1px solid var(--buse-border);
+            display: flex;
+            flex-direction: column;
+            padding: 25px;
+            z-index: 100;
+            overflow-y: auto;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.5);
         }
 
-        .header-title { display: flex; align-items: center; gap: 15px; }
-        .status-dot { width: 10px; height: 10px; background: var(--simt-orange); border-radius: 50%; box-shadow: 0 0 10px var(--simt-orange); }
-
-        .action-group { display: flex; gap: 12px; }
-
-        /* --- 4. SIDEBAR (NÁSTROJE) --- */
-        aside {
-            grid-area: sidebar;
-            background: var(--simt-panel);
-            border-right: 1px solid var(--simt-border);
-            display: flex; flex-direction: column;
-            overflow-y: auto; padding: 25px; gap: 30px;
+        .brand-zone {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--buse-border);
         }
 
-        .section-label {
-            font-size: 11px; font-weight: 800; color: var(--simt-text-dim);
-            text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;
+        .brand-title {
+            color: var(--buse-orange);
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin: 0;
+            text-shadow: var(--shadow-glow);
+        }
+
+        /* SEKCE */
+        .ui-section { margin-bottom: 25px; }
+        .ui-label {
             display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #666;
+            margin-bottom: 12px;
+            font-weight: 800;
         }
 
-        /* --- 5. TLAČÍTKA A OVLÁDÁNÍ --- */
+        /* TLAČÍTKA */
         .btn {
-            background: var(--simt-card);
-            border: 1px solid var(--simt-border);
-            color: var(--simt-text);
-            padding: 12px; border-radius: var(--radius-md);
-            cursor: pointer; font-size: 13px; font-weight: 600;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            transition: var(--transition);
+            background: var(--buse-card);
+            border: 1px solid var(--buse-border);
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
-        .btn:hover { border-color: var(--simt-orange); background: #25252f; }
-        .btn-active { background: var(--simt-orange) !important; color: #000 !important; border-color: var(--simt-orange) !important; }
-        .btn-danger { color: #ff5555; border-color: rgba(255, 85, 85, 0.2); }
-        .btn-danger:hover { background: rgba(255, 85, 85, 0.1); border-color: #ff5555; }
+        .btn:hover:not(.btn-active) {
+            background: #25252d;
+            border-color: var(--buse-orange);
+        }
+
+        .btn-active {
+            background: var(--buse-orange) !important;
+            color: #000 !important;
+            font-weight: 800;
+            box-shadow: var(--shadow-glow);
+        }
 
         .btn-export {
-            background: var(--simt-orange);
-            color: #000; font-weight: 800;
-            padding: 10px 25px; border-radius: 50px;
-            box-shadow: 0 4px 15px var(--simt-orange-glow);
+            background: var(--buse-orange);
+            color: #000;
+            font-size: 16px;
+            font-weight: 900;
+            padding: 18px;
+            margin-top: 10px;
+            border: none;
+            box-shadow: 0 5px 20px rgba(255, 140, 0, 0.4);
         }
-        .btn-export:hover { transform: scale(1.05); background: #ffa500; }
 
-        /* --- 6. BARVY --- */
-        .color-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .btn-export:hover {
+            transform: translateY(-2px);
+            background: #ffaa33;
+        }
+
+        /* PALETA */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
         .swatch {
-            aspect-ratio: 1; border-radius: 8px; cursor: pointer;
-            border: 2px solid transparent; transition: var(--transition);
-        }
-        .swatch.active { border-color: white; transform: translateY(-3px); }
-        .c-ora { background: #ff8c00; box-shadow: 0 0 10px rgba(255, 140, 0, 0.3); }
-        .c-gre { background: #4caf50; }
-        .c-whi { background: #ffffff; }
-        .c-bla { background: #000000; border: 1px solid #333 !important; }
-
-        /* --- 7. PLÁTNO (BUSE PANEL LOOK) --- */
-        main {
-            grid-area: main;
-            background: radial-gradient(circle at 50% 50%, #1a1a22 0%, #050505 100%);
-            display: flex; align-items: center; justify-content: center;
-            overflow: auto; padding: 100px;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            border: 2px solid transparent;
+            transition: 0.2s;
         }
 
-        .panel-frame {
-            background: #111;
-            padding: 20px;
-            border-radius: 10px;
-            border: 4px solid #222;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+        .swatch.active {
+            border-color: #fff;
+            transform: scale(1.1);
+        }
+
+        /* VIEWPORT S PANELEM */
+        .viewport {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: 
+                linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.9)),
+                url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+            overflow: auto;
             position: relative;
+            padding: 50px;
         }
 
-        .canvas-container {
+        .panel-container {
             position: relative;
             background: #000;
-            cursor: crosshair;
-            /* Simulace DOT-matrix mřížky přes CSS */
-            background-image: 
-                radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-            background-size: 10px 10px; /* Bude upraveno přes JS podle zoomu */
+            padding: 15px;
+            border: 10px solid #222;
+            border-radius: 4px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.9);
         }
+
+        /* Šroubky v rozích panelu */
+        .panel-container::before, .panel-container::after {
+            content: '';
+            position: absolute;
+            width: 10px; height: 10px;
+            background: #333; border-radius: 50%;
+        }
+        .panel-container::before { top: 2px; left: 2px; box-shadow: 0 11px 0 #333; }
+        .panel-container::after { top: 2px; right: 2px; box-shadow: 0 11px 0 #333; }
 
         canvas {
-            image-rendering: pixelated;
             display: block;
+            image-rendering: pixelated;
+            background: #000;
+            cursor: crosshair;
         }
 
-        /* --- 8. FOOTER --- */
-        footer {
-            grid-area: footer;
-            background: #000; border-top: 1px solid var(--simt-border);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 25px; font-family: var(--font-mono); font-size: 10px;
-            color: var(--simt-text-dim);
+        /* STATY */
+        .stat-bar {
+            position: fixed;
+            bottom: 0; right: 0; left: 350px;
+            height: 35px;
+            background: #000;
+            border-top: 1px solid var(--buse-border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: #555;
+            justify-content: space-between;
         }
 
-        /* --- 9. MODALS & TOASTS --- */
-        #toast-container {
-            position: fixed; bottom: 50px; right: 30px;
-            display: flex; flex-direction: column; gap: 10px; z-index: 1000;
+        /* INPUTS */
+        input[type="number"] {
+            background: #000;
+            border: 1px solid var(--buse-border);
+            color: var(--buse-orange);
+            padding: 10px;
+            border-radius: 4px;
+            width: 100%;
+            font-family: var(--font-mono);
+            font-weight: 800;
+        }
+
+        /* TOAST */
+        #toast-wrap {
+            position: fixed; top: 20px; right: 20px;
+            z-index: 1000;
         }
         .toast {
-            background: var(--simt-card); color: white; padding: 15px 25px;
-            border-radius: 10px; border-left: 4px solid var(--simt-orange);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-size: 13px;
-            animation: slideIn 0.3s ease forwards;
+            background: var(--buse-card);
+            border-left: 5px solid var(--buse-orange);
+            padding: 15px 25px;
+            margin-bottom: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: slideIn 0.3s ease-out;
         }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--simt-bg-dark); }
-        ::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
     </style>
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="master-wrapper">
         
-        <header>
-            <div class="header-title">
-                <div class="status-dot"></div>
-                <h1 style="font-size: 14px; letter-spacing: 1px; color: #fff;">BUSE SIMT <span style="font-weight: 300; opacity: 0.5;">STUDIO v17</span></h1>
+        <aside class="control-sidebar">
+            <div class="brand-zone">
+                <h1 class="brand-title">BUSE MASTER</h1>
+                <div style="font-size: 9px; color: #555; margin-top: 4px;">SIMT EDITION v18.0</div>
             </div>
-            <div class="action-group">
-                <button class="btn" onclick="Core.undo()">↩ Zpět</button>
+
+            <div class="ui-section">
                 <button class="btn btn-export" onclick="IO.export()">💾 EXPORTOVAT PNG</button>
             </div>
-        </header>
 
-        <aside>
-            <div class="section">
-                <span class="section-label">Nástroje Kreslení</span>
+            <div class="ui-section">
+                <span class="ui-label">Metody Kreslení</span>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <button id="t-pen" class="btn btn-active" onclick="Core.setTool('pen')">Tužka</button>
-                    <button id="t-erase" class="btn" onclick="Core.setTool('erase')">Guma</button>
-                    <button id="t-fill" class="btn" onclick="Core.setTool('fill')">Vylít (G)</button>
-                    <button id="t-line" class="btn" onclick="Core.setTool('line')">Čára (L)</button>
+                    <button id="t-pen" class="btn btn-active" onclick="App.setTool('pen')">Tužka</button>
+                    <button id="t-erase" class="btn" onclick="App.setTool('erase')">Guma</button>
+                    <button id="t-fill" class="btn" onclick="App.setTool('fill')">Vylít</button>
+                    <button id="t-line" class="btn" onclick="App.setTool('line')">Čára</button>
+                    <button id="t-rect" class="btn" onclick="App.setTool('rect')">Obdélník</button>
                 </div>
             </div>
 
-            <div class="section">
-                <span class="section-label">Barva Diod</span>
+            <div class="ui-section">
+                <span class="ui-label">Paleta Barev</span>
                 <div class="color-grid">
-                    <div class="swatch c-ora active" id="p-ora" onclick="Core.setColor('#ff8c00', 'p-ora')"></div>
-                    <div class="swatch c-gre" id="p-gre" onclick="Core.setColor('#4caf50', 'p-gre')"></div>
-                    <div class="swatch c-whi" id="p-whi" onclick="Core.setColor('#ffffff', 'p-whi')"></div>
-                    <div class="swatch c-bla" id="p-bla" onclick="Core.setColor('#000000', 'p-bla')"></div>
+                    <div class="swatch active" style="background: #ff8c00;" id="c-ora" onclick="App.setColor('#ff8c00', 'c-ora')"></div>
+                    <div class="swatch" style="background: #4caf50;" id="c-gre" onclick="App.setColor('#4caf50', 'c-gre')"></div>
+                    <div class="swatch" style="background: #ffffff;" id="c-whi" onclick="App.setColor('#ffffff', 'c-whi')"></div>
+                    <div class="swatch" style="background: #000000; border: 1px solid #444;" id="c-bla" onclick="App.setColor('#000000', 'c-bla')"></div>
                 </div>
             </div>
 
-            <div class="section">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <span class="section-label" style="margin:0;">Štětec</span>
-                    <span id="brush-txt" style="color: var(--simt-orange); font-family: var(--font-mono); font-weight: 800;">1px</span>
-                </div>
-                <input type="range" id="brush-size" min="1" max="10" value="1" style="width:100%;" oninput="UI.updateBrush()">
-            </div>
-
-            <div class="section">
-                <span class="section-label">Transformace Panelu</span>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <button class="btn" onclick="Transform.flipH()">↔ Překlopit</button>
-                    <button class="btn" onclick="Transform.invert()">🌓 Invertovat</button>
-                </div>
-            </div>
-
-            <div class="section">
-                <span class="section-label">Rozměry Panelu</span>
+            <div class="ui-section">
+                <span class="ui-label">Konfigurace Panelu</span>
                 <div style="display: flex; gap: 10px;">
-                    <input type="number" id="inp-w" value="112" style="width: 100%; background: #000; border: 1px solid var(--simt-border); color: var(--simt-orange); padding: 8px; border-radius: 5px; font-family: var(--font-mono);" onchange="Core.resize()">
-                    <input type="number" id="inp-h" value="19" style="width: 100%; background: #000; border: 1px solid var(--simt-border); color: var(--simt-orange); padding: 8px; border-radius: 5px; font-family: var(--font-mono);" onchange="Core.resize()">
-                </div>
-                <div style="margin-top: 15px;">
-                    <button class="btn" style="width: 100%;" onclick="Core.setPreset(120, 20)">120x20 (SIMT Wide)</button>
+                    <div>
+                        <div style="font-size: 9px; margin-bottom: 4px;">ŠÍŘKA</div>
+                        <input type="number" id="w-inp" value="112" onchange="App.resize()">
+                    </div>
+                    <div>
+                        <div style="font-size: 9px; margin-bottom: 4px;">VÝŠKA</div>
+                        <input type="number" id="h-inp" value="19" onchange="App.resize()">
+                    </div>
                 </div>
             </div>
 
-            <div style="margin-top: auto;">
-                <button class="btn btn-danger" style="width: 100%;" onclick="Core.clearAll()">🗑️ VYMAZAT CELÝ PANEL</button>
+            <div class="ui-section">
+                <span class="ui-label">Projektové Sloty</span>
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px;">
+                    <button class="btn btn-active" onclick="App.switchSlot(0)">1</button>
+                    <button class="btn" onclick="App.switchSlot(1)">2</button>
+                    <button class="btn" onclick="App.switchSlot(2)">3</button>
+                    <button class="btn" onclick="App.switchSlot(3)">4</button>
+                    <button class="btn" onclick="App.switchSlot(4)">5</button>
+                </div>
+            </div>
+
+            <div class="ui-section" style="margin-top: auto;">
+                <button class="btn" style="width: 100%;" onclick="App.undo()">↩ ZPĚT (Ctrl+Z)</button>
+                <button class="btn" style="width: 100%; border-color: #ff4444; color: #ff4444;" onclick="App.clear()">🗑️ SMAZAT PANEL</button>
             </div>
         </aside>
 
-        <main id="viewport">
-            <div class="panel-frame">
-                <div class="canvas-container" id="canvas-root">
-                    <canvas id="buse-canvas"></canvas>
-                </div>
+        <main class="viewport" id="viewport">
+            <div class="panel-container" id="panel-box">
+                <canvas id="main-canvas"></canvas>
             </div>
         </main>
 
-        <footer>
-            <div id="st-pos">X: 0 Y: 0</div>
-            <div id="st-info">READY | SIMT BUSE PANEL SIMULATOR</div>
-            <div id="st-save">AUTOSAVE AKTIVNÍ</div>
-        </footer>
+        <div class="stat-bar">
+            <div id="st-coords">CURSOR: 0, 0</div>
+            <div id="st-zoom">ZOOM: 100%</div>
+            <div style="color: var(--buse-orange);">SIMT DOT-MATRIX ENGINE ACTIVE</div>
+        </div>
 
     </div>
 
-    <div id="toast-container"></div>
+    <div id="toast-wrap"></div>
 
     <script>
-        
         /**
-         * CORE ENGINE: Hlavní řídící objekt aplikace
+         * ========================================================================================
+         * BUSE MASTER ENGINE v18 - CORE JAVASCRIPT
+         * ========================================================================================
          */
-        const Core = {
+
+        const App = {
             canvas: null,
             ctx: null,
+            activeSlot: 0,
+            
+            // Stav aplikace
             state: {
                 isDrawing: false,
                 tool: 'pen',
                 color: '#ff8c00',
                 brushSize: 1,
-                zoom: 12,
                 history: [],
-                lastPos: { x: 0, y: 0 }
+                startPos: { x: 0, y: 0 },
+                tempImg: null
             },
 
             /**
-             * Inicializace systému
+             * Start systému
              */
             init() {
-                this.canvas = document.getElementById('buse-canvas');
+                this.canvas = document.getElementById('main-canvas');
                 this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
 
-                // Event Listeners
+                // Eventy myši
                 this.canvas.addEventListener('mousedown', (e) => this.handleDown(e));
                 window.addEventListener('mousemove', (e) => this.handleMove(e));
                 window.addEventListener('mouseup', () => this.handleUp());
-                
-                // Keyboard shortcuts
+
+                // Klávesnice
                 window.addEventListener('keydown', (e) => {
                     if(e.ctrlKey && e.key === 'z') this.undo();
-                    if(e.key === 'g') this.setTool('fill');
-                    if(e.key === 'p') this.setTool('pen');
-                    if(e.key === 'e') this.setTool('erase');
                 });
 
                 this.resize(true);
                 this.storage.load();
-                UI.updateBrush();
                 
-                console.log("BUSE SIMT Engine v17 Loaded.");
+                UI.notify("BUSE MASTER v18 připraven");
             },
 
             /**
-             * Výpočet souřadnic s ohledem na zoom a DPI
+             * Přepočet souřadnic
              */
             getCoords(e) {
                 const rect = this.canvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                
+                const zoom = rect.width / this.canvas.width;
                 return {
-                    x: Math.floor((clientX - rect.left) * (this.canvas.width / rect.width)),
-                    y: Math.floor((clientY - rect.top) * (this.canvas.height / rect.height))
+                    x: Math.floor((e.clientX - rect.left) / zoom),
+                    y: Math.floor((e.clientY - rect.top) / zoom)
                 };
             },
 
             /**
-             * RESIZE LOGIC
+             * Změna velikosti panelu
              */
             resize(init = false) {
-                const w = parseInt(document.getElementById('inp-w').value) || 112;
-                const h = parseInt(document.getElementById('inp-h').value) || 19;
+                const w = parseInt(document.getElementById('w-inp').value) || 112;
+                const h = parseInt(document.getElementById('h-inp').value) || 19;
                 
                 let backup = null;
                 if(!init) backup = this.ctx.getImageData(0,0,this.canvas.width, this.canvas.height);
 
                 this.canvas.width = w;
                 this.canvas.height = h;
-
+                
+                // Vyčistit na černo
                 this.ctx.fillStyle = '#000';
                 this.ctx.fillRect(0,0,w,h);
                 
                 if(backup) this.ctx.putImageData(backup, 0, 0);
 
-                UI.autoZoom();
+                UI.adaptZoom();
                 this.pushHistory();
             },
 
-            setPreset(w, h) {
-                document.getElementById('inp-w').value = w;
-                document.getElementById('inp-h').value = h;
-                this.resize();
-                UI.notify(`Rozměr změněn na ${w}x${h}`);
-            },
-
             /**
-             * DRAW ENGINE: Pixel-level manipulace
+             * DRAW LOGIC
              */
             draw(x, y) {
-                const ctx = this.ctx;
-                ctx.fillStyle = (this.state.tool === 'erase') ? '#000000' : this.state.color;
-                
-                if(this.state.brushSize === 1) {
-                    ctx.fillRect(x, y, 1, 1);
-                } else {
-                    const offset = Math.floor(this.state.brushSize / 2);
-                    ctx.fillRect(x - offset, y - offset, this.state.brushSize, this.state.brushSize);
-                }
+                this.ctx.fillStyle = (this.state.tool === 'erase') ? '#000' : this.state.color;
+                this.ctx.fillRect(x, y, 1, 1);
             },
 
+            // Bresenhamova čára
             drawLine(p1, p2) {
-                const ctx = this.ctx;
-                ctx.fillStyle = this.state.color;
+                this.ctx.fillStyle = this.state.color;
                 let x0 = p1.x, y0 = p1.y, x1 = p2.x, y1 = p2.y;
                 let dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
                 let dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
                 let err = (dx > dy ? dx : -dy) / 2;
                 while(true) {
-                    ctx.fillRect(x0, y0, 1, 1);
+                    this.ctx.fillRect(x0, y0, 1, 1);
                     if(x0 === x1 && y0 === y1) break;
                     let e2 = err;
                     if(e2 > -dx) { err -= dy; x0 += sx; }
@@ -377,58 +411,70 @@
                 }
             },
 
-            floodFill(startX, startY, fillHex) {
-                const width = this.canvas.width, height = this.canvas.height;
-                const img = this.ctx.getImageData(0,0,width,height);
+            // Flood Fill
+            fill(startX, startY, fillHex) {
+                const w = this.canvas.width, h = this.canvas.height;
+                const img = this.ctx.getImageData(0,0,w,h);
                 const data = img.data;
 
                 const getCol = (x, y) => {
-                    const i = (y * width + x) * 4;
+                    const i = (y * w + x) * 4;
                     return [data[i], data[i+1], data[i+2]];
                 };
 
                 const target = getCol(startX, startY);
-                const fill = UI.hexToRgb(fillHex);
+                const color = UI.hexToRgb(fillHex);
                 
-                if(target[0] === fill.r && target[1] === fill.g && target[2] === fill.b) return;
+                if(target[0] === color.r && target[1] === color.g && target[2] === color.b) return;
 
                 const stack = [[startX, startY]];
                 while(stack.length) {
                     const [x, y] = stack.pop();
-                    if(x < 0 || x >= width || y < 0 || y >= height) continue;
-                    const curr = getCol(x, y);
-                    if(curr[0] === target[0] && curr[1] === target[1] && curr[2] === target[2]) {
-                        const i = (y * width + x) * 4;
-                        data[i] = fill.r; data[i+1] = fill.g; data[i+2] = fill.b; data[i+3] = 255;
-                        stack.push([x+1, y], [x-1, y], [x, y+1], [x, y-1]);
+                    if(x<0||x>=w||y<0||y>=h) continue;
+                    const c = getCol(x, y);
+                    if(c[0] === target[0] && c[1] === target[1] && c[2] === target[2]) {
+                        const i = (y * w + x) * 4;
+                        data[i] = color.r; data[i+1] = color.g; data[i+2] = color.b; data[i+3] = 255;
+                        stack.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);
                     }
                 }
                 this.ctx.putImageData(img, 0, 0);
             },
 
             /**
-             * INPUT HANDLERS
+             * EVENTY
              */
             handleDown(e) {
                 const pos = this.getCoords(e);
                 this.state.isDrawing = true;
-                this.state.lastPos = pos;
-                
+                this.state.startPos = pos;
+                this.state.tempImg = this.ctx.getImageData(0,0,this.canvas.width, this.canvas.height);
+
                 if(this.state.tool === 'fill') {
-                    this.floodFill(pos.x, pos.y, this.state.color);
-                    this.pushHistory();
-                } else {
+                    this.fill(pos.x, pos.y, this.state.color);
+                } else if(this.state.tool === 'pen' || this.state.tool === 'erase') {
                     this.draw(pos.x, pos.y);
                 }
             },
 
             handleMove(e) {
                 const pos = this.getCoords(e);
-                document.getElementById('st-pos').innerText = `X: ${pos.x} Y: ${pos.y}`;
+                document.getElementById('st-coords').innerText = `CURSOR: ${pos.x}, ${pos.y}`;
                 
-                if(this.state.isDrawing && (this.state.tool === 'pen' || this.state.tool === 'erase')) {
-                    this.drawLine(this.state.lastPos, pos);
-                    this.state.lastPos = pos;
+                if(!this.state.isDrawing) return;
+
+                if(this.state.tool === 'pen' || this.state.tool === 'erase') {
+                    this.drawLine(this.state.startPos, pos);
+                    this.state.startPos = pos;
+                } else if(this.state.tool === 'line' || this.state.tool === 'rect') {
+                    this.ctx.putImageData(this.state.tempImg, 0, 0);
+                    if(this.state.tool === 'line') this.drawLine(this.state.startPos, pos);
+                    if(this.state.tool === 'rect') {
+                        this.ctx.fillStyle = this.state.color;
+                        const x = Math.min(this.state.startPos.x, pos.x), y = Math.min(this.state.startPos.y, pos.y);
+                        const w = Math.abs(this.state.startPos.x - pos.x) + 1, h = Math.abs(this.state.startPos.y - pos.y) + 1;
+                        this.ctx.fillRect(x, y, w, h);
+                    }
                 }
             },
 
@@ -441,27 +487,25 @@
             },
 
             /**
-             * STATE & TOOLS
+             * UI AKCE
              */
             setTool(t) {
                 this.state.tool = t;
-                document.querySelectorAll('.btn').forEach(b => b.classList.remove('btn-active'));
-                document.getElementById('t-' + t).classList.add('btn-active');
-                UI.notify(`Nástroj: ${t.toUpperCase()}`);
+                document.querySelectorAll('.ui-section .btn').forEach(b => b.classList.remove('btn-active'));
+                const btn = document.getElementById('t-' + t);
+                if(btn) btn.classList.add('btn-active');
             },
 
             setColor(c, id) {
                 this.state.color = c;
                 document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
                 document.getElementById(id).classList.add('active');
-                if(this.state.tool === 'erase') this.setTool('pen');
             },
 
             undo() {
                 if(this.state.history.length < 2) return;
                 this.state.history.pop();
                 this.ctx.putImageData(this.state.history[this.state.history.length - 1], 0, 0);
-                UI.notify("Krok zpět");
             },
 
             pushHistory() {
@@ -469,8 +513,8 @@
                 this.state.history.push(this.ctx.getImageData(0,0,this.canvas.width, this.canvas.height));
             },
 
-            clearAll() {
-                if(confirm("Smazat celý panel?")) {
+            clear() {
+                if(confirm("Smazat vše?")) {
                     this.ctx.fillStyle = '#000';
                     this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height);
                     this.pushHistory();
@@ -478,30 +522,40 @@
                 }
             },
 
+            switchSlot(i) {
+                this.storage.save();
+                this.activeSlot = i;
+                document.querySelectorAll('.ui-section button').forEach((b,idx) => {
+                   if(b.innerText == (i+1)) b.classList.add('btn-active');
+                   else if (!isNaN(b.innerText)) b.classList.remove('btn-active');
+                });
+                this.storage.load();
+                UI.notify(`Přepnuto na slot ${i+1}`);
+            },
+
             /**
-             * STORAGE SUB-MODULE
+             * STORAGE
              */
             storage: {
                 save() {
                     const data = {
-                        w: Core.canvas.width,
-                        h: Core.canvas.height,
-                        img: Core.canvas.toDataURL()
+                        w: App.canvas.width,
+                        h: App.canvas.height,
+                        img: App.canvas.toDataURL()
                     };
-                    localStorage.setItem('buse_simt_v17', JSON.stringify(data));
-                    document.getElementById('st-save').innerText = "ULOŽENO: " + new Date().toLocaleTimeString();
+                    localStorage.setItem(`buse_slot_${App.activeSlot}`, JSON.stringify(data));
                 },
                 load() {
-                    const raw = localStorage.getItem('buse_simt_v17');
+                    const raw = localStorage.getItem(`buse_slot_${App.activeSlot}`);
                     if(!raw) return;
                     const data = JSON.parse(raw);
-                    document.getElementById('inp-w').value = data.w;
-                    document.getElementById('inp-h').value = data.h;
+                    document.getElementById('w-inp').value = data.w;
+                    document.getElementById('h-inp').value = data.h;
                     const img = new Image();
                     img.onload = () => {
-                        Core.resize(true);
-                        Core.ctx.drawImage(img, 0, 0);
-                        Core.pushHistory();
+                        App.resize(true);
+                        App.ctx.drawImage(img, 0, 0);
+                        App.pushHistory();
                     };
                     img.src = data.img;
                 }
@@ -509,69 +563,26 @@
         };
 
         /**
-         * TRANSFORM MODULE: Pokročilé operace s pixely
-         */
-        const Transform = {
-            flipH() {
-                const w = Core.canvas.width, h = Core.canvas.height;
-                const temp = Core.ctx.getImageData(0,0,w,h);
-                Core.ctx.clearRect(0,0,w,h);
-                Core.ctx.save();
-                Core.ctx.translate(w, 0);
-                Core.ctx.scale(-1, 1);
-                const img = new Image();
-                img.onload = () => {
-                    Core.ctx.drawImage(img, 0, 0);
-                    Core.pushHistory();
-                };
-                img.src = Core.canvas.toDataURL();
-                Core.ctx.restore();
-                UI.notify("Překlopeno vodorovně");
-            },
-
-            invert() {
-                const img = Core.ctx.getImageData(0,0,Core.canvas.width, Core.canvas.height);
-                for(let i=0; i<img.data.length; i+=4) {
-                    if(img.data[i+3] > 0) { // Pokud pixel není průhledný/černý
-                        img.data[i] = 255 - img.data[i];
-                        img.data[i+1] = 255 - img.data[i+1];
-                        img.data[i+2] = 255 - img.data[i+2];
-                    }
-                }
-                Core.ctx.putImageData(img, 0, 0);
-                Core.pushHistory();
-                UI.notify("Barvy invertovány");
-            }
-        };
-
-        /**
-         * UI MODULE: Vizuální interakce
+         * UI UTILS
          */
         const UI = {
-            notify(msg) {
-                const container = document.getElementById('toast-container');
+            notify(txt) {
+                const w = document.getElementById('toast-wrap');
                 const t = document.createElement('div');
                 t.className = 'toast';
-                t.innerText = msg;
-                container.appendChild(t);
+                t.innerText = txt;
+                w.appendChild(t);
                 setTimeout(() => t.remove(), 3000);
             },
 
-            updateBrush() {
-                const val = document.getElementById('brush-size').value;
-                Core.state.brushSize = parseInt(val);
-                document.getElementById('brush-txt').innerText = val + 'px';
-            },
-
-            autoZoom() {
-                const cvs = Core.canvas;
-                const zoom = cvs.width < 120 ? 12 : 8;
+            adaptZoom() {
+                const cvs = App.canvas;
+                const view = document.getElementById('viewport');
+                const ratio = (view.clientWidth - 100) / cvs.width;
+                const zoom = Math.floor(Math.min(ratio, 15));
                 cvs.style.width = (cvs.width * zoom) + "px";
                 cvs.style.height = (cvs.height * zoom) + "px";
-                
-                // Úprava DOT-matrix mřížky na pozadí
-                const container = document.getElementById('canvas-root');
-                container.style.backgroundSize = `${zoom}px ${zoom}px`;
+                document.getElementById('st-zoom').innerText = `ZOOM: ${zoom * 100}%`;
             },
 
             hexToRgb(hex) {
@@ -580,24 +591,19 @@
             }
         };
 
-        /**
-         * IO MODULE: Export a Import
-         */
         const IO = {
             export() {
                 const link = document.createElement('a');
-                link.download = `SIMT_BUSE_${Date.now()}.png`;
-                link.href = Core.canvas.toDataURL('image/png');
+                link.download = `BUSE_PANEL_SLOT_${App.activeSlot + 1}.png`;
+                link.href = App.canvas.toDataURL();
                 link.click();
-                UI.notify("Exportováno do PNG!");
+                UI.notify("Exportováno!");
             }
         };
 
-        // RUN
-        window.onload = () => Core.init();
-        window.onresize = () => UI.autoZoom();
+        window.onload = () => App.init();
+        window.onresize = () => UI.adaptZoom();
 
     </script>
 </body>
 </html>
-
