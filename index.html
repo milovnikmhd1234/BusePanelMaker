@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SIMT BUSE Editor Mobile</title>
+    <title>SIMT BUSE Ultimate Editor v3.0</title>
     <style>
         :root {
-            --buse-orange: #ffaa00;
+            --buse-orange: #ff9d00;
+            --buse-dim: #1a1200;
             --ui-bg: #1a1a1a;
-            --panel-bg: #000;
+            --ui-border: #333;
         }
 
         body {
             background-color: #000;
             color: #fff;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             margin: 0;
             display: flex;
             flex-direction: column;
@@ -22,44 +23,58 @@
             overflow: hidden;
         }
 
-        /* Horní lišta v SIMT stylu */
+        /* LIŠTA PODLE SCREENSHOTU */
         header {
-            background: #252525;
-            padding: 10px;
+            background: #222;
+            padding: 8px 15px;
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            border-bottom: 2px solid #444;
-            font-size: 13px;
+            gap: 15px;
             align-items: center;
+            border-bottom: 2px solid #444;
+            font-size: 12px;
+            z-index: 10;
         }
 
-        .brand { font-weight: bold; color: #ffaa00; margin-right: 10px; }
+        .brand {
+            font-weight: bold;
+            color: var(--buse-orange);
+            border: 1px solid var(--buse-orange);
+            padding: 2px 6px;
+            text-transform: uppercase;
+        }
 
-        select, input {
-            background: #333;
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        select, input[type="number"], input[type="text"] {
+            background: #000;
+            color: var(--buse-orange);
             border: 1px solid #555;
-            color: #fff;
             padding: 5px;
             border-radius: 3px;
+            font-size: 12px;
         }
 
-        /* Oblast s panelem */
+        /* VIEWPORT AREA */
         #viewport {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 10px;
-            background: #111;
+            padding: 20px;
+            background: radial-gradient(circle, #151515 0%, #000 100%);
             overflow: auto;
         }
 
-        .canvas-container {
+        .canvas-wrapper {
             position: relative;
+            border: 12px solid #282828;
+            box-shadow: 0 0 50px rgba(0,0,0,1);
             background: #000;
-            border: 4px solid #333;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
 
         canvas {
@@ -67,185 +82,229 @@
             image-rendering: pixelated;
         }
 
-        /* Ovládací panel dole pro mobil */
+        /* FOOTER OVLÁDÁNÍ */
         footer {
             background: var(--ui-bg);
+            border-top: 1px solid var(--ui-border);
             padding: 15px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            border-top: 1px solid #444;
+            gap: 12px;
         }
 
-        .controls-row {
+        .main-inputs {
             display: flex;
             gap: 10px;
-            width: 100%;
         }
 
-        input[type="text"] { flex: 1; padding: 12px; font-size: 16px; }
+        .main-inputs input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 10px;
+        }
 
         button {
-            background: var(--buse-orange);
-            color: #000;
-            border: none;
-            padding: 12px 20px;
+            flex: 1;
+            padding: 12px;
             font-weight: bold;
-            text-transform: uppercase;
-            border-radius: 4px;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
+            text-transform: uppercase;
         }
 
-        button.export { background: #444; color: #fff; }
+        .btn-main { background: var(--buse-orange); color: #000; }
+        .btn-sub { background: #444; color: #fff; }
 
-        /* Mřížka (Grid overlay) */
-        .grid-overlay {
-            position: absolute;
-            top: 0; left: 0; pointer-events: none;
-            width: 100%; height: 100%;
-            opacity: 0.15;
+        /* MOBILNÍ FIX */
+        @media (max-width: 600px) {
+            header { gap: 10px; }
+            .canvas-wrapper { transform: scale(0.8); }
         }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="brand">SIMT EDITOR</div>
-    <div>
-        Typ: 
-        <select id="typeSelector">
+    <div class="brand">SIMT Editor</div>
+    <div class="control-group">
+        Sada: <select id="panelType">
             <option value="v1">v1 - Hlavní (140x19)</option>
             <option value="v2">v2 - Boční s č. (110x19)</option>
             <option value="v3">v3 - Boční bez č. (85x19)</option>
             <option value="v4">v4 - Zadní (28x19)</option>
         </select>
     </div>
-    <div id="res-indicator">140 x 19</div>
+    <div class="control-group">
+        Velikost fontu: <input type="number" id="fontSize" value="13" min="5" max="25">
+    </div>
+    <div class="control-group">
+        Šířka bodu: <input type="number" id="dotSize" value="4" min="2" max="15">
+    </div>
 </header>
 
 <div id="viewport">
-    <div class="canvas-container">
+    <div class="canvas-wrapper">
         <canvas id="buseCanvas"></canvas>
     </div>
 </div>
 
 <footer>
-    <div class="controls-row">
-        <input type="text" id="lineInput" placeholder="Linka" style="max-width: 70px;">
-        <input type="text" id="textInput" placeholder="Cílová stanice">
+    <div class="main-inputs">
+        <input type="text" id="lineInput" placeholder="L" style="max-width: 70px;" value="12">
+        <input type="text" id="textInput" placeholder="CÍLOVÁ STANICE (DIAKRITIKA)" value="HLAVNÍ NÁDRAŽÍ">
     </div>
-    <div class="controls-row">
-        <button onclick="render()">Aktualizovat</button>
-        <button class="export" onclick="exportImage()">Export</button>
+    <div class="action-bar">
+        <button class="btn-main" onclick="render()">Aktualizovat panel</button>
+        <button class="btn-sub" onclick="downloadImage()">Exportovat .PNG</button>
     </div>
 </footer>
 
 <script>
-    const canvas = document.getElementById('buseCanvas');
-    const ctx = canvas.getContext('2d');
-    const typeSelector = document.getElementById('typeSelector');
+/**
+ * SIMT BUSE ENGINE - FULL DATASET
+ * Obsahuje komplexní mapování znaků pro diakritiku.
+ */
+
+// Bitmapy 7x5 jako základ pro systém
+const FONT_DATA = {
+    'A': [0x7E, 0x11, 0x11, 0x11, 0x7E], 'B': [0x7F, 0x49, 0x49, 0x49, 0x36],
+    'C': [0x3E, 0x41, 0x41, 0x41, 0x22], 'D': [0x7F, 0x41, 0x41, 0x22, 0x1C],
+    'E': [0x7F, 0x49, 0x49, 0x49, 0x41], 'F': [0x7F, 0x09, 0x09, 0x09, 0x01],
+    'G': [0x3E, 0x41, 0x49, 0x49, 0x7A], 'H': [0x7F, 0x08, 0x08, 0x08, 0x7F],
+    'I': [0x00, 0x41, 0x7F, 0x41, 0x00], 'J': [0x20, 0x40, 0x41, 0x3F, 0x01],
+    'K': [0x7F, 0x08, 0x14, 0x22, 0x41], 'L': [0x7F, 0x40, 0x40, 0x40, 0x40],
+    'M': [0x7F, 0x02, 0x0C, 0x02, 0x7F], 'N': [0x7F, 0x04, 0x08, 0x10, 0x7F],
+    'O': [0x3E, 0x41, 0x41, 0x41, 0x3E], 'P': [0x7F, 0x09, 0x09, 0x09, 0x06],
+    'Q': [0x3E, 0x41, 0x51, 0x21, 0x5E], 'R': [0x7F, 0x09, 0x19, 0x29, 0x46],
+    'S': [0x46, 0x49, 0x49, 0x49, 0x31], 'T': [0x01, 0x01, 0x7F, 0x01, 0x01],
+    'U': [0x3F, 0x40, 0x40, 0x40, 0x3F], 'V': [0x1F, 0x20, 0x40, 0x20, 0x1F],
+    'W': [0x3F, 0x40, 0x38, 0x40, 0x3F], 'X': [0x63, 0x14, 0x08, 0x14, 0x63],
+    'Y': [0x07, 0x08, 0x70, 0x08, 0x07], 'Z': [0x61, 0x51, 0x49, 0x45, 0x43],
+    '0': [0x3E, 0x51, 0x49, 0x45, 0x3E], '1': [0x00, 0x42, 0x7F, 0x40, 0x00],
+    '2': [0x42, 0x61, 0x51, 0x49, 0x46], '3': [0x21, 0x41, 0x45, 0x4B, 0x31],
+    '4': [0x18, 0x14, 0x12, 0x7F, 0x10], '5': [0x27, 0x45, 0x45, 0x45, 0x39],
+    '6': [0x3C, 0x4A, 0x49, 0x49, 0x30], '7': [0x01, 0x71, 0x09, 0x05, 0x03],
+    '8': [0x36, 0x49, 0x49, 0x49, 0x36], '9': [0x06, 0x49, 0x49, 0x29, 0x1E],
+    ' ': [0x00, 0x00, 0x00], '.': [0x60, 0x60], ',': [0x50, 0x30], '-': [0x08, 0x08, 0x08],
+    '+': [0x08, 0x08, 0x3E, 0x08, 0x08], '/': [0x60, 0x10, 0x08, 0x06]
+};
+
+// Mapování diakritiky (zjednodušený algoritmus pro real-time render)
+const DIA_MAP = {
+    'Á': 'A', 'Č': 'C', 'Ď': 'D', 'É': 'E', 'Ě': 'E', 'Í': 'I', 'Ň': 'N', 'Ó': 'O', 'Ř': 'R', 'Š': 'S', 'Ť': 'T', 'Ú': 'U', 'Ů': 'U', 'Ý': 'Y', 'Ž': 'Z'
+};
+
+const CONFIGS = {
+    v1: { w: 140, h: 19 },
+    v2: { w: 110, h: 19 },
+    v3: { w: 85, h: 19 },
+    v4: { w: 28, h: 19 }
+};
+
+const canvas = document.getElementById('buseCanvas');
+const ctx = canvas.getContext('2d');
+
+/**
+ * Hlavní renderovací funkce
+ */
+function render() {
+    const type = document.getElementById('panelType').value;
+    const fontSize = parseInt(document.getElementById('fontSize').value);
+    const dotSize = parseInt(document.getElementById('dotSize').value);
+    const lineStr = document.getElementById('lineInput').value;
+    const textStr = document.getElementById('textInput').value;
     
-    // Konfigurace typů panelů
-    const configs = {
-        v1: { w: 140, h: 19, dot: 4 },
-        v2: { w: 110, h: 19, dot: 5 },
-        v3: { w: 85, h: 19, dot: 6 },
-        v4: { w: 28, h: 19, dot: 10 }
-    };
+    const config = CONFIGS[type];
+    
+    // Nastavení rozměrů plátna
+    canvas.width = config.w * dotSize;
+    canvas.height = config.h * dotSize;
 
-    // Bitmapový font (zjednodušený pro ukázku, lze doplnit další znaky)
-    const FONT = {
-        'A': [0x7E, 0x11, 0x11, 0x7E], 'B': [0x7F, 0x49, 0x49, 0x36], 'C': [0x3E, 0x41, 0x41, 0x22],
-        'D': [0x7F, 0x41, 0x41, 0x3E], 'E': [0x7F, 0x49, 0x49, 0x41], 'F': [0x7F, 0x09, 0x09, 0x01],
-        'H': [0x7F, 0x08, 0x08, 0x7F], 'I': [0x41, 0x7F, 0x41], 'L': [0x7F, 0x40, 0x40, 0x40],
-        'M': [0x7F, 0x02, 0x0C, 0x02, 0x7F], 'N': [0x7F, 0x04, 0x08, 0x7F], 'O': [0x3E, 0x41, 0x41, 0x3E],
-        'P': [0x7F, 0x09, 0x09, 0x06], 'R': [0x7F, 0x09, 0x19, 0x66], 'S': [0x26, 0x49, 0x49, 0x32],
-        'T': [0x01, 0x01, 0x7F, 0x01, 0x01], 'U': [0x3F, 0x40, 0x40, 0x3F], 'V': [0x1F, 0x20, 0x40, 0x1F],
-        '0': [0x3E, 0x41, 0x41, 0x3E], '1': [0x42, 0x7F, 0x40], '2': [0x62, 0x51, 0x49, 0x46],
-        '3': [0x22, 0x49, 0x49, 0x36], '4': [0x18, 0x14, 0x12, 0x7F], '5': [0x27, 0x45, 0x45, 0x39],
-        '6': [0x3C, 0x4A, 0x49, 0x30], '7': [0x01, 0x71, 0x09, 0x07], '8': [0x36, 0x49, 0x49, 0x36],
-        '9': [0x06, 0x49, 0x49, 0x3E], ' ': [0x00, 0x00], '-': [0x08, 0x08, 0x08], '.': [0x40], ',': [0x40, 0x20]
-    };
-
-    let currentConfig = configs.v1;
-
-    function initCanvas() {
-        const type = typeSelector.value;
-        currentConfig = configs[type];
-        
-        // Nastavení fyzické velikosti canvasu
-        canvas.width = currentConfig.w * currentConfig.dot;
-        canvas.height = currentConfig.h * currentConfig.dot;
-        
-        document.getElementById('res-indicator').innerText = `${currentConfig.w} x ${currentConfig.h}`;
-        render();
-    }
-
-    function drawChar(char, x, y, size) {
-        const bitmap = FONT[char.toUpperCase()] || FONT[' '];
-        ctx.fillStyle = "#ffaa00";
-        
-        bitmap.forEach((col, i) => {
-            for (let bit = 0; bit < 8; bit++) {
-                if ((col >> bit) & 1) {
-                    ctx.fillRect(
-                        (x + i) * currentConfig.dot, 
-                        (y + bit) * currentConfig.dot, 
-                        currentConfig.dot - 1, 
-                        currentConfig.dot - 1
-                    );
-                }
-            }
-        });
-        return bitmap.length + 1;
-    }
-
-    function render() {
-        // Vyčistit pozadí (simulace rastru)
-        ctx.fillStyle = "#050505";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Nakreslit prázdné body (grid)
-        ctx.fillStyle = "#111";
-        for(let i=0; i<currentConfig.w; i++) {
-            for(let j=0; j<currentConfig.h; j++) {
-                ctx.fillRect(i*currentConfig.dot, j*currentConfig.dot, currentConfig.dot-1, currentConfig.dot-1);
-            }
+    // 1. Vyčištění a mřížka
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = "#0a0a0a";
+    for(let x=0; x<config.w; x++) {
+        for(let y=0; y<config.h; y++) {
+            ctx.fillRect(x*dotSize, y*dotSize, dotSize-1, dotSize-1);
         }
+    }
 
-        const line = document.getElementById('lineInput').value;
-        const text = document.getElementById('textInput').value;
+    // 2. Příprava pro text (pomocné plátno pro diakritiku)
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCanvas.width = config.w;
+    tempCanvas.height = config.h;
 
-        ctx.shadowBlur = 5;
-        ctx.shadowColor = "#ffaa00";
+    tempCtx.fillStyle = "white";
+    tempCtx.textBaseline = "top";
+    
+    // Použití reálného fontu pro diakritiku
+    tempCtx.font = `bold ${fontSize}px "Courier New", monospace`;
 
-        // Vykreslení podle typu panelu
-        if (typeSelector.value !== 'v4') {
-            // Číslo linky
-            let xOff = 2;
-            for(let c of line) { xOff += drawChar(c, xOff, 2, 1); }
+    if (type === 'v4') {
+        // ZADNÍ PANEL
+        const tw = tempCtx.measureText(lineStr).width;
+        tempCtx.fillText(lineStr.toUpperCase(), (config.w/2 - tw/2), 2);
+    } else if (type === 'v3') {
+        // BOČNÍ BEZ ČÍSLA
+        tempCtx.fillText(textStr.toUpperCase(), 2, 2);
+    } else {
+        // HLAVNÍ A BOČNÍ S ČÍSLEM
+        tempCtx.font = `bold 16px "Courier New", monospace`;
+        tempCtx.fillText(lineStr.toUpperCase(), 2, 1);
+        
+        const offset = (type === 'v1') ? 35 : 28;
+        tempCtx.font = `bold ${fontSize}px "Courier New", monospace`;
+        tempCtx.fillText(textStr.toUpperCase(), offset, 2);
+    }
+
+    // 3. Převod pomocného plátna na BUSE LED body
+    const imgData = tempCtx.getImageData(0, 0, config.w, config.h).data;
+    
+    ctx.fillStyle = varColor();
+    ctx.shadowBlur = dotSize * 1.2;
+    ctx.shadowColor = varColor();
+
+    for (let i = 0; i < imgData.length; i += 4) {
+        const alpha = imgData[i + 3];
+        if (alpha > 100) {
+            const pixelIndex = i / 4;
+            const x = pixelIndex % config.w;
+            const y = Math.floor(pixelIndex / config.w);
             
-            // Text cíle
-            let tOff = (typeSelector.value === 'v3') ? 2 : 30;
-            for(let c of text) { tOff += drawChar(c, tOff, 2, 1); }
-        } else {
-            // Zadní panel jen číslo
-            let xOff = 2;
-            for(let c of line) { xOff += drawChar(c, xOff, 5, 1); }
+            ctx.fillRect(x * dotSize, y * dotSize, dotSize - 1, dotSize - 1);
         }
-        ctx.shadowBlur = 0;
     }
+}
 
-    function exportImage() {
-        const link = document.createElement('a');
-        link.download = `buse_${typeSelector.value}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-    }
+function varColor() {
+    return "#ff9d00"; // Klasická BUSE oranžová
+}
 
-    typeSelector.addEventListener('change', initCanvas);
-    window.addEventListener('load', initCanvas);
+function downloadImage() {
+    const link = document.createElement('a');
+    link.download = `BUSE_${document.getElementById('panelType').value}_${Date.now()}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+}
+
+// Listenery
+document.getElementById('panelType').addEventListener('change', render);
+document.getElementById('fontSize').addEventListener('input', render);
+document.getElementById('dotSize').addEventListener('input', render);
+
+// První start
+window.onload = render;
+
 </script>
-
 </body>
 </html>
