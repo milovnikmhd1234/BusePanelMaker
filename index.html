@@ -3,299 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BUSE Master Generator v2.0</title>
+    <title>SIMT BUSE Editor Mobile</title>
     <style>
-        /* REALISTICKÝ VZHLED PANELU */
         :root {
-            --buse-color: #ff9500;
-            --buse-bg: #0a0a0a;
-            --panel-border: #222;
+            --buse-orange: #ffaa00;
+            --ui-bg: #1a1a1a;
+            --panel-bg: #000;
         }
 
         body {
-            background: #000;
-            color: #eee;
-            font-family: sans-serif;
+            background-color: #000;
+            color: #fff;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             display: flex;
             flex-direction: column;
             height: 100vh;
+            overflow: hidden;
         }
 
-        #display-zone {
+        /* Horní lišta v SIMT stylu */
+        header {
+            background: #252525;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 2px solid #444;
+            font-size: 13px;
+            align-items: center;
+        }
+
+        .brand { font-weight: bold; color: #ffaa00; margin-right: 10px; }
+
+        select, input {
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        /* Oblast s panelem */
+        #viewport {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+            padding: 10px;
+            background: #111;
+            overflow: auto;
         }
 
-        /* Simulace fyzického panelu */
-        .buse-frame {
+        .canvas-container {
+            position: relative;
             background: #000;
-            border: 10px solid var(--panel-border);
-            border-radius: 5px;
-            padding: 15px;
-            box-shadow: 0 0 40px rgba(0,0,0,1), inset 0 0 10px #000;
-            display: inline-flex;
-            gap: 15px;
+            border: 4px solid #333;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
 
         canvas {
+            display: block;
             image-rendering: pixelated;
-            background: #050505;
         }
 
-        /* OVLÁDÁNÍ */
-        #ui-layer {
-            background: #111;
-            border-top: 1px solid #333;
-            padding: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .input-group {
+        /* Ovládací panel dole pro mobil */
+        footer {
+            background: var(--ui-bg);
+            padding: 15px;
             display: flex;
             flex-direction: column;
+            gap: 10px;
+            border-top: 1px solid #444;
         }
 
-        label { color: #888; font-size: 11px; text-transform: uppercase; margin-bottom: 5px; }
-        
-        input, select {
-            background: #000;
-            border: 1px solid #444;
-            color: var(--buse-color);
-            padding: 12px;
-            border-radius: 4px;
-            outline: none;
-            font-family: monospace;
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
         }
+
+        input[type="text"] { flex: 1; padding: 12px; font-size: 16px; }
 
         button {
-            background: var(--buse-color);
-            border: none;
+            background: var(--buse-orange);
             color: #000;
+            border: none;
+            padding: 12px 20px;
             font-weight: bold;
-            padding: 15px;
-            cursor: pointer;
+            text-transform: uppercase;
             border-radius: 4px;
+            cursor: pointer;
         }
 
-        /* Scanline efekt přes panel */
-        .scanlines {
-            position: relative;
-        }
-        .scanlines::after {
-            content: "";
+        button.export { background: #444; color: #fff; }
+
+        /* Mřížka (Grid overlay) */
+        .grid-overlay {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 4px, 3px 100%;
-            pointer-events: none;
+            top: 0; left: 0; pointer-events: none;
+            width: 100%; height: 100%;
+            opacity: 0.15;
         }
     </style>
 </head>
 <body>
 
-<div id="display-zone">
-    <div class="buse-frame scanlines">
-        <canvas id="lineCanvas"></canvas>
-        <canvas id="mainCanvas"></canvas>
-    </div>
-</div>
-
-<div id="ui-layer">
-    <div class="input-group">
-        <label>Linka</label>
-        <input type="text" id="lineIn" value="4" maxlength="3">
-    </div>
-    <div class="input-group">
-        <label>Cíl (Hlavní text)</label>
-        <input type="text" id="targetIn" value="OBŘANY, BABICKÁ">
-    </div>
-    <div class="input-group">
-        <label>Trasa (Malý text)</label>
-        <input type="text" id="viaIn" value="Maloměřice - Tomkovo nám. - Česká">
-    </div>
-    <div class="input-group">
-        <label>Barva</label>
-        <select id="colorIn">
-            <option value="#ff9d00">BUSE Oranžová</option>
-            <option value="#ffcc00">Jasně Žlutá</option>
-            <option value="#00ff44">Zelená DOT</option>
-            <option value="#ffffff">Bílá LED</option>
+<header>
+    <div class="brand">SIMT EDITOR</div>
+    <div>
+        Typ: 
+        <select id="typeSelector">
+            <option value="v1">v1 - Hlavní (140x19)</option>
+            <option value="v2">v2 - Boční s č. (110x19)</option>
+            <option value="v3">v3 - Boční bez č. (85x19)</option>
+            <option value="v4">v4 - Zadní (28x19)</option>
         </select>
     </div>
-    <button onclick="draw()">AKTUALIZOVAT</button>
+    <div id="res-indicator">140 x 19</div>
+</header>
+
+<div id="viewport">
+    <div class="canvas-container">
+        <canvas id="buseCanvas"></canvas>
+    </div>
 </div>
 
+<footer>
+    <div class="controls-row">
+        <input type="text" id="lineInput" placeholder="Linka" style="max-width: 70px;">
+        <input type="text" id="textInput" placeholder="Cílová stanice">
+    </div>
+    <div class="controls-row">
+        <button onclick="render()">Aktualizovat</button>
+        <button class="export" onclick="exportImage()">Export</button>
+    </div>
+</footer>
+
 <script>
-/**
- * TENTO SKRIPT OBSAHUJE RUČNĚ DEFINOVANÉ BITMAPY PRO KAŽDÝ ZNAK
- * To zajišťuje 100% realismus "pixel po pixelu".
- */
+    const canvas = document.getElementById('buseCanvas');
+    const ctx = canvas.getContext('2d');
+    const typeSelector = document.getElementById('typeSelector');
+    
+    // Konfigurace typů panelů
+    const configs = {
+        v1: { w: 140, h: 19, dot: 4 },
+        v2: { w: 110, h: 19, dot: 5 },
+        v3: { w: 85, h: 19, dot: 6 },
+        v4: { w: 28, h: 19, dot: 10 }
+    };
 
-const FONT_7x5 = {
-    'A': [0x7E, 0x11, 0x11, 0x11, 0x7E],
-    'B': [0x7F, 0x49, 0x49, 0x49, 0x36],
-    'C': [0x3E, 0x41, 0x41, 0x41, 0x22],
-    'D': [0x7F, 0x41, 0x41, 0x22, 0x1C],
-    'E': [0x7F, 0x49, 0x49, 0x49, 0x41],
-    'F': [0x7F, 0x09, 0x09, 0x09, 0x01],
-    'G': [0x3E, 0x41, 0x49, 0x49, 0x7A],
-    'H': [0x7F, 0x08, 0x08, 0x08, 0x7F],
-    'I': [0x00, 0x41, 0x7F, 0x41, 0x00],
-    'J': [0x20, 0x40, 0x41, 0x3F, 0x01],
-    'K': [0x7F, 0x08, 0x14, 0x22, 0x41],
-    'L': [0x7F, 0x40, 0x40, 0x40, 0x40],
-    'M': [0x7F, 0x02, 0x0C, 0x02, 0x7F],
-    'N': [0x7F, 0x04, 0x08, 0x10, 0x7F],
-    'O': [0x3E, 0x41, 0x41, 0x41, 0x3E],
-    'P': [0x7F, 0x09, 0x09, 0x09, 0x06],
-    'R': [0x7F, 0x09, 0x19, 0x29, 0x46],
-    'S': [0x46, 0x49, 0x49, 0x49, 0x31],
-    'T': [0x01, 0x01, 0x7F, 0x01, 0x01],
-    'U': [0x3F, 0x40, 0x40, 0x40, 0x3F],
-    'V': [0x1F, 0x20, 0x40, 0x20, 0x1F],
-    'W': [0x3F, 0x40, 0x38, 0x40, 0x3F],
-    'X': [0x63, 0x14, 0x08, 0x14, 0x63],
-    'Y': [0x07, 0x08, 0x70, 0x08, 0x07],
-    'Z': [0x61, 0x51, 0x49, 0x45, 0x43],
-    '0': [0x3E, 0x51, 0x49, 0x45, 0x3E],
-    '1': [0x00, 0x42, 0x7F, 0x40, 0x00],
-    '2': [0x42, 0x61, 0x51, 0x49, 0x46],
-    '3': [0x21, 0x41, 0x45, 0x4B, 0x31],
-    '4': [0x18, 0x14, 0x12, 0x7F, 0x10],
-    '5': [0x27, 0x45, 0x45, 0x45, 0x39],
-    '6': [0x3C, 0x4A, 0x49, 0x49, 0x30],
-    '7': [0x01, 0x71, 0x09, 0x05, 0x03],
-    '8': [0x36, 0x49, 0x49, 0x49, 0x36],
-    '9': [0x06, 0x49, 0x49, 0x29, 0x1E],
-    ' ': [0x00, 0x00, 0x00],
-    ',': [0x00, 0x50, 0x30, 0x00, 0x00],
-    '.': [0x00, 0x60, 0x60, 0x00, 0x00],
-    '-': [0x08, 0x08, 0x08, 0x08, 0x08],
-    'Á': [0x7E, 0x11, 0x11, 0x11, 0x7E],
-    'Í': [0x00, 0x41, 0x7F, 0x41, 0x00],
-    'Č': [0x3E, 0x41, 0x41, 0x41, 0x22],
-    'Ř': [0x7F, 0x09, 0x19, 0x29, 0x46],
-    'Ý': [0x07, 0x08, 0x70, 0x08, 0x07],
-    'Š': [0x46, 0x49, 0x49, 0x49, 0x31]
-};
+    // Bitmapový font (zjednodušený pro ukázku, lze doplnit další znaky)
+    const FONT = {
+        'A': [0x7E, 0x11, 0x11, 0x7E], 'B': [0x7F, 0x49, 0x49, 0x36], 'C': [0x3E, 0x41, 0x41, 0x22],
+        'D': [0x7F, 0x41, 0x41, 0x3E], 'E': [0x7F, 0x49, 0x49, 0x41], 'F': [0x7F, 0x09, 0x09, 0x01],
+        'H': [0x7F, 0x08, 0x08, 0x7F], 'I': [0x41, 0x7F, 0x41], 'L': [0x7F, 0x40, 0x40, 0x40],
+        'M': [0x7F, 0x02, 0x0C, 0x02, 0x7F], 'N': [0x7F, 0x04, 0x08, 0x7F], 'O': [0x3E, 0x41, 0x41, 0x3E],
+        'P': [0x7F, 0x09, 0x09, 0x06], 'R': [0x7F, 0x09, 0x19, 0x66], 'S': [0x26, 0x49, 0x49, 0x32],
+        'T': [0x01, 0x01, 0x7F, 0x01, 0x01], 'U': [0x3F, 0x40, 0x40, 0x3F], 'V': [0x1F, 0x20, 0x40, 0x1F],
+        '0': [0x3E, 0x41, 0x41, 0x3E], '1': [0x42, 0x7F, 0x40], '2': [0x62, 0x51, 0x49, 0x46],
+        '3': [0x22, 0x49, 0x49, 0x36], '4': [0x18, 0x14, 0x12, 0x7F], '5': [0x27, 0x45, 0x45, 0x39],
+        '6': [0x3C, 0x4A, 0x49, 0x30], '7': [0x01, 0x71, 0x09, 0x07], '8': [0x36, 0x49, 0x49, 0x36],
+        '9': [0x06, 0x49, 0x49, 0x3E], ' ': [0x00, 0x00], '-': [0x08, 0x08, 0x08], '.': [0x40], ',': [0x40, 0x20]
+    };
 
-// ... Zde by následovalo dalších 400 řádků s diakritikou pro "ÚPLNĚ REAL" ...
-// Pro demo účely jsem zahrnul klíčové znaky.
+    let currentConfig = configs.v1;
 
-class MatrixDisplay {
-    constructor(id, cols, rows, ledSize) {
-        this.canvas = document.getElementById(id);
-        this.ctx = this.canvas.getContext('2d');
-        this.cols = cols;
-        this.rows = rows;
-        this.ledSize = ledSize;
-        this.spacing = 1.5;
-        this.canvas.width = cols * (ledSize + this.spacing);
-        this.canvas.height = rows * (ledSize + this.spacing);
-        this.grid = Array(cols).fill().map(() => Array(rows).fill(0));
+    function initCanvas() {
+        const type = typeSelector.value;
+        currentConfig = configs[type];
+        
+        // Nastavení fyzické velikosti canvasu
+        canvas.width = currentConfig.w * currentConfig.dot;
+        canvas.height = currentConfig.h * currentConfig.dot;
+        
+        document.getElementById('res-indicator').innerText = `${currentConfig.w} x ${currentConfig.h}`;
+        render();
     }
 
-    setPixel(x, y, state) {
-        if (x >= 0 && x < this.cols && y >= 0 && y < this.rows) {
-            this.grid[x][y] = state;
-        }
-    }
-
-    drawText(text, startX, startY, font, scaleX = 1, scaleY = 1) {
-        let currentX = startX;
-        text = text.toUpperCase();
-        for (let char of text) {
-            let bitmap = font[char] || font[' '];
-            for (let i = 0; i < bitmap.length; i++) {
-                for (let j = 0; j < 8; j++) {
-                    if ((bitmap[i] >> j) & 1) {
-                        for(let sx=0; sx<scaleX; sx++) {
-                            for(let sy=0; sy<scaleY; sy++) {
-                                this.setPixel(currentX + (i*scaleX) + sx, startY + (j*scaleY) + sy, 1);
-                            }
-                        }
-                    }
+    function drawChar(char, x, y, size) {
+        const bitmap = FONT[char.toUpperCase()] || FONT[' '];
+        ctx.fillStyle = "#ffaa00";
+        
+        bitmap.forEach((col, i) => {
+            for (let bit = 0; bit < 8; bit++) {
+                if ((col >> bit) & 1) {
+                    ctx.fillRect(
+                        (x + i) * currentConfig.dot, 
+                        (y + bit) * currentConfig.dot, 
+                        currentConfig.dot - 1, 
+                        currentConfig.dot - 1
+                    );
                 }
             }
-            currentX += (bitmap.length + 1) * scaleX;
-        }
+        });
+        return bitmap.length + 1;
     }
 
-    render(color) {
-        this.ctx.fillStyle = '#000';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    function render() {
+        // Vyčistit pozadí (simulace rastru)
+        ctx.fillStyle = "#050505";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        for (let x = 0; x < this.cols; x++) {
-            for (let y = 0; y < this.rows; y++) {
-                let isON = this.grid[x][y];
-                this.ctx.fillStyle = isON ? color : '#1a1200';
-                
-                // Glow efekt
-                if(isON) {
-                    this.ctx.shadowBlur = 8;
-                    this.ctx.shadowColor = color;
-                } else {
-                    this.ctx.shadowBlur = 0;
-                }
-
-                this.ctx.beginPath();
-                // BUSE panely mají čtvercové body s kulatými rohy
-                const px = x * (this.ledSize + this.spacing);
-                const py = y * (this.ledSize + this.spacing);
-                this.ctx.fillRect(px, py, this.ledSize, this.ledSize);
+        // Nakreslit prázdné body (grid)
+        ctx.fillStyle = "#111";
+        for(let i=0; i<currentConfig.w; i++) {
+            for(let j=0; j<currentConfig.h; j++) {
+                ctx.fillRect(i*currentConfig.dot, j*currentConfig.dot, currentConfig.dot-1, currentConfig.dot-1);
             }
         }
+
+        const line = document.getElementById('lineInput').value;
+        const text = document.getElementById('textInput').value;
+
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = "#ffaa00";
+
+        // Vykreslení podle typu panelu
+        if (typeSelector.value !== 'v4') {
+            // Číslo linky
+            let xOff = 2;
+            for(let c of line) { xOff += drawChar(c, xOff, 2, 1); }
+            
+            // Text cíle
+            let tOff = (typeSelector.value === 'v3') ? 2 : 30;
+            for(let c of text) { tOff += drawChar(c, tOff, 2, 1); }
+        } else {
+            // Zadní panel jen číslo
+            let xOff = 2;
+            for(let c of line) { xOff += drawChar(c, xOff, 5, 1); }
+        }
+        ctx.shadowBlur = 0;
     }
 
-    clear() {
-        this.grid = Array(this.cols).fill().map(() => Array(this.rows).fill(0));
+    function exportImage() {
+        const link = document.createElement('a');
+        link.download = `buse_${typeSelector.value}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
     }
-}
 
-// Konfigurace panelů
-const lineDisp = new MatrixDisplay('lineCanvas', 24, 19, 7);
-const mainDisp = new MatrixDisplay('mainCanvas', 120, 19, 7);
-
-function draw() {
-    const color = document.getElementById('colorIn').value;
-    const lineText = document.getElementById('lineIn').value;
-    const targetText = document.getElementById('targetIn').value;
-    const viaText = document.getElementById('viaIn').value;
-
-    // Kreslení linky
-    lineDisp.clear();
-    // Linka je větší, použijeme scale
-    lineDisp.drawText(lineText, 2, 2, FONT_7x5, 2, 2);
-    lineDisp.render(color);
-
-    // Kreslení hlavního textu a trasy
-    mainDisp.clear();
-    // Cíl
-    mainDisp.drawText(targetText, 2, 1, FONT_7x5, 2, 1.5);
-    // Trasa (menší měřítko dole)
-    mainDisp.drawText(viaText, 2, 13, FONT_7x5, 1, 0.7);
-    mainDisp.render(color);
-}
-
-// Spustit při načtení
-window.onload = draw;
-
-// Mobilní export - simulace fullscreen
-document.addEventListener('dblclick', () => {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-    } else {
-        document.exitFullscreen();
-    }
-});
+    typeSelector.addEventListener('change', initCanvas);
+    window.addEventListener('load', initCanvas);
 </script>
 
 </body>
