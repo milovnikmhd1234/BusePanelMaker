@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUSE Panel Simulátor</title>
+    <!-- Načtení knihovny pro export do PNG -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --buse-green: #2aff2a;
+            --buse-dim-green: #003300;
+            --panel-bg: #000000;
+            --matrix-font: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            color: #eeeeee;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            padding: 15px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 5px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            width: 100%;
+            max-width: 900px;
+            text-align: left;
+        }
+
+        /* Krásný moderní ovládací panel */
+        .controls {
+            width: 100%;
+            max-width: 900px;
+            background: #2b2b2b;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            box-sizing: border-box;
+            border: 1px solid #3d3d3d;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #bbb;
+        }
+
+        input[type="text"], textarea {
+            padding: 12px;
+            background: #151515;
+            border: 2px solid #444;
+            color: #fff;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 16px; /* Prevence zoomování na iOS */
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--buse-green);
+        }
+
+        .checkbox-group {
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-group input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--buse-green);
+        }
+
+        /* Tlačítka pro export */
+        .btn-export {
+            background: #0076ff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 4px 12px rgba(0, 118, 255, 0.3);
+            width: 100%;
+            max-width: 250px;
+            justify-content: center;
+        }
+
+        .btn-export:active {
+            transform: scale(0.98);
+            background: #0060d0;
+        }
+
+        /* --- SPOLEČNÝ BUSE PANEL STYL --- */
+        .buse-container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .buse-frame {
+            background-color: var(--panel-bg);
+            border: 8px solid #333;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: var(--matrix-font);
+            font-weight: bold;
+            color: var(--buse-green);
+            text-shadow: 0 0 6px var(--buse-green);
+            box-shadow: inset 0 0 20px rgba(0,0,0,1), 0 10px 25px rgba(0,0,0,0.4);
+            box-sizing: border-box;
+            width: 100%;
+            overflow: hidden;
+            letter-spacing: 1px;
+        }
+
+        /* Animace přebliknutí */
+        .animated .matrix-text {
+            animation: buse-flicker 0.35s ease-in-out;
+        }
+
+        @keyframes buse-flicker {
+            0% { opacity: 0.1; text-shadow: none; color: var(--buse-dim-green); }
+            40% { opacity: 0.9; text-shadow: 0 0 3px var(--buse-green); }
+            70% { opacity: 0.2; text-shadow: none; }
+            100% { opacity: 1; text-shadow: 0 0 6px var(--buse-green); }
+        }
+
+        /* --- 1. MALÝ PANEL --- */
+        .buse-small {
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            font-size: 28px;
+        }
+
+        .buse-small .line {
+            border-right: 3px double var(--buse-green);
+            padding-right: 12px;
+            margin-right: 15px;
+            font-size: 36px;
+            flex-shrink: 0;
+        }
+
+        .buse-small .target {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-transform: uppercase;
+        }
+
+        /* --- 2. VELKÝ PANEL --- */
+        .buse-large {
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .buse-large .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--buse-green);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-size: 28px;
+        }
+
+        .buse-large .header-row .line {
+            font-size: 38px;
+        }
+
+        .buse-large .header-row .direction {
+            text-transform: uppercase;
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .buse-large .stops-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 18px;
+        }
+
+        .buse-large .stop-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .buse-large .stop-indicator {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--buse-green);
+            border-radius: 50%;
+            margin-right: 12px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .buse-large .stop-item.next-stop .stop-indicator {
+            background-color: var(--buse-green);
+            box-shadow: 0 0 8px var(--buse-green);
+        }
+
+        .buse-large .stop-item:not(:last-child) .stop-indicator::after {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 5px;
+            width: 2px;
+            height: 14px;
+            background-color: var(--buse-green);
+        }
+
+        .buse-large .stop-name {
+            text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .buse-large .stop-item.next-stop .stop-name {
+            font-size: 22px;
+            text-shadow: 0 0 10px var(--buse-green);
+        }
+
+        /* --- RESPONSIVITA (MOBILNÍ OPTIMALIZACE) --- */
+        @media (max-width: 600px) {
+            .controls {
+                grid-template-columns: 1fr; /* Vše pod sebou */
+            }
+            .control-group.full-width {
+                grid-column: span 1;
+            }
+            .buse-small {
+                font-size: 20px;
+                height: 70px;
+            }
+            .buse-small .line {
+                font-size: 26px;
+                padding-right: 8px;
+                margin-right: 10px;
+            }
+            .buse-large .header-row {
+                font-size: 20px;
+            }
+            .buse-large .header-row .line {
+                font-size: 26px;
+            }
+            .buse-large .stops-list {
+                font-size: 15px;
+            }
+            .buse-large .stop-item.next-stop .stop-name {
+                font-size: 17px;
+            }
+            .buse-large .stop-indicator {
+                width: 12px;
+                height: 12px;
+            }
+            .buse-large .stop-item:not(:last-child) .stop-indicator::after {
+                top: 10px;
+                left: 3px;
+                height: 14px;
+            }
+            .btn-export {
+                max-width: 100%; /* Tlačítko na celou šířku mobilu */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>BUSE Panel Simulátor</h1>
+
+    <!-- OVLÁDÁNÍ -->
+    <div class="controls">
+        <div class="control-group">
+            <label for="input-line">Číslo linky:</label>
+            <input type="text" id="input-line" value="135">
+        </div>
+        <div class="control-group">
+            <label for="input-dir">Směr (Konečná):</label>
+            <input type="text" id="input-dir" value="Florenc">
+        </div>
+        <div class="control-group full-width">
+            <label for="input-stops">Zastávky (první je příští, další pod sebe):</label>
+            <textarea id="input-stops" rows="4">Náměstí Míru
+Římská
+Muzeum
+Hlavní nádraží
+Florenc</textarea>
+        </div>
+        <div class="control-group checkbox-group full-width">
+            <input type="checkbox" id="input-anim" checked>
+            <label for="input-anim">Zapnout animaci přebliknutí</label>
+        </div>
+    </div>
+
+    <!-- 1. MALÝ PANEL -->
+    <h2>Malý vnitřní panel</h2>
+    <div class="buse-container">
+        <div id="small-panel" class="buse-frame buse-small animated">
+            <div class="matrix-text line" id="small-line">135</div>
+            <div class="matrix-text target" id="small-target">Florenc</div>
+        </div>
+        <button class="btn-export" onclick="exportToPNG('small-panel', 'maly-buse-panel')">📸 Uložit jako PNG</button>
+    </div>
+
+    <!-- 2. VELKÝ PANEL -->
+    <h2>Velký vnitřní panel s trasou</h2>
+    <div class="buse-container">
+        <div id="large-panel" class="buse-frame buse-large animated">
+            <div class="header-row">
+                <div class="matrix-text line" id="large-line">135</div>
+                <div class="matrix-text direction" id="large-dir">Florenc</div>
+            </div>
+            <div class="matrix-text stops-list" id="large-stops">
+                <!-- Zastávky generuje JS -->
+            </div>
+        </div>
+        <button class="btn-export" onclick="exportToPNG('large-panel', 'velky-buse-panel')">📸 Uložit jako PNG</button>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        const inputLine = document.getElementById('input-line');
+        const inputDir = document.getElementById('input-dir');
+        const inputStops = document.getElementById('input-stops');
+        const inputAnim = document.getElementById('input-anim');
+
+        const smallPanel = document.getElementById('small-panel');
+        const largePanel = document.getElementById('large-panel');
+        
+        const smallLine = document.getElementById('small-line');
+        const smallTarget = document.getElementById('small-target');
+        
+        const largeLine = document.getElementById('large-line');
+        const largeDir = document.getElementById('large-dir');
+        const largeStopsContainer = document.getElementById('large-stops');
+
+        function updatePanels() {
+            const lineText = inputLine.value;
+            const dirText = inputDir.value;
+            const stopsText = inputStops.value.split('\n').filter(stop => stop.trim() !== '');
+
+            if (inputAnim.checked) {
+                smallPanel.classList.remove('animated');
+                largePanel.classList.remove('animated');
+                void smallPanel.offsetWidth; 
+                void largePanel.offsetWidth;
+                smallPanel.classList.add('animated');
+                largePanel.classList.add('animated');
+            } else {
+                smallPanel.classList.remove('animated');
+                largePanel.classList.remove('animated');
+            }
+
+            smallLine.textContent = lineText;
+            smallTarget.textContent = dirText;
+            
+            largeLine.textContent = lineText;
+            largeDir.textContent = dirText;
+
+            largeStopsContainer.innerHTML = '';
+            stopsText.forEach((stop, index) => {
+                const stopItem = document.createElement('div');
+                stopItem.classList.add('stop-item');
+                if (index === 0) stopItem.classList.add('next-stop');
+
+                stopItem.innerHTML = `
+                    <div class="stop-indicator"></div>
+                    <div class="stop-name">${index === 0 ? 'Příští: ' : ''}${stop}</div>
+                `;
+                largeStopsContainer.appendChild(stopItem);
+            });
+        }
+
+        // Funkce pro export panelu do PNG souboru
+        function exportToPNG(panelId, filename) {
+            const element = document.getElementById(panelId);
+            
+            // Dočasně vypneme animaci pro čistý screenshot
+            const hadAnimation = element.classList.contains('animated');
+            element.classList.remove('animated');
+
+            // Vygenerování obrázku pomocí html2canvas
+            html2canvas(element, {
+                backgroundColor: '#000000',
+                scale: 2, // Dvojnásobné rozlišení, aby byl obrázek ostrý i na mobilu
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                // Obnovíme animaci
+                if (hadAnimation) element.classList.add('animated');
+
+                // Vytvoření odkazu ke stažení
+                const link = document.createElement('a');
+                link.download = `${filename}.png`;
+                link.href = canvas.toDataURL('image/png');
+                
+                // Spuštění stažení (funguje na Androidu i iOS v prohlížečích Safari/Chrome)
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }).catch(err => {
+                alert('Chyba při exportu obrázku: ' + err);
+            });
+        }
+
+        inputLine.addEventListener('input', updatePanels);
+        inputDir.addEventListener('input', updatePanels);
+        inputStops.addEventListener('input', updatePanels);
+        inputAnim.addEventListener('change', updatePanels);
+
+        updatePanels();
+    </script>
+</body>
+</html>
