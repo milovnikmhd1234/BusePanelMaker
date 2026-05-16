@@ -2,43 +2,34 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BUSE Simulátor 1:1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BUSE Vnitřní Panely 1:1</title>
     <style>
-        :root {
-            --buse-red: #ff3333;
-            --buse-red-glow: rgba(255, 51, 51, 0.8);
-            --buse-red-dim: #250303;
-            --lcd-bg: #f2f2f2;
-            --lcd-text: #000000;
-        }
-
         body {
-            background-color: #1a1a1a;
-            color: #f0f0f0;
-            font-family: 'Segoe UI', -apple-system, sans-serif;
-            padding: 15px;
+            background-color: #1c1c1e;
+            color: #f2f2f7;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        h1 { font-size: 1.5rem; margin-bottom: 15px; text-align: center; }
+        h1 { font-size: 1.4rem; margin-bottom: 15px; text-align: center; }
 
-        /* MENU / CONFIG */
-        .config-box {
+        /* Nastavení a editor */
+        .editor-box {
             width: 100%;
-            max-width: 850px;
-            background: #252525;
-            border-radius: 10px;
+            max-width: 800px;
+            background: #2c2c2e;
+            border-radius: 12px;
             padding: 15px;
             box-sizing: border-box;
-            border: 1px solid #333;
             margin-bottom: 20px;
         }
 
-        .menu-tabs {
+        .tabs {
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
@@ -46,505 +37,404 @@
 
         .tab-btn {
             flex: 1;
-            background: #333;
-            color: #bbb;
-            border: 2px solid #444;
-            padding: 10px;
-            font-size: 15px;
+            background: #3a3a3c;
+            color: #aeaeae;
+            border: none;
+            padding: 12px;
+            font-size: 14px;
             font-weight: bold;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
         }
 
         .tab-btn.active {
-            background: #0076ff;
-            color: #fff;
-            border-color: #0076ff;
+            background: #30d158;
+            color: #000;
         }
 
-        .inputs-grid {
+        .grid-inputs {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
 
-        .input-group { display: flex; flex-direction: column; }
-        .input-group.full { grid-column: span 2; }
-        label { font-size: 13px; color: #aaa; margin-bottom: 4px; font-weight: bold; }
-        input, textarea {
-            padding: 10px; background: #151515; border: 1px solid #444; color: #fff; border-radius: 6px; font-size: 15px;
-        }
-        input:focus, textarea:focus { outline: none; border-color: #0076ff; }
+        .group-input { display: flex; flex-direction: column; }
+        .group-input.full { grid-column: span 2; }
         
-        .switch-row { display: flex; align-items: center; gap: 8px; grid-column: span 2; margin-top: 5px; }
+        label { font-size: 12px; color: #aeaeb2; margin-bottom: 4px; font-weight: bold; text-transform: uppercase; }
+        input, textarea {
+            padding: 12px; background: #1c1c1e; border: 1px solid #48484a; color: #fff; border-radius: 8px; font-size: 16px;
+        }
+        input:focus, textarea:focus { outline: none; border-color: #30d158; }
+        
+        .anim-row { display: flex; align-items: center; gap: 10px; grid-column: span 2; margin-top: 5px; }
+        .anim-row input { width: 20px; height: 20px; }
 
         .hidden { display: none !important; }
 
-        /* AKČNÍ BUTTONY */
-        .btn-action {
-            background: #2ea44f; color: white; border: none; padding: 12px 30px;
-            font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer;
-            margin-top: 15px; width: 100%; max-width: 320px; text-align: center;
+        /* Tlačítko pro export */
+        .btn-download {
+            background: #007aff; color: white; border: none; padding: 14px;
+            font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer;
+            margin-top: 15px; width: 100%; max-width: 350px; text-align: center;
+            box-shadow: 0 4px 12px rgba(0,122,255,0.3);
         }
 
-        /* --- NÁHLEDY PANELŮ PRO STRÁNKU --- */
-        .preview-area {
-            width: 100%; max-width: 900px; display: flex; flex-direction: column; align-items: center;
+        /* Živé náhledy na webu */
+        .preview-wrapper {
+            width: 100%; max-width: 800px; display: flex; flex-direction: column; align-items: center;
         }
 
-        /* 1. MALÝ PANEL (NÁHLED) */
-        .small-panel-preview {
+        canvas {
             width: 100%;
-            background: #050505;
-            border: 6px solid #3a3a3a;
-            border-radius: 4px;
-            padding: 12px 18px;
-            box-sizing: border-box;
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            align-items: center;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            color: var(--buse-red);
-            text-shadow: 0 0 5px var(--buse-red-glow);
-            background-image: radial-gradient(#3a0000 20%, transparent 25%);
-            background-size: 5px 5px;
-            letter-spacing: 1px;
-        }
-        .small-panel-preview .line-part { font-size: 48px; border-right: 3px double var(--buse-red); padding-right: 15px; margin-right: 15px; }
-        .small-panel-preview .text-part { font-size: 18px; text-transform: uppercase; line-height: 1.2; }
-        .small-panel-preview .text-part div:last-child { font-size: 15px; opacity: 0.8; }
-        .small-panel-preview .time-part { font-size: 20px; text-align: right; color: var(--buse-red); }
-
-        /* 2. VELKÝ PANEL (NÁHLED) */
-        .large-panel-preview {
-            width: 100%;
+            height: auto;
             background: #000;
-            border: 10px solid #222;
             border-radius: 6px;
-            box-sizing: border-box;
-            padding: 6px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
-        .lcd-viewport {
-            background: var(--lcd-bg);
-            color: var(--lcd-text);
-            width: 100%;
-            aspect-ratio: 21 / 9;
-            display: grid;
-            grid-template-columns: 55% 45%;
-            font-family: 'Arial', sans-serif;
-            box-sizing: border-box;
-        }
-        .lcd-left { background: #fff; padding: 10px; border-right: 3px solid #000; display: flex; flex-direction: column; box-sizing: border-box;}
-        .lcd-header { font-size: 18px; font-weight: bold; border-bottom: 3px solid #000; padding-bottom: 4px; margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .lcd-route { display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
-        .lcd-stop { display: flex; align-items: center; position: relative; padding: 2px 0;}
-        .lcd-zone { width: 28px; height: 18px; color: #fff; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; margin-right: 8px; border-radius: 2px; }
-        .lcd-node { width: 14px; height: 14px; background: #cc0000; border-radius: 50%; margin-right: 12px; position: relative; z-index: 2; }
-        .lcd-stop::after { content:''; position: absolute; top: 14px; left: 41px; width: 3px; height: 16px; background: #888; z-index: 1; }
-        .lcd-stop:last-child::after { display: none; }
-        .lcd-stop-name { font-size: 15px; font-weight: bold; }
-        .lcd-stop-sub { font-size: 11px; color: #555; margin-left: 5px; }
-        
-        .lcd-stop.active-now { background: #ffeb3b; margin: -2px -10px; padding: 4px 10px; }
-        .lcd-stop.active-now .lcd-node { background: #000; transform: scale(1.1); }
-        .lcd-stop.active-now .lcd-stop-name { font-size: 17px; font-weight: 900; }
 
-        .lcd-right { padding: 10px; display: flex; flex-direction: column; box-sizing: border-box; }
-        .lcd-bar { display: flex; justify-content: space-between; background: #000; color: #fff; padding: 4px 8px; font-size: 15px; font-weight: bold; margin-bottom: 8px; }
-        .lcd-clock { color: #ffeb3b; }
-        .lcd-conns { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: bold; }
-        .lcd-conn-item { display: flex; justify-content: space-between; }
-        .lcd-c-line { background: #333; color: #fff; padding: 1px 4px; border-radius: 2px; margin-right: 5px; font-size: 11px; }
-        .lcd-c-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
-        .lcd-c-time { color: #cc0000; }
-
-        /* ANIMACE */
-        .flicker-anim { animation: f-eff 0.35s ease-in-out; }
-        @keyframes f-eff { 0% { opacity: 0.3; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-
-        @media(max-width: 600px) {
-            .inputs-grid { grid-template-columns: 1fr; }
-            .input-group.full { grid-column: span 1; }
-            .lcd-stop-name { font-size: 11px; }
-            .lcd-stop.active-now .lcd-stop-name { font-size: 12px; }
-            .lcd-c-name { max-width: 80px; font-size: 11px; }
-        }
+        /* Blikací animace podle reality */
+        .flicker { animation: buse-refresh 0.3s steps(2, start); }
+        @keyframes buse-refresh { 0% { opacity: 0.2; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <h1>BUSE Panel Simulátor (Realita 1:1)</h1>
+    <h1>BUSE Panel Konstruktor 1:1</h1>
 
-    <div class="config-box">
-        <div class="menu-tabs">
-            <button class="tab-btn active" id="tab-small" onclick="toggleMode('small')">Malý panel (Dot Matrix)</button>
-            <button class="tab-btn" id="tab-large" onclick="toggleMode('large')">Velký panel (Širokoúhlé LCD)</button>
+    <div class="editor-box">
+        <div class="tabs">
+            <button class="tab-btn active" id="t-small" onclick="setMode('small')">Malý panel (BS 120)</button>
+            <button class="tab-btn" id="t-large" onclick="setMode('large')">Velký panel (BS 210 LCD)</button>
         </div>
 
-        <div class="inputs-grid">
-            <div class="input-group">
-                <label for="in-line">Číslo linky:</label>
-                <input type="text" id="in-line" value="850873" oninput="draw()">
+        <div class="grid-inputs">
+            <div class="group-input">
+                <label for="val-line">Číslo linky:</label>
+                <input type="text" id="val-line" value="850873" oninput="update()">
             </div>
 
-            <div class="input-group s-conf">
-                <label for="in-s-r1">Směr hlavní řádek:</label>
-                <input type="text" id="in-s-r1" value="Rýmařov" oninput="draw()">
+            <div class="group-input s-only">
+                <label for="val-s-r1">Hlavní směr (Horní):</label>
+                <input type="text" id="val-s-r1" value="RÝMAŘOV" oninput="update()">
             </div>
-            <div class="input-group s-conf full">
-                <label for="in-s-r2">Směr spodní řádek (podtext):</label>
-                <input type="text" id="in-s-r2" value="aut.st." oninput="draw()">
+            <div class="group-input s-only full">
+                <label for="val-s-r2">Doplňující text (Spodní):</label>
+                <input type="text" id="val-s-r2" value="aut.st." oninput="update()">
             </div>
 
-            <div class="input-group l-conf hidden">
-                <label for="in-l-head">Cíl v záhlaví:</label>
-                <input type="text" id="in-l-head" value="Rýmařov aut.st." oninput="draw()">
+            <div class="group-input l-only hidden">
+                <label for="val-l-head">Cíl trasy v záhlaví:</label>
+                <input type="text" id="val-l-head" value="Rýmařov aut.st." oninput="update()">
             </div>
-            <div class="input-group l-conf full hidden">
-                <label for="in-l-stops">Teploměr trasy (Zóna | Zastávka | podtext) - poslední řádek je aktivní žlutý:</label>
-                <textarea id="in-l-stops" rows="4" oninput="draw()">115 | Jamartice | hřbitov
+            <div class="group-input l-only full hidden">
+                <label for="val-l-stops">Stanice (Zóna | Název | Podtext) - Poslední řádek bude aktivní žlutý:</label>
+                <textarea id="val-l-stops" rows="4" oninput="update()">115 | Jamartice | hřbitov
 114 | Malá Štáhle | rest.
 114 | Václavov | střed
 114 | Bruntál | Seliko</textarea>
             </div>
-            <div class="input-group l-conf full hidden">
-                <label for="in-l-conns">Přípoje napravo (Linka | Cíl | Minuty):</label>
-                <textarea id="in-l-conns" rows="4" oninput="draw()">861 | Vrbno p.Prad. | 8 min
+            <div class="group-input l-only full hidden">
+                <label for="val-l-conns">Následné přípoje (Linka | Cílová stanice | Čas dojezdu):</label>
+                <textarea id="val-l-conns" rows="4" oninput="update()">861 | Vrbno p.Prad..rozc.Ludvíkov | 8 min
 861 | Bruntál,žel.st. | 22 min
+862 | Bruntál,žel.st. | 22 min
 873 | Rýmařov,aut.st. | 31 min
+862 | Karlova Studánka,dolní parkoviště | 34 min
 930201 | Ostrava,ÚAN | 56 min</textarea>
             </div>
 
-            <div class="switch-row">
-                <input type="checkbox" id="in-anim" checked onchange="draw()">
-                <label for="in-anim">Povolit přeblikávací animaci</label>
+            <div class="anim-row">
+                <input type="checkbox" id="val-anim" checked onchange="update()">
+                <label for="val-anim">Zapnout BUSE překlápěcí efekt</label>
             </div>
         </div>
     </div>
 
-    <div class="preview-area">
-        <div id="view-small" class="small-panel-preview">
-            <div class="line-part" id="ts-line">---</div>
-            <div class="text-part">
-                <div id="ts-r1">---</div>
-                <div id="ts-r2">---</div>
-            </div>
-            <div class="time-part live-clock">00:00:00</div>
-        </div>
-
-        <div id="view-large" class="large-panel-preview hidden">
-            <div class="lcd-viewport">
-                <div class="lcd-left">
-                    <div class="lcd-header" id="tl-head">---</div>
-                    <div class="lcd-route" id="tl-route"></div>
-                </div>
-                <div class="lcd-right">
-                    <div class="lcd-bar">
-                        <span id="tl-zone">Zóna --</span>
-                        <span class="live-clock lcd-clock">00:00:00</span>
-                    </div>
-                    <div style="font-size:11px; color:#666; font-weight:bold; margin-bottom:5px;">NÁSLEDNÉ SPOJE</div>
-                    <div class="lcd-conns" id="tl-conns"></div>
-                </div>
-            </div>
-        </div>
-
-        <button class="btn-action" onclick="generateHDImage()">📸 STÁHNOUT REALISTICKÝ PANEL</button>
+    <div class="preview-wrapper">
+        <canvas id="buse-canvas"></canvas>
+        <button class="btn-download" onclick="downloadPNG()">📸 STÁHNOUT DO MOBILU (PNG)</button>
     </div>
-
-    <canvas id="hidden-canvas" class="hidden"></canvas>
 
     <script>
         let mode = 'small';
-        const clrPalette = ['#4caf50', '#ff9800', '#2196f3', '#9c27b0', '#e91e63'];
+        const canvas = document.getElementById('buse-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Barevná paleta zón z fotek MSK/ODIS integrované dopravy
+        const zoneColors = ['#30d158', '#ff9f0a', '#0a84ff', '#bf5af2', '#ff453a'];
+        let timeStr = "00:00:00";
 
-        // Hodiny běžící reálně 1:1 sekundu po sekundě
+        // Aktualizace času sekundu po sekundě
         setInterval(() => {
-            const timeStr = new Date().toTimeString().split(' ')[0];
-            document.querySelectorAll('.live-clock').forEach(el => el.textContent = timeStr);
+            const now = new Date();
+            timeStr = now.toTimeString().split(' ')[0];
+            update(false); // Překreslení bez spuštění otravné animace každou sekundu
         }, 1000);
 
-        function toggleMode(m) {
+        function setMode(m) {
             mode = m;
-            document.getElementById('tab-small').classList.toggle('active', m === 'small');
-            document.getElementById('tab-large').classList.toggle('active', m === 'large');
+            document.getElementById('t-small').classList.toggle('active', m === 'small');
+            document.getElementById('t-large').classList.toggle('active', m === 'large');
             
-            document.querySelectorAll('.s-conf').forEach(el => el.classList.toggle('hidden', m !== 'small'));
-            document.querySelectorAll('.l-conf').forEach(el => el.classList.toggle('hidden', m !== 'large'));
+            document.querySelectorAll('.s-only').forEach(el => el.classList.toggle('hidden', m !== 'small'));
+            document.querySelectorAll('.l-only').forEach(el => el.classList.toggle('hidden', m !== 'large'));
             
-            document.getElementById('view-small').classList.toggle('hidden', m !== 'small');
-            document.getElementById('view-large').classList.toggle('hidden', m !== 'large');
-            draw();
+            update(true);
         }
 
-        function draw() {
-            const line = document.getElementById('in-line').value;
-            const anim = document.getElementById('in-anim').checked;
-            const activeView = document.getElementById(mode === 'small' ? 'view-small' : 'view-large');
-
-            if (anim) {
-                activeView.classList.remove('flicker-anim');
-                void activeView.offsetWidth;
-                activeView.classList.add('flicker-anim');
+        function update(triggerAnim = true) {
+            const anim = document.getElementById('val-anim').checked;
+            
+            if (triggerAnim && anim) {
+                canvas.classList.remove('flicker');
+                void canvas.offsetWidth;
+                canvas.classList.add('flicker');
             }
 
             if (mode === 'small') {
-                document.getElementById('ts-line').textContent = line;
-                document.getElementById('ts-r1').textContent = document.getElementById('in-s-r1').value;
-                document.getElementById('ts-r2').textContent = document.getElementById('in-s-r2').value;
+                renderSmallPanel();
             } else {
-                document.getElementById('tl-head').textContent = line + " " + document.getElementById('in-l-head').value;
-                
-                // Teploměr
-                const lines = document.getElementById('in-l-stops').value.split('\n').filter(l => l.trim() !== '');
-                const routeBox = document.getElementById('tl-route');
-                routeBox.innerHTML = '';
-                let lastZ = '--';
-
-                lines.forEach((l, i) => {
-                    const p = l.split('|');
-                    const z = p[0]?.trim() || '100';
-                    const n = p[1]?.trim() || 'Zastávka';
-                    const s = p[2]?.trim() || '';
-                    const isCurrent = (i === lines.length - 1);
-                    if(isCurrent) lastZ = z;
-
-                    const cIdx = parseInt(z) % clrPalette.length || 0;
-                    routeBox.innerHTML += `
-                        <div class="lcd-stop ${isCurrent ? 'active-now' : ''}">
-                            <div class="lcd-zone" style="background:${clrPalette[cIdx]}">${z}</div>
-                            <div class="lcd-node"></div>
-                            <span class="lcd-stop-name">${n}${s ? `<span class="lcd-stop-sub">(${s})</span>` : ''}</span>
-                        </div>
-                    `;
-                });
-                document.getElementById('tl-zone').textContent = "Zóna " + lastZ;
-
-                // Přípoje
-                const conns = document.getElementById('in-l-conns').value.split('\n').filter(l => l.trim() !== '');
-                const connBox = document.getElementById('tl-conns');
-                connBox.innerHTML = '';
-                conns.forEach(l => {
-                    const p = l.split('|');
-                    connBox.innerHTML += `
-                        <div class="lcd-conn-item">
-                            <div><span class="lcd-c-line">${p[0]?.trim()||''}</span><span class="lcd-c-name">${p[1]?.trim()||''}</span></div>
-                            <span class="lcd-c-time">${p[2]?.trim()||''}</span>
-                        </div>
-                    `;
-                });
+                renderLargePanel();
             }
         }
 
-        // REÁLNÝ EXPORT 1:1 DO CANVASU A STAŽENÍ
-        function generateHDImage() {
-            const canvas = document.getElementById('hidden-canvas');
-            const ctx = canvas.getContext('2d');
-            const timeStr = new Date().toTimeString().split(' ')[0];
-            const line = document.getElementById('in-line').value;
+        // ==========================================
+        // VYKRESLENÍ MALÉHO PANELU (BS 120 DOT MATRIX)
+        // ==========================================
+        function renderSmallPanel() {
+            // Reálný extrémně podlouhlý poměr stran konstrukce
+            canvas.width = 1100;
+            canvas.height = 140;
 
-            if (mode === 'small') {
-                // Přesné fyzické rozlišení malého BUSE dot-matrix panelu
-                canvas.width = 900;
-                canvas.height = 160;
+            // Čistě černé šasi s hliníkovým rámečkem
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Černé šasi panelu
-                ctx.fillStyle = '#050505';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Simulace textury diodové masky na pozadí
+            ctx.fillStyle = '#140202';
+            for (let x = 4; x < canvas.width; x += 5) {
+                for (let y = 4; y < canvas.height; y += 5) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
 
-                // LED mřížka na pozadí
-                ctx.fillStyle = '#1a0303';
-                for (let x = 0; x < canvas.width; x += 6) {
-                    for (let y = 0; y < canvas.height; y += 6) {
-                        ctx.beginPath();
-                        ctx.arc(x + 3, y + 3, 1.5, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
+            const line = document.getElementById('val-line').value;
+            const r1 = document.getElementById('val-s-r1').value.toUpperCase();
+            const r2 = document.getElementById('val-s-r2').value;
+
+            // Nastavení svítící červené barvy diod BUSE
+            ctx.fillStyle = '#ff3b30';
+            ctx.shadowColor = '#ff3b30';
+
+            // 1. Číslo linky (Velké, masivní)
+            ctx.shadowBlur = 8;
+            ctx.font = 'bold 72px "Courier New", monospace';
+            ctx.fillText(line, 25, 95);
+
+            // 2. Fyzická oddělovací BUSE čára (dvojitá)
+            ctx.shadowBlur = 0;
+            ctx.fillRect(310, 12, 4, 116);
+            ctx.fillRect(318, 12, 2, 116);
+
+            // 3. Hlavní směr a doplňkový text
+            ctx.shadowBlur = 8;
+            ctx.font = 'bold 34px "Courier New", monospace';
+            ctx.fillText(r1, 345, 60);
+
+            ctx.font = 'bold 26px "Courier New", monospace';
+            ctx.fillText(r2, 345, 105);
+
+            // 4. Reálný čas na pravém okraji
+            ctx.font = 'bold 24px "Courier New", monospace';
+            ctx.fillText(timeStr, 960, 82);
+            ctx.shadowBlur = 0;
+        }
+
+        // ==========================================
+        // VYKRESLENÍ VELKÉHO PANELU (BS 210 LCD PANEL)
+        // ==========================================
+        function renderLargePanel() {
+            // Skutečný širokoúhlý monitor 21:9
+            canvas.width = 1280;
+            canvas.height = 550;
+
+            // Vnější masivní plastový kryt
+            ctx.fillStyle = '#111113';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Vnitřní LCD obrazovka
+            const border = 14;
+            const scrW = canvas.width - (border * 2);
+            const scrH = canvas.height - (border * 2);
+            
+            // Základní podklad displeje (světle šedá jako na fotce)
+            ctx.fillStyle = '#f4f4f6';
+            ctx.fillRect(border, border, scrW, scrH);
+
+            // Rozdělení obrazovky na levou (trasa) a pravou (přípoje) stranu (přesně 55% ku 45%)
+            const splitPoint = border + (scrW * 0.54);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(border, border, scrW * 0.54, scrH); // Bílé pozadí pro trasu
+
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(splitPoint, border, 4, scrH); // Dělící tlustá černá čára
+
+            // --- LEVÁ STRANA: TEPLOMĚR TRASY ---
+            const line = document.getElementById('val-line').value;
+            const head = document.getElementById('val-l-head').value;
+            
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 24px Arial, Helvetica, sans-serif';
+            ctx.fillText(`${line} ${head}`, border + 20, border + 45);
+
+            // Čára pod hlavním záhlavím trasy
+            ctx.fillRect(border + 20, border + 65, (scrW * 0.54) - 40, 3);
+
+            const stopsRaw = document.getElementById('val-l-stops').value.split('\n').filter(s => s.trim() !== '');
+            let currentY = border + 125;
+            let currentZone = "--";
+
+            stopsRaw.forEach((row, idx) => {
+                const parts = row.split('|');
+                const zone = parts[0] ? parts[0].trim() : '100';
+                const name = parts[1] ? parts[1].trim() : 'Zastávka';
+                const sub = parts[2] ? parts[2].trim() : '';
+
+                const isCurrent = (idx === stopsRaw.length - 1);
+                if (isCurrent) currentZone = zone;
+
+                // Žlutý indikační pruh pro aktuální polohu (přesně podle předlohy)
+                if (isCurrent) {
+                    ctx.fillStyle = '#ffeb3b';
+                    ctx.fillRect(border + 2, currentY - 24, (scrW * 0.54) - 4, 62);
                 }
 
-                // Styl rozsvícených červených BUSE diod
-                ctx.fillStyle = '#ff3333';
-                ctx.shadowColor = '#ff3333';
-                ctx.font = 'bold 75px "Courier New", monospace';
-                
-                // Vykreslení Linky
-                ctx.shadowBlur = 15;
-                ctx.fillText(line, 20, 110);
-                
-                // Dvojitá BUSE čára
-                ctx.shadowBlur = 0;
-                ctx.fillRect(300, 15, 4, 130);
-                ctx.fillRect(308, 15, 2, 130);
+                // Barevný box tarifního pásma
+                const colorHex = zoneColors[parseInt(zone) % zoneColors.length || 0];
+                ctx.fillStyle = colorHex;
+                ctx.fillRect(border + 20, currentY - 18, 45, 28);
 
-                // Texty směru
-                ctx.shadowBlur = 15;
-                ctx.font = 'bold 32px "Courier New", monospace';
-                ctx.fillText(document.getElementById('in-s-r1').value.toUpperCase(), 335, 65);
-                
-                ctx.font = 'bold 26px "Courier New", monospace';
-                ctx.fillStyle = 'rgba(255,51,51,0.8)';
-                ctx.fillText(document.getElementById('in-s-r2').value.toUpperCase(), 335, 115);
-
-                // Reálný čas v rohu
-                ctx.fillStyle = '#ff3333';
-                ctx.font = 'bold 30px "Courier New", monospace';
-                ctx.fillText(timeStr, 740, 95);
-
-            } else {
-                // Přesný širokoúhlý formát LCD vnitřní obrazovky (21:9)
-                canvas.width = 1200;
-                canvas.height = 514;
-
-                // Vnější černý plastový rám BUSE
-                ctx.fillStyle = '#151515';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.strokeStyle = '#333';
-                ctx.lineWidth = 8;
-                ctx.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
-
-                // Vnitřní plocha displeje (šedobílá)
-                const sX = 15, sY = 15, sW = 1170, sH = 484;
-                ctx.fillStyle = '#ececec';
-                ctx.fillRect(sX, sY, sW, sH);
-
-                // Rozdělení obrazovky na levou a pravou stranu (55% / 45%)
-                const splitX = sX + (sW * 0.55);
                 ctx.fillStyle = '#ffffff';
-                ctx.fillRect(sX, sY, sW * 0.55, sH); // Levá strana je čistě bílá
+                ctx.font = 'bold 15px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(zone, border + 42, currentY + 1);
+                ctx.textAlign = 'left';
+
+                // Spojovací vertikální linie trasy
+                if (idx < stopsRaw.length - 1) {
+                    ctx.fillStyle = '#8e8e93';
+                    ctx.fillRect(border + 94, currentY + 10, 4, 54);
+                }
+
+                // Červený oválek / Černý bod pro aktuální stanici
+                ctx.fillStyle = isCurrent ? '#000000' : '#e00000';
+                ctx.beginPath();
+                ctx.arc(border + 96, currentY - 2, isCurrent ? 11 : 9, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Text názvu zastávky
                 ctx.fillStyle = '#000000';
-                ctx.fillRect(splitX, sY, 4, sH); // Černý předěl
+                ctx.font = isCurrent ? '900 26px Arial' : 'bold 21px Arial';
+                ctx.fillText(name, border + 125, currentY + 7);
 
-                // LEVÁ STRANA - Horní lišta s cílem
-                ctx.fillStyle = '#000000';
-                ctx.font = 'bold 26px Arial';
-                const headText = line + " " + document.getElementById('in-l-head').value;
-                ctx.fillText(headText, sX + 15, sY + 45);
-                ctx.fillRect(sX + 15, sY + 65, (sW * 0.55) - 30, 4); // Čára pod záhlavím
+                if (sub) {
+                    ctx.fillStyle = '#636366';
+                    ctx.font = 'italic 16px Arial';
+                    ctx.fillText(sub, border + 135 + ctx.measureText(name).width, currentY + 5);
+                }
 
-                // Vykreslení teploměru (Zastávky)
-                const lines = document.getElementById('in-l-stops').value.split('\n').filter(l => l.trim() !== '');
-                let startY = sY + 110;
-                let lastZone = '--';
+                currentY += 64;
+            });
 
-                lines.forEach((l, i) => {
-                    const p = l.split('|');
-                    const z = p[0]?.trim() || '100';
-                    const n = p[1]?.trim() || 'Zastávka';
-                    const s = p[2]?.trim() || '';
-                    const isCurrent = (i === lines.length - 1);
-                    if(isCurrent) lastZone = z;
+            // --- PRAVÁ STRANA: NAVAZUJÍCÍ SPOJE ---
+            // Černá lišta nahoře
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(splitPoint + 4, border, (scrW * 0.46) - 4, 52);
 
-                    // Pokud je stanice aktivní, vykreslíme žlutý podkladový pruh (přesně podle reality)
-                    if (isCurrent) {
-                        ctx.fillStyle = '#ffeb3b';
-                        ctx.fillRect(sX + 2, startY - 20, (sW * 0.55) - 4, 55);
-                    }
+            // Text aktuální zóny
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 22px Arial';
+            ctx.fillText("Zóna " + currentZone, splitPoint + 20, border + 34);
 
-                    // Barevný čtvereček zóny
-                    const cIdx = parseInt(z) % clrPalette.length || 0;
-                    ctx.fillStyle = clrPalette[cIdx];
-                    ctx.fillRect(sX + 15, startY - 15, 45, 26);
-                    
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = 'bold 15px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(z, sX + 37, startY + 4);
-                    ctx.textAlign = 'left';
+            // Žlutý reálný čas na černé liště
+            ctx.fillStyle = '#ffcc00';
+            ctx.font = 'bold 22px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillText(timeStr, canvas.width - border - 20, border + 34);
+            ctx.textAlign = 'left';
 
-                    // Spojovací linka trasy
-                    if (i < lines.length - 1) {
-                        ctx.fillStyle = '#888888';
-                        ctx.fillRect(sX + 83, startY + 10, 4, 50);
-                    }
+            // Podnadpis sekce spojů
+            ctx.fillStyle = '#48484a';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText("NÁSLEDNÉ SPOJE / ODJEZDY", splitPoint + 20, border + 95);
+            
+            ctx.fillStyle = '#aeaeb2';
+            ctx.fillRect(splitPoint + 20, border + 106, (scrW * 0.46) - 40, 1.5);
 
-                    // Bod zastávky (Červený ovál / černý kruh u aktivní)
-                    ctx.fillStyle = isCurrent ? '#000000' : '#cc0000';
-                    ctx.beginPath();
-                    ctx.arc(sX + 85, startY - 2, isCurrent ? 9 : 8, 0, Math.PI * 2);
-                    ctx.fill();
+            // Výpis přípojů pod sebou
+            const connsRaw = document.getElementById('val-l-conns').value.split('\n').filter(c => c.trim() !== '');
+            let connY = border + 145;
 
-                    // Text názvu zastávky
-                    ctx.fillStyle = '#000000';
-                    ctx.font = isCurrent ? 'box 26px Arial' : 'bold 22px Arial';
-                    if(isCurrent) ctx.font = '900 25px Arial';
-                    ctx.fillText(n, sX + 115, startY + 5);
+            connsRaw.forEach(row => {
+                const parts = row.split('|');
+                const cLine = parts[0] ? parts[0].trim() : '';
+                const cDest = parts[1] ? parts[1].trim() : '';
+                const cTime = parts[2] ? parts[2].trim() : '';
 
-                    if (s) {
-                        ctx.fillStyle = '#555555';
-                        ctx.font = 'italic 15px Arial';
-                        ctx.fillText("(" + s + ")", sX + 125 + ctx.measureText(n).width, startY + 4);
-                    }
+                // Tmavé zázemí pro číslo linky přípoje
+                ctx.fillStyle = '#2c2c2e';
+                ctx.fillRect(splitPoint + 20, connY - 18, 55, 24);
 
-                    startY += 60;
-                });
-
-                // PRAVÁ STRANA - Černá lišta s časem a zónou
-                ctx.fillStyle = '#000000';
-                ctx.fillRect(splitX + 4, sY, (sW * 0.45) - 4, 45);
-                
                 ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 20px Arial';
-                ctx.fillText("Zóna " + lastZone, splitX + 20, sY + 30);
+                ctx.font = 'bold 13px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(cLine, splitPoint + 475 / 10, connY - 1);
+                ctx.textAlign = 'left';
+
+                // Název cíle spoje
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 17px Arial';
                 
-                ctx.fillStyle = '#ffeb3b'; // Žluté hodiny na černé liště
-                ctx.font = 'bold 20px Arial';
-                ctx.fillText(timeStr, canvas.width - sX - 110, sY + 30);
+                // Zkrácení textu, pokud je příliš dlouhý, aby nezasahoval do času
+                let maxTextW = 260;
+                let textToDraw = cDest;
+                if(ctx.measureText(textToDraw).width > maxTextW) {
+                    while(ctx.measureText(textToDraw + "...").width > maxTextW) {
+                        textToDraw = textToDraw.slice(0, -1);
+                    }
+                    textToDraw += "...";
+                }
+                ctx.fillText(textToDraw, splitPoint + 85, connY - 1);
 
-                // Nadpis přípojů
-                ctx.fillStyle = '#555555';
-                ctx.font = 'bold 16px Arial';
-                ctx.fillText("NÁSLEDNÉ SPOJE / ODJEZDY", splitX + 20, sY + 85);
-                ctx.fillRect(splitX + 20, sY + 95, (sW * 0.45) - 40, 2);
+                // Červený odpočet minut do odjezdu
+                ctx.fillStyle = '#d12c2c';
+                ctx.font = 'bold 17px Arial';
+                ctx.textAlign = 'right';
+                ctx.fillText(cTime, canvas.width - border - 20, connY - 1);
+                ctx.textAlign = 'left';
 
-                // Vykreslení spojů
-                const conns = document.getElementById('in-l-conns').value.split('\n').filter(l => l.trim() !== '');
-                let connY = sY + 135;
-
-                conns.forEach(l => {
-                    const p = l.split('|');
-                    const cLine = p[0]?.trim() || '';
-                    const cDest = p[1]?.trim() || '';
-                    const cTime = p[2]?.trim() || '';
-
-                    // Šedé pozadí pod číslem linky přípoje
-                    ctx.fillStyle = '#333333';
-                    ctx.fillRect(splitX + 20, connY - 18, 55, 24);
-                    
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = 'bold 14px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(cLine, splitX + 47, connY);
-                    ctx.textAlign = 'left';
-
-                    // Cíl přípoje
-                    ctx.fillStyle = '#000000';
-                    ctx.font = 'bold 18px Arial';
-                    ctx.fillText(cDest, splitX + 85, connY + 1);
-
-                    // Čas dojezdu (červený)
-                    ctx.fillStyle = '#cc0000';
-                    ctx.font = 'bold 18px Arial';
-                    ctx.textAlign = 'right';
-                    ctx.fillText(cTime, canvas.width - sX - 20, connY + 1);
-                    ctx.textAlign = 'left';
-
-                    connY += 40;
-                });
-            }
-
-            // Samotný proces bezpečného stažení na mobilu i PC
-            const imageURI = canvas.toDataURL('image/png');
-            const downloadLink = document.createElement('a');
-            downloadLink.download = `BUSE-${mode}-${line}.png`;
-            downloadLink.href = imageURI;
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+                connY += 38;
+            });
         }
 
-        // První spuštění
-        draw();
+        // Bezpečné stažení hotového vygenerovaného PNG souboru
+        function downloadPNG() {
+            const lineNum = document.getElementById('val-line').value || 'buse';
+            const imgData = canvas.toDataURL('image/png');
+            
+            const link = document.createElement('a');
+            link.download = `BUSE-${mode}-${lineNum}.png`;
+            link.href = imgData;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Výchozí nastavení při otevření stránky
+        setMode('small');
     </script>
 </body>
 </html>
