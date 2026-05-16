@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SIMT BUSE Editor Pro - Hardcoded Matrix</title>
+    <title>SIMT BUSE Editor Pro - Spacing Edition</title>
     <style>
         :root {
             --buse-color: #ff9d00;
@@ -191,7 +191,7 @@
 <footer>
     <div class="input-group">
         <input type="text" id="lineIn" placeholder="Linka" style="max-width: 75px;" value="12">
-        <input type="text" id="textIn" placeholder="CÍLOVÁ STANICE S DIAKRITIKOU" value="ŘEČKOVICE, ŠLOUP">
+        <input type="text" id="textIn" placeholder="CÍLOVÁ STANICE" value="ŘEČKOVICE, ŠLOUP">
     </div>
     <div class="button-group">
         <button class="btn-refresh" onclick="drawBuse()">Aktualizovat</button>
@@ -201,11 +201,9 @@
 
 <script>
 /**
- * KOMPLETNÍ HARDCODED BITMAPOVÁ DATABÁZE PRO ČESKOU ABECEDU (MATICE 7x5 a 9x7)
- * Každé číslo reprezentuje řádky/sloupce pixelů. Nedochází k žádnému rozmazání!
+ * REÁLNÁ BITMAPOVÁ DATA - BEZ SYSTÉMOVÝCH FONTŮ
  */
 const MATRIX_FONT = {
-    // Základní abeceda a čísla
     'A': [0x7E, 0x11, 0x11, 0x11, 0x7E], 'B': [0x7F, 0x49, 0x49, 0x49, 0x36],
     'C': [0x3E, 0x41, 0x41, 0x41, 0x22], 'D': [0x7F, 0x41, 0x41, 0x22, 0x1C],
     'E': [0x7F, 0x49, 0x49, 0x49, 0x41], 'F': [0x7F, 0x09, 0x09, 0x09, 0x01],
@@ -226,23 +224,16 @@ const MATRIX_FONT = {
     '8': [0x36, 0x49, 0x49, 0x49, 0x36], '9': [0x06, 0x49, 0x49, 0x29, 0x1E],
     ' ': [0x00, 0x00, 0x00], '.': [0x40, 0x00], ',': [0x40, 0x20], '-': [0x08, 0x08, 0x08],
 
-    // Komplexní česká diakritika - ČÁRKY (přidaný pixel nahoře)
-    'Á': [0x7E, 0x11, 0x11, 0x11, 0x7E, 0x01], 
-    'É': [0x7F, 0x49, 0x49, 0x49, 0x41, 0x01],
-    'Í': [0x00, 0x41, 0x7F, 0x41, 0x00, 0x01],
-    'Ó': [0x3E, 0x41, 0x41, 0x41, 0x3E, 0x01],
-    'Ú': [0x3F, 0x40, 0x40, 0x40, 0x3F, 0x01],
-    'Ý': [0x07, 0x08, 0x70, 0x08, 0x07, 0x01],
+    // DIAKRITIKA - ČÁRKY
+    'Á': [0x7E, 0x11, 0x11, 0x11, 0x7E, 0x01], 'É': [0x7F, 0x49, 0x49, 0x49, 0x41, 0x01],
+    'Í': [0x00, 0x41, 0x7F, 0x41, 0x00, 0x01], 'Ó': [0x3E, 0x41, 0x41, 0x41, 0x3E, 0x01],
+    'Ú': [0x3F, 0x40, 0x40, 0x40, 0x3F, 0x01], 'Ý': [0x07, 0x08, 0x70, 0x08, 0x07, 0x01],
 
-    // Komplexní česká diakritika - HÁČKY (speciální maticové mapování pro plná písmena)
-    'Č': [0x3E, 0x41, 0x41, 0x41, 0x22, 0x02],
-    'Ď': [0x7F, 0x41, 0x41, 0x22, 0x1C, 0x02],
-    'Ě': [0x7F, 0x49, 0x49, 0x49, 0x41, 0x02],
-    'Ň': [0x7F, 0x04, 0x08, 0x10, 0x7F, 0x02],
-    'Ř': [0x7F, 0x09, 0x19, 0x29, 0x46, 0x02],
-    'Š': [0x46, 0x49, 0x49, 0x49, 0x31, 0x02],
-    'Ť': [0x01, 0x01, 0x7F, 0x01, 0x01, 0x02],
-    'Ž': [0x61, 0x51, 0x49, 0x45, 0x43, 0x02],
+    // DIAKRITIKA - HÁČKY A KROUŽEK
+    'Č': [0x3E, 0x41, 0x41, 0x41, 0x22, 0x02], 'Ď': [0x7F, 0x41, 0x41, 0x22, 0x1C, 0x02],
+    'Ě': [0x7F, 0x49, 0x49, 0x49, 0x41, 0x02], 'Ň': [0x7F, 0x04, 0x08, 0x10, 0x7F, 0x02],
+    'Ř': [0x7F, 0x09, 0x19, 0x29, 0x46, 0x02], 'Š': [0x46, 0x49, 0x49, 0x49, 0x31, 0x02],
+    'Ť': [0x01, 0x01, 0x7F, 0x01, 0x01, 0x02], 'Ž': [0x61, 0x51, 0x49, 0x45, 0x43, 0x02],
     'Ů': [0x3F, 0x40, 0x40, 0x40, 0x3F, 0x03]
 };
 
@@ -251,39 +242,35 @@ const ctx = canvas.getContext('2d');
 const FIXED_HEIGHT = 19;
 const DOT_RENDER_SIZE = 5;
 
-// Konfigurace chování kategorií fontů ze SIMT
+// HLAVNÍ ZMĚNA: Navýšení 'spacing' (mezer mezi znaky) o 1-2 body pro každou kategorii fontu
 const CATEGORIES = {
-    'max_bold':   { multX: 2, multY: 2, spacing: 2, accentShift: -1, bold: true },
-    'max':        { multX: 2, multY: 2, spacing: 2, accentShift: -1, bold: false },
-    'big_bold':   { multX: 1, multY: 2, spacing: 1, accentShift: 0,  bold: true },
-    'big':        { multX: 1, multY: 2, spacing: 1, accentShift: 0,  bold: false },
-    'mid':        { multX: 1, multY: 1.5, spacing: 1, accentShift: 1, bold: false },
-    'small_bold': { multX: 1, multY: 1.2, spacing: 1, accentShift: 2, bold: true },
-    'small':      { multX: 1, multY: 1, spacing: 1, accentShift: 2, bold: false },
-    'min':        { multX: 0.8, multY: 0.8, spacing: 1, accentShift: 3, bold: false }
+    'max_bold':   { multX: 2, multY: 2, spacing: 5, accentShift: -1, bold: true },
+    'max':        { multX: 2, multY: 2, spacing: 4, accentShift: -1, bold: false },
+    'big_bold':   { multX: 1, multY: 2, spacing: 3, accentShift: 0,  bold: true },
+    'big':        { multX: 1, multY: 2, spacing: 3, accentShift: 0,  bold: false },
+    'mid':        { multX: 1, multY: 1.5, spacing: 3, accentShift: 1, bold: false },
+    'small_bold': { multX: 1, multY: 1.2, spacing: 2, accentShift: 2, bold: true },
+    'small':      { multX: 1, multY: 1, spacing: 2, accentShift: 2, bold: false },
+    'min':        { multX: 0.8, multY: 0.8, spacing: 2, accentShift: 3, bold: false }
 };
 
-/**
- * Čistý vykreslovač maticových bodů na základě bitových masek
- */
 function drawHardwareChar(char, startX, startY, cat, ledColor) {
     let bitmap = MATRIX_FONT[char.toUpperCase()];
     if (!bitmap) bitmap = MATRIX_FONT[' '];
 
     let width = bitmap.length;
     let hasAccent = false;
-    let accentType = 0; // 1 = čárka, 2 = háček, 3 = kroužek
+    let accentType = 0;
 
-    // Detekce diakritiky uložené v našem rozšířeném poli
     if (width > 5 && (bitmap[5] === 1 || bitmap[5] === 2 || bitmap[5] === 3)) {
         hasAccent = true;
         accentType = bitmap[5];
-        width = 5; // Samotné písmeno má šířku 5
+        width = 5;
     }
 
     ctx.fillStyle = ledColor;
     
-    // 1. Vykreslení těla písmene
+    // Tělo písmene
     for (let x = 0; x < width; x++) {
         let colData = bitmap[x];
         for (let y = 0; y < 8; y++) {
@@ -293,43 +280,40 @@ function drawHardwareChar(char, startX, startY, cat, ledColor) {
         }
     }
 
-    // 2. Vykreslení diakritiky přesně nad písmeno (Žádné rozmazání ani sekání)
+    // Diakritika nad písmenem
     if (hasAccent) {
         let ax = startX + (2 * cat.multX);
         let ay = startY - (2 * cat.multY) + cat.accentShift;
         
-        if (accentType === 1) { // ČÁRKA
+        if (accentType === 1) {
             renderBlock(ax, ay, cat.multX, cat.multY, false);
             renderBlock(ax + cat.multX, ay - cat.multY, cat.multX, cat.multY, false);
-        } else if (accentType === 2) { // HÁČEK
+        } else if (accentType === 2) {
             renderBlock(ax - cat.multX, ay - cat.multY, cat.multX, cat.multY, false);
             renderBlock(ax + cat.multX, ay - cat.multY, cat.multX, cat.multY, false);
             renderBlock(ax, ay, cat.multX, cat.multY, false);
-        } else if (accentType === 3) { // KROUŽEK (Ů)
+        } else if (accentType === 3) {
             renderBlock(ax, ay - cat.multY, cat.multX, cat.multY, false);
             renderBlock(ax - cat.multX, ay, cat.multX, cat.multY, false);
             renderBlock(ax + cat.multX, ay, cat.multX, cat.multY, false);
         }
     }
 
+    // Výpočet pozice pro další znak (šířka písmene + upravená mezera)
     return Math.ceil(width * cat.multX + cat.spacing);
 }
 
-/**
- * Pomocná funkce pro fyzické rozsvícení bodů s podporou tučnosti (bold)
- */
 function renderBlock(bx, by, mw, mh, isBold) {
     let finalW = Math.max(1, Math.round(mw));
     let finalH = Math.max(1, Math.round(mh));
     
-    if (isBold) finalW += 1; // Zesílení o jeden sloupec bodů
+    if (isBold) finalW += 1;
 
     for (let dx = 0; dx < finalW; dx++) {
         for (let dy = 0; dy < finalH; dy++) {
             let px = Math.floor(bx + dx);
             let py = Math.floor(by + dy);
             
-            // Kontrola mezí panelu 19px vysokého
             if (py >= 0 && py < FIXED_HEIGHT) {
                 ctx.fillRect(px * DOT_RENDER_SIZE, py * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
             }
@@ -337,9 +321,6 @@ function renderBlock(bx, by, mw, mh, isBold) {
     }
 }
 
-/**
- * Hlavní smyčka
- */
 function drawBuse() {
     const pWidth = parseInt(document.getElementById('pWidth').value) || 140;
     const fontKey = document.getElementById('pFont').value;
@@ -350,15 +331,12 @@ function drawBuse() {
     const cat = CATEGORIES[fontKey];
     document.documentElement.style.setProperty('--buse-color', ledColor);
 
-    // Příprava plátna
     canvas.width = pWidth * DOT_RENDER_SIZE;
     canvas.height = FIXED_HEIGHT * DOT_RENDER_SIZE;
 
-    // Černé prázdné pozadí
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Zhasnutá mřížka panelu
     ctx.fillStyle = "#111111";
     for (let x = 0; x < pWidth; x++) {
         for (let y = 0; y < FIXED_HEIGHT; y++) {
@@ -366,23 +344,20 @@ function drawBuse() {
         }
     }
 
-    // Aktivace hardwarové záře LED panelu
     ctx.shadowBlur = DOT_RENDER_SIZE * 1.1;
     ctx.shadowColor = ledColor;
 
     let currentX = 2;
 
-    // 1. Vykreslení linky (Pokud existuje, použije velký profil)
+    // Vykreslení čísla linky (větší mezera za číslem)
     if (lineVal.trim() !== "") {
         let lineCat = CATEGORIES['big_bold'];
         for (let char of lineVal) {
             currentX += drawHardwareChar(char, currentX, 2, lineCat, ledColor);
         }
-        currentX += 4; // Mezera mezi linkou a cílem
+        currentX += 6; // Rozšířená mezera mezi číslem linky a cílem
     }
 
-    // 2. Vykreslení hlavního textu cíle s vybraným písmem
-    // Výpočet vertikálního vycentrování podle typu písma
     let startY = 3;
     if (fontKey.includes('small') || fontKey === 'min') startY = 5;
     if (fontKey === 'mid') startY = 4;
@@ -393,7 +368,7 @@ function drawBuse() {
         }
     }
 
-    ctx.shadowBlur = 0; // Vypnutí stínu po dokončení renderu
+    ctx.shadowBlur = 0;
 }
 
 function exportPNG() {
@@ -404,12 +379,10 @@ function exportPNG() {
     link.click();
 }
 
-// Okamžitá odezva při změně prvků
 document.getElementById('pWidth').addEventListener('input', drawBuse);
 document.getElementById('pFont').addEventListener('change', drawBuse);
 document.getElementById('pColor').addEventListener('change', drawBuse);
 
-// Načtení základního stavu
 window.onload = drawBuse;
 </script>
 
