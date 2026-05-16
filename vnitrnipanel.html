@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BUSE Panel Simulátor</title>
-    <!-- Načtení knihovny pro export do PNG -->
+    <title>BUSE Vnitřní Panely - Simulátor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            --buse-green: #2aff2a;
-            --buse-dim-green: #003300;
-            --panel-bg: #000000;
-            --matrix-font: 'Courier New', Courier, monospace;
+            --buse-red: #ff3b30;
+            --buse-red-glow: rgba(255, 59, 48, 0.8);
+            --buse-red-dim: #200000;
+            --lcd-bg: #ececec;
+            --lcd-text: #000000;
         }
 
         body {
-            background-color: #1a1a1a;
-            color: #eeeeee;
+            background-color: #121212;
+            color: #e0e0e0;
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
             padding: 15px;
             margin: 0;
@@ -26,440 +26,618 @@
         }
 
         h1 {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
+            margin-bottom: 20px;
             text-align: center;
-            margin-bottom: 5px;
-            color: #fff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
-        h2 {
-            font-size: 1.2rem;
-            color: #aaa;
-            margin-top: 25px;
-            margin-bottom: 10px;
+        /* --- MENU A OVLÁDÁNÍ --- */
+        .setup-container {
             width: 100%;
-            max-width: 900px;
-            text-align: left;
-        }
-
-        /* Krásný moderní ovládací panel */
-        .controls {
-            width: 100%;
-            max-width: 900px;
-            background: #2b2b2b;
-            padding: 20px;
+            max-width: 800px;
+            background: #1e1e1e;
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            padding: 20px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+            border: 1px solid #333;
+            margin-bottom: 25px;
+        }
+
+        /* Výběr panelu (Menu) */
+        .panel-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: #2a2a2a;
+            color: #aaa;
+            border: 2px solid #444;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #ff5722;
+            color: #fff;
+            border-color: #ff5722;
+        }
+
+        .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            box-sizing: border-box;
-            border: 1px solid #3d3d3d;
         }
 
-        .control-group {
+        .form-group {
             display: flex;
             flex-direction: column;
         }
 
-        .control-group.full-width {
+        .form-group.full-width {
             grid-column: span 2;
         }
 
         label {
-            margin-bottom: 6px;
-            font-weight: 600;
             font-size: 14px;
             color: #bbb;
+            margin-bottom: 5px;
+            font-weight: 600;
         }
 
-        input[type="text"], textarea {
-            padding: 12px;
-            background: #151515;
-            border: 2px solid #444;
+        input, textarea, select {
+            padding: 10px;
+            background: #2b2b2b;
+            border: 1px solid #444;
             color: #fff;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 16px; /* Prevence zoomování na iOS */
-            transition: border-color 0.2s;
+            border-radius: 6px;
+            font-size: 15px;
         }
 
-        input[type="text"]:focus, textarea:focus {
+        input:focus, textarea:focus {
             outline: none;
-            border-color: var(--buse-green);
+            border-color: #ff5722;
         }
 
-        .checkbox-group {
-            flex-direction: row;
-            align-items: center;
-            gap: 10px;
-            margin-top: 5px;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .checkbox-group input {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--buse-green);
-        }
-
-        /* Tlačítka pro export */
-        .btn-export {
-            background: #0076ff;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 10px;
-            display: inline-flex;
+        .checkbox-container {
+            display: flex;
             align-items: center;
             gap: 8px;
-            transition: background 0.2s, transform 0.1s;
-            box-shadow: 0 4px 12px rgba(0, 118, 255, 0.3);
-            width: 100%;
-            max-width: 250px;
-            justify-content: center;
+            margin-top: 10px;
+            grid-column: span 2;
+            cursor: pointer;
         }
 
-        .btn-export:active {
-            transform: scale(0.98);
-            background: #0060d0;
-        }
-
-        /* --- SPOLEČNÝ BUSE PANEL STYL --- */
-        .buse-container {
+        /* Tlačítko stáhnutí */
+        .btn-download {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.2s;
             width: 100%;
-            max-width: 900px;
+            max-width: 300px;
+        }
+        .btn-download:hover { background: #45a049; }
+
+        /* --- ZOBRAZOVACÍ PLOCHY PRO PANELY --- */
+        .display-wrapper {
+            width: 100%;
+            max-width: 950px;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            margin-bottom: 20px;
-        }
-
-        .buse-frame {
-            background-color: var(--panel-bg);
-            border: 8px solid #333;
-            border-radius: 6px;
-            padding: 15px;
-            font-family: var(--matrix-font);
-            font-weight: bold;
-            color: var(--buse-green);
-            text-shadow: 0 0 6px var(--buse-green);
-            box-shadow: inset 0 0 20px rgba(0,0,0,1), 0 10px 25px rgba(0,0,0,0.4);
-            box-sizing: border-box;
-            width: 100%;
-            overflow: hidden;
-            letter-spacing: 1px;
-        }
-
-        /* Animace přebliknutí */
-        .animated .matrix-text {
-            animation: buse-flicker 0.35s ease-in-out;
-        }
-
-        @keyframes buse-flicker {
-            0% { opacity: 0.1; text-shadow: none; color: var(--buse-dim-green); }
-            40% { opacity: 0.9; text-shadow: 0 0 3px var(--buse-green); }
-            70% { opacity: 0.2; text-shadow: none; }
-            100% { opacity: 1; text-shadow: 0 0 6px var(--buse-green); }
-        }
-
-        /* --- 1. MALÝ PANEL --- */
-        .buse-small {
-            height: 90px;
-            display: flex;
             align-items: center;
-            justify-content: flex-start;
-            font-size: 28px;
         }
 
-        .buse-small .line {
-            border-right: 3px double var(--buse-green);
-            padding-right: 12px;
+        .hidden { display: none !important; }
+
+        /* ================================================= */
+        /* 1. MALÝ PANEL - DOT MATRIX (ČERVENÝ)             */
+        /* ================================================= */
+        .buse-small-frame {
+            width: 100%;
+            background: #080808;
+            border: 8px solid #444;
+            border-radius: 4px;
+            padding: 10px 15px;
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            color: var(--buse-red);
+            /* Efekt svítících LED bodů */
+            text-shadow: 0 0 4px var(--buse-red-glow), 0 0 12px var(--buse-red-glow);
+            letter-spacing: 2px;
+            background-image: radial-gradient(var(--buse-red-dim) 25%, transparent 26%);
+            background-size: 4px 4px; /* Simulace mřížky diod */
+        }
+
+        .buse-small-frame .line-num {
+            font-size: 55px;
+            border-right: 4px double var(--buse-red);
+            padding-right: 15px;
             margin-right: 15px;
-            font-size: 36px;
-            flex-shrink: 0;
+            line-height: 1;
         }
 
-        .buse-small .target {
+        .buse-small-frame .destination-block {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-size: 20px;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+        .buse-small-frame .destination-block .row2 {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .buse-small-frame .real-time {
+            font-size: 22px;
+            text-align: right;
+            padding-left: 10px;
+        }
+
+        /* ================================================= */
+        /* 2. VELKÝ PANEL - ŠIROKOÚHLÉ LCD                   */
+        /* ================================================= */
+        .buse-large-frame {
+            width: 100%;
+            background: #000; /* Vnější plastový černý rám */
+            border: 12px solid #222;
+            border-radius: 8px;
+            box-sizing: border-box;
+            padding: 8px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+        }
+
+        .lcd-screen {
+            background: var(--lcd-bg);
+            color: var(--lcd-text);
+            width: 100%;
+            aspect-ratio: 21 / 9; /* Typický ultraširokoúhlý poměr vnitřních LCD */
+            display: grid;
+            grid-template-columns: 55% 45%; /* Rozdělení na trasu a přípoje */
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        /* LEVÁ STRANA: TRASA / TEPLOMĚR */
+        .lcd-route-side {
+            background: #fff;
+            padding: 10px;
+            border-right: 4px solid #000;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .lcd-route-header {
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 3px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            text-transform: uppercase;
         }
 
-        /* --- 2. VELKÝ PANEL --- */
-        .buse-large {
-            min-height: 260px;
+        .thermometer {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex-grow: 1;
+        }
+
+        .route-stop {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Zóny / Tarifní pásma barevné čtverečky */
+        .zone-indicator {
+            width: 32px;
+            height: 22px;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        /* Teploměrová osa */
+        .station-line-node {
+            width: 20px;
+            height: 20px;
+            position: relative;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        /* Čára propojující stanice */
+        .station-line-node::before {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 9px;
+            width: 3px;
+            height: 25px;
+            background: #777;
+            z-index: 1;
+        }
+        .route-stop:last-child .station-line-node::before { display: none; }
+
+        /* Bod stanice (Ovál z fotky) */
+        .station-dot {
+            width: 20px;
+            height: 14px;
+            background: #d32f2f;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            z-index: 2;
+        }
+
+        .stop-text-info {
             display: flex;
             flex-direction: column;
         }
+        .stop-title { font-size: 18px; font-weight: bold; }
+        .stop-sub { font-size: 12px; color: #555; }
 
-        .buse-large .header-row {
+        /* Aktuální / Hlavní zvýrazněná stanice (Žlutý pruh dole) */
+        .route-stop.current-active {
+            background: #fff5cc;
+            margin: -5px -10px;
+            padding: 5px 10px;
+            border: 2px dashed #ffcc00;
+            background-color: #ffeb3b; /* Jasně žlutá z fotky */
+        }
+        .route-stop.current-active .station-dot {
+            background: #000;
+            transform: scale(1.2);
+        }
+        .route-stop.current-active .stop-title { font-size: 21px; font-weight: 900; }
+
+        /* PRAVÁ STRANA: NAVAZUJÍCÍ SPOJE A ČAS */
+        .lcd-info-side {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .lcd-top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 3px solid var(--buse-green);
-            padding-bottom: 8px;
-            margin-bottom: 12px;
-            font-size: 28px;
+            background: #000;
+            color: #fff;
+            padding: 5px 10px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .lcd-top-bar .current-time-lcd {
+            color: #ffeb3b;
         }
 
-        .buse-large .header-row .line {
-            font-size: 38px;
-        }
-
-        .buse-large .header-row .direction {
+        .connections-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #555;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 2px;
+            margin-bottom: 8px;
             text-transform: uppercase;
-            text-align: right;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
-        .buse-large .stops-list {
+        .connections-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            font-size: 18px;
+            gap: 8px;
+            font-size: 14px;
         }
 
-        .buse-large .stop-item {
+        .conn-item {
             display: flex;
+            justify-content: space-between;
             align-items: center;
+            font-weight: bold;
+        }
+        .conn-left { display: flex; gap: 10px; align-items: center;}
+        .conn-line { background: #333; color: #fff; padding: 2px 6px; border-radius: 3px; font-size: 12px;}
+        .conn-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+        .conn-time { color: #d32f2f; text-align: right; }
+
+        /* ANIMACE */
+        .anim-active-small { animation: smallFlicker 0.4s ease-in-out; }
+        @keyframes smallFlicker {
+            0% { opacity: 0.2; }
+            50% { opacity: 0.8; }
+            100% { opacity: 1; }
         }
 
-        .buse-large .stop-indicator {
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--buse-green);
-            border-radius: 50%;
-            margin-right: 12px;
-            position: relative;
-            flex-shrink: 0;
+        .anim-active-large { animation: lcdRefresh 0.3s ease-out; }
+        @keyframes lcdRefresh {
+            0% { filter: brightness(0.5); }
+            100% { filter: brightness(1); }
         }
 
-        .buse-large .stop-item.next-stop .stop-indicator {
-            background-color: var(--buse-green);
-            box-shadow: 0 0 8px var(--buse-green);
-        }
-
-        .buse-large .stop-item:not(:last-child) .stop-indicator::after {
-            content: '';
-            position: absolute;
-            top: 14px;
-            left: 5px;
-            width: 2px;
-            height: 14px;
-            background-color: var(--buse-green);
-        }
-
-        .buse-large .stop-name {
-            text-transform: uppercase;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .buse-large .stop-item.next-stop .stop-name {
-            font-size: 22px;
-            text-shadow: 0 0 10px var(--buse-green);
-        }
-
-        /* --- RESPONSIVITA (MOBILNÍ OPTIMALIZACE) --- */
-        @media (max-width: 600px) {
-            .controls {
-                grid-template-columns: 1fr; /* Vše pod sebou */
-            }
-            .control-group.full-width {
-                grid-column: span 1;
-            }
-            .buse-small {
-                font-size: 20px;
-                height: 70px;
-            }
-            .buse-small .line {
-                font-size: 26px;
-                padding-right: 8px;
-                margin-right: 10px;
-            }
-            .buse-large .header-row {
-                font-size: 20px;
-            }
-            .buse-large .header-row .line {
-                font-size: 26px;
-            }
-            .buse-large .stops-list {
-                font-size: 15px;
-            }
-            .buse-large .stop-item.next-stop .stop-name {
-                font-size: 17px;
-            }
-            .buse-large .stop-indicator {
-                width: 12px;
-                height: 12px;
-            }
-            .buse-large .stop-item:not(:last-child) .stop-indicator::after {
-                top: 10px;
-                left: 3px;
-                height: 14px;
-            }
-            .btn-export {
-                max-width: 100%; /* Tlačítko na celou šířku mobilu */
-            }
+        /* MOBILNÍ RESPONSIVITA */
+        @media(max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width { grid-column: span 1; }
+            .buse-small-frame { padding: 8px; }
+            .buse-small-frame .line-num { font-size: 32px; }
+            .buse-small-frame .destination-block { font-size: 14px; }
+            .buse-small-frame .destination-block .row2 { font-size: 12px; }
+            .buse-small-frame .real-time { font-size: 14px; }
+            
+            .stop-title { font-size: 13px; }
+            .route-stop.current-active .stop-title { font-size: 14px; }
+            .conn-name { max-width: 100px; font-size: 11px; }
+            .conn-time { font-size: 11px; }
         }
     </style>
 </head>
 <body>
 
-    <h1>BUSE Panel Simulátor</h1>
+    <h1>Simulátor Vnitřních BUSE Panelů</h1>
 
-    <!-- OVLÁDÁNÍ -->
-    <div class="controls">
-        <div class="control-group">
-            <label for="input-line">Číslo linky:</label>
-            <input type="text" id="input-line" value="135">
+    <div class="setup-container">
+        <div class="panel-selector">
+            <button class="tab-btn active" id="btn-tab-small" onclick="switchPanel('small')">Malý panel (Dot Matrix)</button>
+            <button class="tab-btn" id="btn-tab-large" onclick="switchPanel('large')">Velký panel (LCD obrazovka)</button>
         </div>
-        <div class="control-group">
-            <label for="input-dir">Směr (Konečná):</label>
-            <input type="text" id="input-dir" value="Florenc">
-        </div>
-        <div class="control-group full-width">
-            <label for="input-stops">Zastávky (první je příští, další pod sebe):</label>
-            <textarea id="input-stops" rows="4">Náměstí Míru
-Římská
-Muzeum
-Hlavní nádraží
-Florenc</textarea>
-        </div>
-        <div class="control-group checkbox-group full-width">
-            <input type="checkbox" id="input-anim" checked>
-            <label for="input-anim">Zapnout animaci přebliknutí</label>
-        </div>
-    </div>
 
-    <!-- 1. MALÝ PANEL -->
-    <h2>Malý vnitřní panel</h2>
-    <div class="buse-container">
-        <div id="small-panel" class="buse-frame buse-small animated">
-            <div class="matrix-text line" id="small-line">135</div>
-            <div class="matrix-text target" id="small-target">Florenc</div>
-        </div>
-        <button class="btn-export" onclick="exportToPNG('small-panel', 'maly-buse-panel')">📸 Uložit jako PNG</button>
-    </div>
-
-    <!-- 2. VELKÝ PANEL -->
-    <h2>Velký vnitřní panel s trasou</h2>
-    <div class="buse-container">
-        <div id="large-panel" class="buse-frame buse-large animated">
-            <div class="header-row">
-                <div class="matrix-text line" id="large-line">135</div>
-                <div class="matrix-text direction" id="large-dir">Florenc</div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="cfg-line">Číslo linky:</label>
+                <input type="text" id="cfg-line" value="850873" oninput="render()">
             </div>
-            <div class="matrix-text stops-list" id="large-stops">
-                <!-- Zastávky generuje JS -->
-            </div>
-        </div>
-        <button class="btn-export" onclick="exportToPNG('large-panel', 'velky-buse-panel')">📸 Uložit jako PNG</button>
-    </div>
-
-    <!-- JAVASCRIPT -->
-    <script>
-        const inputLine = document.getElementById('input-line');
-        const inputDir = document.getElementById('input-dir');
-        const inputStops = document.getElementById('input-stops');
-        const inputAnim = document.getElementById('input-anim');
-
-        const smallPanel = document.getElementById('small-panel');
-        const largePanel = document.getElementById('large-panel');
-        
-        const smallLine = document.getElementById('small-line');
-        const smallTarget = document.getElementById('small-target');
-        
-        const largeLine = document.getElementById('large-line');
-        const largeDir = document.getElementById('large-dir');
-        const largeStopsContainer = document.getElementById('large-stops');
-
-        function updatePanels() {
-            const lineText = inputLine.value;
-            const dirText = inputDir.value;
-            const stopsText = inputStops.value.split('\n').filter(stop => stop.trim() !== '');
-
-            if (inputAnim.checked) {
-                smallPanel.classList.remove('animated');
-                largePanel.classList.remove('animated');
-                void smallPanel.offsetWidth; 
-                void largePanel.offsetWidth;
-                smallPanel.classList.add('animated');
-                largePanel.classList.add('animated');
-            } else {
-                smallPanel.classList.remove('animated');
-                largePanel.classList.remove('animated');
-            }
-
-            smallLine.textContent = lineText;
-            smallTarget.textContent = dirText;
             
-            largeLine.textContent = lineText;
-            largeDir.textContent = dirText;
+            <div class="form-group id-small-cfg">
+                <label for="cfg-small-dir1">Směr Řádek 1:</label>
+                <input type="text" id="cfg-small-dir1" value="Rýmařov" oninput="render()">
+            </div>
+            <div class="form-group id-small-cfg">
+                <label for="cfg-small-dir2">Směr Řádek 2 (volitelný):</label>
+                <input type="text" id="cfg-small-dir2" value="aut.st." oninput="render()">
+            </div>
 
-            largeStopsContainer.innerHTML = '';
-            stopsText.forEach((stop, index) => {
-                const stopItem = document.createElement('div');
-                stopItem.classList.add('stop-item');
-                if (index === 0) stopItem.classList.add('next-stop');
+            <div class="form-group id-large-cfg hidden">
+                <label for="cfg-large-header">Cílová stanice (Záhlaví):</label>
+                <input type="text" id="cfg-large-header" value="Rýmařov aut.st." oninput="render()">
+            </div>
+            <div class="form-group id-large-cfg hidden full-width">
+                <label for="cfg-large-stops">Trasa (Zóna | Název zastávky | volitelný podtext): pod sebe, max 4. Poslední bude aktivní žlutá</label>
+                <textarea id="cfg-large-stops" rows="4" oninput="render()">115 | Jamartice | hřbitov
+114 | Malá Štáhle | rest.
+114 | Václavov | střed
+114 | Bruntál | Seliko</textarea>
+            </div>
+            <div class="form-group id-large-cfg hidden full-width">
+                <label for="cfg-large-conns">Navazující spoje (Linka | Cíl | Za kolik minut): pod sebe</label>
+                <textarea id="cfg-large-conns" rows="4" oninput="render()">861 | Vrbno p.Prad.,rozc.Ludvíkov | 8 min
+861 | Bruntál,žel.st. | 22 min
+873 | Rýmařov,aut.st. | 31 min
+930201 | Ostrava,ÚAN | 56 min</textarea>
+            </div>
 
-                stopItem.innerHTML = `
-                    <div class="stop-indicator"></div>
-                    <div class="stop-name">${index === 0 ? 'Příští: ' : ''}${stop}</div>
-                `;
-                largeStopsContainer.appendChild(stopItem);
-            });
+            <div class="checkbox-container">
+                <input type="checkbox" id="cfg-anim" checked onchange="render()">
+                <label for="cfg-anim">Aktivovat animaci při změně dat</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="display-wrapper">
+        
+        <div id="render-small" class="buse-small-frame">
+            <div class="line-num" id="s-line">---</div>
+            <div class="destination-block">
+                <div id="s-dir1">---</div>
+                <div class="row2" id="s-dir2"></div>
+            </div>
+            <div class="real-time class-clock">00:00:00</div>
+        </div>
+
+        <div id="render-large" class="buse-large-frame hidden">
+            <div class="lcd-screen">
+                <div class="lcd-route-side">
+                    <div class="lcd-route-header" id="l-header">---</div>
+                    <div class="thermometer" id="l-thermometer-list">
+                        </div>
+                </div>
+                <div class="lcd-info-side">
+                    <div class="lcd-top-bar">
+                        <span id="l-actual-zone">Zóna --</span>
+                        <span class="class-clock current-time-lcd">00:00:00</span>
+                    </div>
+                    <div class="connections-title">Následné spoje / Odjezdy</div>
+                    <div class="connections-list" id="l-conns-list">
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-download" onclick="downloadPanel()">📸 Uložit panel jako PNG</button>
+    </div>
+
+    <script>
+        let currentPanel = 'small';
+
+        // Funkce pro real-time hodiny (Běží neustále 1:1)
+        function startClock() {
+            setInterval(() => {
+                const now = new Date();
+                const timeString = now.toTimeString().split(' ')[0];
+                const clocks = document.querySelectorAll('.class-clock');
+                clocks.forEach(c => c.textContent = timeString);
+            }, 1000);
         }
 
-        // Funkce pro export panelu do PNG souboru
-        function exportToPNG(panelId, filename) {
-            const element = document.getElementById(panelId);
+        // Přepínání menu (Tabů)
+        function switchPanel(type) {
+            currentPanel = type;
             
-            // Dočasně vypneme animaci pro čistý screenshot
-            const hadAnimation = element.classList.contains('animated');
-            element.classList.remove('animated');
+            // Úprava aktivního tlačítka
+            document.getElementById('btn-tab-small').classList.toggle('active', type === 'small');
+            document.getElementById('btn-tab-large').classList.toggle('active', type === 'large');
 
-            // Vygenerování obrázku pomocí html2canvas
+            // Skrytí/Zobrazení konfigurace
+            document.querySelectorAll('.id-small-cfg').forEach(el => el.classList.toggle('hidden', type !== 'small'));
+            document.querySelectorAll('.id-large-cfg').forEach(el => el.classList.toggle('hidden', type !== 'large'));
+
+            // Skrytí/Zobrazení samotných panelů
+            document.getElementById('render-small').classList.toggle('hidden', type !== 'small');
+            document.getElementById('render-large').classList.toggle('hidden', type !== 'large');
+
+            render();
+        }
+
+        // Paleta barev pro tarifní pásma/zóny (náhodně přiřazované pro hezký vzhled podle fotky)
+        const zoneColors = ['#4caf50', '#ff9800', '#2196f3', '#9c27b0', '#e91e63'];
+
+        // Hlavní renderovací funkce
+        function render() {
+            const line = document.getElementById('cfg-line').value;
+            const useAnim = document.getElementById('cfg-anim').checked;
+
+            if (currentPanel === 'small') {
+                const sFrame = document.getElementById('render-small');
+                if(useAnim) {
+                    sFrame.classList.remove('anim-active-small');
+                    void sFrame.offsetWidth;
+                    sFrame.classList.add('anim-active-small');
+                }
+
+                document.getElementById('s-line').textContent = line;
+                document.getElementById('s-dir1').textContent = document.getElementById('cfg-small-dir1').value;
+                document.getElementById('s-dir2').textContent = document.getElementById('cfg-small-dir2').value;
+
+            } else {
+                const lFrame = document.getElementById('render-large');
+                if(useAnim) {
+                    lFrame.classList.remove('anim-active-large');
+                    void lFrame.offsetWidth;
+                    lFrame.classList.add('anim-active-large');
+                }
+
+                // Záhlaví velkého panelu
+                document.getElementById('l-header').textContent = line + " " + document.getElementById('cfg-large-header').value;
+
+                // Zpracování trasy (Teploměru)
+                const stopsRaw = document.getElementById('cfg-large-stops').value.split('\n').filter(r => r.trim() !== '');
+                const thermometerContainer = document.getElementById('l-thermometer-list');
+                thermometerContainer.innerHTML = '';
+
+                let lastZone = "--";
+
+                stopsRaw.forEach((row, index) => {
+                    const parts = row.split('|');
+                    const zone = parts[0] ? parts[0].trim() : '100';
+                    const name = parts[1] ? parts[1].trim() : 'Zastávka';
+                    const sub = parts[2] ? parts[2].trim() : '';
+
+                    const isLast = (index === stopsRaw.length - 1);
+                    if (isLast) lastZone = zone; // Uložíme zónu aktuální stanice pro pravou lištu
+
+                    // Výběr barvy zóny podle čísla, aby to ladilo
+                    const colorIndex = parseInt(zone) % zoneColors.length || 0;
+                    const zColor = zoneColors[colorIndex];
+
+                    const stopItem = document.createElement('div');
+                    stopItem.className = `route-stop ${isLast ? 'current-active' : ''}`;
+                    stopItem.innerHTML = `
+                        <div class="zone-indicator" style="background: ${zColor}">${zone}</div>
+                        <div class="station-line-node">
+                            <div class="station-dot"></div>
+                        </div>
+                        <div class="stop-text-info">
+                            <span class="stop-title">${name}</span>
+                            ${sub ? `<span class="stop-sub">${sub}</span>` : ''}
+                        </div>
+                    `;
+                    thermometerContainer.appendChild(stopItem);
+                });
+
+                document.getElementById('l-actual-zone').textContent = `Zóna ${lastZone}`;
+
+                // Zpracování navazujících spojů
+                const connsRaw = document.getElementById('cfg-large-conns').value.split('\n').filter(r => r.trim() !== '');
+                const connsContainer = document.getElementById('l-conns-list');
+                connsContainer.innerHTML = '';
+
+                connsRaw.forEach(row => {
+                    const parts = row.split('|');
+                    const cLine = parts[0] ? parts[0].trim() : '000';
+                    const cDest = parts[1] ? parts[1].trim() : 'Směr';
+                    const cTime = parts[2] ? parts[2].trim() : '0 min';
+
+                    const item = document.createElement('div');
+                    item.className = 'conn-item';
+                    item.innerHTML = `
+                        <div class="conn-left">
+                            <span class="conn-line">${cLine}</span>
+                            <span class="conn-name">${cDest}</span>
+                        </div>
+                        <span class="conn-time">${cTime}</span>
+                    `;
+                    connsContainer.appendChild(item);
+                });
+            }
+        }
+
+        // Funkce pro stažení obrázku do mobilu/PC
+        function downloadPanel() {
+            const targetId = currentPanel === 'small' ? 'render-small' : 'render-large';
+            const element = document.getElementById(targetId);
+
+            // Dočasně vypnout animaci pro čistý snímek
+            element.classList.remove('anim-active-small', 'anim-active-large');
+
             html2canvas(element, {
-                backgroundColor: '#000000',
-                scale: 2, // Dvojnásobné rozlišení, aby byl obrázek ostrý i na mobilu
-                logging: false,
-                useCORS: true
+                scale: 3, // Vysoká kvalita exportu
+                backgroundColor: null,
+                logging: false
             }).then(canvas => {
-                // Obnovíme animaci
-                if (hadAnimation) element.classList.add('animated');
-
-                // Vytvoření odkazu ke stažení
                 const link = document.createElement('a');
-                link.download = `${filename}.png`;
+                link.download = `buse-panel-${currentPanel}.png`;
                 link.href = canvas.toDataURL('image/png');
-                
-                // Spuštění stažení (funguje na Androidu i iOS v prohlížečích Safari/Chrome)
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-            }).catch(err => {
-                alert('Chyba při exportu obrázku: ' + err);
+                render(); // Obnovit animace
             });
         }
 
-        inputLine.addEventListener('input', updatePanels);
-        inputDir.addEventListener('input', updatePanels);
-        inputStops.addEventListener('input', updatePanels);
-        inputAnim.addEventListener('change', updatePanels);
-
-        updatePanels();
+        // Inicializace při načtení
+        startClock();
+        render();
     </script>
 </body>
 </html>
