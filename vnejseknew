@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SIMT BUSE Editor - GitHub Font Edition</title>
+    <style>
+        /* NAČTENÍ TVÝCH SOUBORŮ Z GITHUBU (Musí být ve stejné složce) */
+        @font-face {
+            font-family: 'DotMatrix-Italic';
+            src: url('./DotMatrix-Italic.otf') format('opentype');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'DotMatrix-ExpandedItalic';
+            src: url('./DotMatrix-ExpandedItalic.otf') format('opentype'),
+                 url('./DotMatrix-ExpandedItalic.ttf') format('truetype');
+            font-display: swap;
+        }
+
+        :root {
+            --buse-color: #ff9d00;
+            --ui-bg: #1e1e1e;
+        }
+
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIMT LIŠTA */
+        header {
+            background: #252525;
+            padding: 10px 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            border-bottom: 2px solid #3c3c3c;
+            font-size: 13px;
+            z-index: 10;
+        }
+
+        .simt-brand {
+            font-weight: bold;
+            color: var(--buse-color);
+            border: 1px solid var(--buse-color);
+            padding: 2px 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-box {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        select, input[type="number"] {
+            background: #000000;
+            color: #ffffff;
+            border: 1px solid #555555;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--buse-color);
+            outline: none;
+        }
+
+        /* VIEWPORT S RESIZEM */
+        #viewport {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            background: radial-gradient(circle, #1c1c1c 0%, #000000 100%);
+            overflow: auto;
+        }
+
+        .buse-frame {
+            position: relative;
+            border: 10px solid #282828;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9);
+            background: #000000;
+            padding: 2px;
+        }
+
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        /* OVLÁDACÍ PRVKY PRO MOBIL */
+        footer {
+            background: var(--ui-bg);
+            border-top: 2px solid #333333;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input[type="text"] {
+            flex: 1;
+            padding: 14px;
+            font-size: 16px;
+            border-radius: 6px;
+            background: #000000;
+            color: #ffffff;
+            border: 1px solid #444444;
+        }
+
+        .input-group input[type="text"]:focus {
+            border-color: var(--buse-color);
+            outline: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .btn-refresh { background: var(--buse-color); color: #000000; }
+        .btn-refresh:active { background: #ffb433; }
+        .btn-save { background: #444444; color: #ffffff; }
+        .btn-save:active { background: #555555; }
+
+        @media (max-width: 600px) {
+            header { gap: 8px; padding: 8px; }
+            footer { padding: 10px; }
+            .buse-frame { transform: scale(0.95); }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="simt-brand">SIMT BUSE</div>
+    
+    <div class="control-box">
+        Šířka: <input type="number" id="pWidth" value="140" min="20" max="300" style="width: 55px;">
+    </div>
+
+    <div class="control-box">
+        Vybraný Font: 
+        <select id="pFont">
+            <option value="'DotMatrix-Italic', sans-serif">DotMatrix Italic</option>
+            <option value="'DotMatrix-ExpandedItalic', sans-serif">DotMatrix Expanded Italic</option>
+        </select>
+    </div>
+
+    <div class="control-box">
+        Velikost fontu (px): <input type="number" id="fSize" value="16" min="8" max="24" style="width: 45px;">
+    </div>
+
+    <div class="control-box">
+        Odsazení shora (px): <input type="number" id="vOffset" value="1" min="-10" max="10" style="width: 45px;">
+    </div>
+
+    <div class="control-box">
+        Barva: 
+        <select id="pColor">
+            <option value="#ff9d00">Oranžová LED</option>
+            <option value="#ffffff">Bílá LED</option>
+            <option value="#00b31e">Tmavě zelená DOT</option>
+        </select>
+    </div>
+</header>
+
+<div id="viewport">
+    <div class="buse-frame">
+        <canvas id="buseCanvas"></canvas>
+    </div>
+</div>
+
+<footer>
+    <div class="input-group">
+        <input type="text" id="lineIn" placeholder="Linka" style="max-width: 75px;" value="12">
+        <input type="text" id="textIn" placeholder="CÍLOVÁ STANICE" value="ŘEČKOVICE, ŠLOUP">
+    </div>
+    <div class="button-group">
+        <button class="btn-refresh" onclick="drawBuse()">Aktualizovat</button>
+        <button class="btn-save" onclick="exportPNG()">Export PNG</button>
+    </div>
+</footer>
+
+<script>
+const canvas = document.getElementById('buseCanvas');
+const ctx = canvas.getContext('2d');
+const FIXED_HEIGHT = 19;
+const DOT_RENDER_SIZE = 5;
+
+// Pomocné plátno pro renderování vektorového fontu na pixely
+const textBuffer = document.createElement('canvas');
+const bCtx = textBuffer.getContext('2d');
+
+function drawBuse() {
+    const pWidth = parseInt(document.getElementById('pWidth').value) || 140;
+    const fontStyle = document.getElementById('pFont').value;
+    const fontSize = parseInt(document.getElementById('fSize').value) || 16;
+    const vOffset = parseInt(document.getElementById('vOffset').value) || 0;
+    const ledColor = document.getElementById('pColor').value;
+    const lineVal = document.getElementById('lineIn').value;
+    const textVal = document.getElementById('textIn').value;
+
+    document.documentElement.style.setProperty('--buse-color', ledColor);
+
+    // 1. Nastavení velikosti hlavního plátna
+    canvas.width = pWidth * DOT_RENDER_SIZE;
+    canvas.height = FIXED_HEIGHT * DOT_RENDER_SIZE;
+
+    // Černé pozadí
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Zhasnutá mřížka panelu (fyzické tečky)
+    ctx.fillStyle = "#111111";
+    for (let x = 0; x < pWidth; x++) {
+        for (let y = 0; y < FIXED_HEIGHT; y++) {
+            ctx.fillRect(x * DOT_RENDER_SIZE, y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
+        }
+    }
+
+    // 2. Příprava bufferu pro vykreslení fontu v přesném rozlišení 1:1
+    textBuffer.width = pWidth;
+    textBuffer.height = FIXED_HEIGHT;
+    
+    bCtx.clearRect(0, 0, pWidth, FIXED_HEIGHT);
+    bCtx.fillStyle = "#ffffff";
+    bCtx.textBaseline = "top";
+
+    // Vykreslení čísla linky (pokud je vyplněno) - používá stejný font ale pevné odsazení
+    let currentX = 2;
+    if (lineVal.trim() !== "") {
+        bCtx.font = `${fontSize}px ${fontStyle}`;
+        bCtx.fillText(lineVal.toUpperCase(), currentX, vOffset);
+        currentX += bCtx.measureText(lineVal.toUpperCase()).width + 4;
+    }
+
+    // Vykreslení hlavního textu cíle s vybraným fontem z GitHubu
+    bCtx.font = `${fontSize}px ${fontStyle}`;
+    bCtx.fillText(textVal.toUpperCase(), currentX, vOffset);
+
+    // 3. Převedení vyhlazeného textu na čisté hardwarové LED body
+    const imgData = bCtx.getImageData(0, 0, pWidth, FIXED_HEIGHT).data;
+    
+    ctx.fillStyle = ledColor;
+    ctx.shadowBlur = DOT_RENDER_SIZE * 1.1;
+    ctx.shadowColor = ledColor;
+
+    for (let i = 0; i < imgData.length; i += 4) {
+        const alpha = imgData[i + 3];
+        // Pokud je pixel dostatečně viditelný, rozsvítíme LED diodu
+        if (alpha > 90) { 
+            const pixelIndex = i / 4;
+            const x = pixelIndex % pWidth;
+            const y = Math.floor(pixelIndex / pWidth);
+            
+            if (y >= 0 && y < FIXED_HEIGHT) {
+                ctx.fillRect(x * DOT_RENDER_SIZE, y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
+            }
+        }
+    }
+
+    ctx.shadowBlur = 0;
+}
+
+function exportPNG() {
+    const width = document.getElementById('pWidth').value;
+    const link = document.createElement('a');
+    link.download = `SIMT_BUSE_GitHub_${width}x19.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+}
+
+// Spuštění překresu při jakékoliv změně
+document.getElementById('pWidth').addEventListener('input', drawBuse);
+document.getElementById('pFont').addEventListener('change', drawBuse);
+document.getElementById('fSize').addEventListener('input', drawBuse);
+document.getElementById('vOffset').addEventListener('input', drawBuse);
+document.getElementById('pColor').addEventListener('change', drawBuse);
+
+// Počkáme na stažení a načtení fontů ze serveru, pak teprve vykreslíme panel
+document.fonts.ready.then(() => {
+    drawBuse();
+});
+</script>
+
+</body>
+</html>
