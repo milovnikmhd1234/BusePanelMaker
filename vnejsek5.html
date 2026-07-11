@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SIMT BUSE Professional Developer Station - Edition 2026</title>
+    <style>
+        /* --- DESIGN SYSTÉM A KARETNÍ ROZVRŽENÍ --- */
+        :root {
+            --buse-color: #ff9d00;
+            --ui-bg: #141414;
+            --sidebar-bg: #1c1c1c;
+            --panel-bg: #000000;
+            --input-bg: #090909;
+            --border-color: #2f2f2f;
+            --accent-cyan: #00ffcc;
+            --danger-color: #e63946;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- HLAVNÍ NAVIGAČNÍ A OVLÁDACÍ LIŠTA --- */
+        header {
+            background: #1a1a1a;
+            padding: 12px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        }
+
+        .simt-brand-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .simt-logo {
+            font-weight: 900;
+            color: var(--buse-color);
+            border: 2px solid var(--buse-color);
+            padding: 4px 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.4);
+            font-size: 14px;
+        }
+
+        .control-group-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .control-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: var(--input-bg);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .control-box label {
+            font-weight: 700;
+            color: #8892b0;
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+            letter-spacing: 0.5px;
+        }
+
+        .control-box-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        select, input[type="number"], input[type="color"], input[type="range"] {
+            background: #000000;
+            color: #ffffff;
+            border: 1px solid #3c3c3c;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            padding: 0;
+            cursor: pointer;
+            width: 80px;
+        }
+        
+        select {
+            cursor: pointer;
+            height: 26px;
+        }
+
+        input[type="color"] {
+            width: 34px;
+            height: 24px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        #toolStatus {
+            font-weight: bold;
+            color: var(--accent-cyan);
+            margin-left: auto;
+            background: #001a14;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid #004d3d;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- STŘEDNÍ PRACOVNÍ PROSTOR (WORKSPACE SPLIT) --- */
+        .main-workspace {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+            background: #0f0f0f;
+        }
+
+        /* LEVÁ ČÁST: CANVAS VIEWPORT */
+        #viewport {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            overflow: auto;
+            background: radial-gradient(circle, #202020 0%, #030303 100%);
+        }
+
+        .buse-frame {
+            position: relative;
+            border: 16px solid #282828;
+            border-top-color: #333333;
+            border-bottom-color: #1e1e1e;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.9), inset 0 0 15px rgba(0,0,0,0.7);
+            background: #000000;
+            padding: 4px;
+            border-radius: 6px;
+        }
+
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        /* PRAVÁ ČÁST: SPRÁVCE NAKLIKANÝCH VRSTEV (SIDEBAR) */
+        .sidebar-layers {
+            width: 280px;
+            background: var(--sidebar-bg);
+            border-left: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #a0aec0;
+            margin-bottom: 12px;
+            font-weight: bold;
+            border-bottom: 1px solid #333;
+            padding-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .layer-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .layer-item {
+            background: #121212;
+            border: 1px solid #2d2d2d;
+            border-radius: 4px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+        }
+
+        .layer-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .layer-color-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            border: 1px solid #555;
+        }
+
+        .btn-delete-layer {
+            background: transparent;
+            color: var(--danger-color);
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 0 4px;
+            line-height: 1;
+        }
+        .btn-delete-layer:hover {
+            color: #ff6b6b;
+        }
+
+        .no-layers-placeholder {
+            color: #4a5568;
+            font-style: italic;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+
+        /* --- SPODNÍ EDITAČNÍ KONZOLE (FOOTER) --- */
+        footer {
+            background: var(--ui-bg);
+            border-top: 2px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 -10px 35px rgba(0,0,0,0.8);
+            z-index: 5;
+        }
+
+        /* RASTER PRO ŘÁDKY TEXTU */
+        .editor-grid {
+            display: grid;
+            grid-template-columns: 110px 2fr 100px 100px 130px;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .grid-header {
+            font-weight: 800;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #718096;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #2d2d2d;
+            padding-bottom: 4px;
+        }
+
+        .editor-grid input[type="text"] {
+            padding: 8px 12px;
+            font-size: 13px;
+            border-radius: 5px;
+            background: #000000;
+            color: #ffffff;
+            border: 1px solid #3a3a3a;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        
+        .editor-grid input[type="text"]:focus {
+            border-color: var(--buse-color);
+            box-shadow: 0 0 8px rgba(255, 157, 0, 0.2);
+            outline: none;
+        }
+
+        .label-tag {
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #cbd5e0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .coordinate-inputs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .coordinate-inputs div {
+            display: flex;
+            align-items: center;
+            background: #000000;
+            border: 1px solid #3a3a3a;
+            border-radius: 4px;
+            padding: 2px 5px;
+        }
+
+        .coordinate-inputs span {
+            font-size: 10px;
+            color: #555;
+            margin-right: 3px;
+            font-weight: bold;
+        }
+
+        .coordinate-inputs input {
+            border: none !important;
+            background: transparent !important;
+            width: 30px;
+            padding: 2px 0;
+            text-align: center;
+            color: #fff;
+            font-size: 12px;
+        }
+
+        /* AKČNÍ OPERAČNÍ TLAČÍTKA */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 5px;
+        }
+
+        button.action-btn {
+            flex: 1;
+            padding: 12px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+
+        button.action-btn:active {
+            transform: scale(0.99);
+        }
+
+        .btn-refresh { background: var(--buse-color); color: #000000; }
+        .btn-refresh:hover { background: #ffb540; }
+        .btn-clear { background: #4a1515; color: #ffffff; border: 1px solid #631c1c; }
+        .btn-clear:hover { background: #5c1b1b; }
+        .btn-save { background: #2d3748; color: #ffffff; border: 1px solid #4a5568; }
+        .btn-save:hover { background: #3a465c; }
+
+        /* RESPONSIVNÍ PRAVIDLA */
+        @media (max-width: 1024px) {
+            .main-workspace { flex-direction: column; }
+            .sidebar-layers { width: 100%; height: 150px; border-left: none; border-top: 2px solid var(--border-color); }
+            .editor-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .grid-header { display: none; }
+            body { overflow-y: auto; height: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HLAVNÍ KONTROLNÍ LIŠTA -->
+<header>
+    <div class="simt-brand-container">
+        <div class="simt-logo">SIMT BUSE</div>
+    </div>
+    
+    <div class="control-group-wrapper">
+        <div class="control-box">
+            <label for="pWidth">Šířka panelu (px):</label>
+            <input type="number" id="pWidth" value="140" min="10" max="400" style="width: 60px;">
+        </div>
+        
+        <div class="control-box">
+            <label for="pHeight">Výška panelu (px):</label>
+            <input type="number" id="pHeight" value="19" min="5" max="120" style="width: 55px;">
+        </div>
+
+        <div class="control-box">
+            <label for="pFontCategory">Rozvržení / Velikosti:</label>
+            <select id="pFontCategory">
+                <option value="custom">-- Manuální úprava --</option>
+                <option value="max" selected>Největší (Jednořádkový profil)</option>
+                <option value="big">Velká (Dominantní cíl)</option>
+                <option value="mid">Střední (Klasický dvouřádek)</option>
+                <option value="small">Malá (Kompaktní itinerář)</option>
+                <option value="min">Nejmenší (Úsporný mikro-text)</option>
+            </select>
+        </div>
+
+        <div class="control-box">
+            <label for="pAlphaThreshold">Citlivost Emoji (Alpha):</label>
+            <div class="control-box-row">
+                <input type="range" id="pAlphaThreshold" min="5" max="240" value="25">
+                <span id="alphaValDisplay" style="font-size:10px; font-family:monospace; width:20px;">25</span>
+            </div>
+        </div>
+
+        <div class="control-box">
+            <label for="pColor">Barva textu (LED):</label>
+            <input type="color" id="pColor" value="#ff9d00">
+        </div>
+
+        <div class="control-box">
+            <label for="pFill">Barva pozadí:</label>
+            <input type="color" id="pFill" value="#000000">
+        </div>
+
+        <div class="control-box">
+            <label for="pRectColor">Barva příští výplně:</label>
+            <input type="color" id="pRectColor" value="#22c55e">
+        </div>
+    </div>
+
+    <div id="toolStatus">Nástroj: Urči Roh 1 kliknutím do matice</div>
+</header>
+
+<!-- STŘEDNÍ EMBEDDED SEKCE SPLITNUTÁ NA KANVAS A SIDEBAR -->
+<div class="main-workspace">
+    <div id="viewport">
+        <div class="buse-frame">
+            <canvas id="buseCanvas"></canvas>
+        </div>
+    </div>
+
+    <div class="sidebar-layers">
+        <div class="sidebar-title">
+            <span>Seznam výplní vrstev</span>
+            <span id="layerCount" style="color:var(--buse-color)">0</span>
+        </div>
+        <div class="layer-list" id="layerListContainer">
+            <div class="no-layers-placeholder">Žádné ruční výplně. Kliknutím na 2 rohy v panelu vytvoříš podklad.</div>
+        </div>
+    </div>
+</div>
+
+<!-- SPODNÍ DESKA EDITORU TEXTU -->
+<footer>
+    <div class="editor-grid">
+        <div class="grid-header">Prvek</div>
+        <div class="grid-header">Obsah vrstvy (Podpora kompletních Emoji prvků)</div>
+        <div class="grid-header">Styl písma</div>
+        <div class="grid-header">Velikost (px)</div>
+        <div class="grid-header">Odsazení (X / Y)</div>
+    </div>
+
+    <!-- WRAPPER PRO LINKOVOU VRSTVU -->
+    <div class="editor-grid">
+        <span class="label-tag" style="color: var(--buse-color);">📟 Linka:</span>
+        <input type="text" id="lineIn" value="12">
+        <select id="lineFont">
+            <option value="sans-serif" selected>Sans-Serif Bold</option>
+            <option value="monospace">Monospace</option>
+            <option value="serif">Serif Pro</option>
+            <option value="impact">Impact Style</option>
+        </select>
+        <input type="number" id="lineSize" value="16" min="4" max="120">
+        <div class="coordinate-inputs">
+            <div><span>X</span><input type="number" id="lineX" value="2"></div>
+            <div><span>Y</span><input type="number" id="lineY" value="1"></div>
+        </div>
+    </div>
+
+    <!-- WRAPPER PRO PRVNÍ ŘÁDEK TEXTU -->
+    <div class="editor-grid">
+        <span class="label-tag">🔤 1. Řádek:</span>
+        <input type="text" id="textIn1" value="ŘEČKOVICE 🏙️">
+        <select id="text1Font">
+            <option value="sans-serif" selected>Sans-Serif Bold</option>
+            <option value="monospace">Monospace</option>
+            <option value="serif">Serif Pro</option>
+            <option value="impact">Impact Style</option>
+        </select>
+        <input type="number" id="text1Size" value="15" min="4" max="120">
+        <div class="coordinate-inputs">
+            <div><span>X</span><input type="number" id="text1X" value="24"></div>
+            <div><span>Y</span><input type="number" id="text1Y" value="0"></div>
+        </div>
+    </div>
+
+    <!-- WRAPPER PRO DRUHÝ ŘÁDEK TEXTU -->
+    <div class="editor-grid">
+        <span class="label-tag">🔤 2. Řádek:</span>
+        <input type="text" id="textIn2" value="přes: Semilasso ⚠️">
+        <select id="text2Font">
+            <option value="sans-serif" selected>Sans-Serif Bold</option>
+            <option value="monospace">Monospace</option>
+            <option value="serif">Serif Pro</option>
+            <option value="impact">Impact Style</option>
+        </select>
+        <input type="number" id="text2Size" value="0" min="0" max="120">
+        <div class="coordinate-inputs">
+            <div><span>X</span><input type="number" id="text2X" value="24"></div>
+            <div><span>Y</span><input type="number" id="text2Y" value="9"></div>
+        </div>
+    </div>
+
+    <!-- GLOBÁLNÍ TLAČÍTKA AKCÍ -->
+    <div class="button-group">
+        <button class="action-btn btn-refresh" onclick="drawBuse()">Kompletní real-time obnova</button>
+        <button class="action-btn btn-clear" onclick="clearCustomRects()">Smazat všechny výplně</button>
+        <button class="action-btn btn-save" onclick="exportPNG()">Exportovat čisté .PNG</button>
+    </div>
+</footer>
+
+<script>
+/**
+ * ==========================================================================================
+ * SIMT BUSE ULTIMATE MATRIX CORE ENGINE v3.0
+ * ARCHITEKTURA S ADVANCED ALPHA OVERLAY RASTERIZACÍ A VRSTVENÍM PRVKŮ POD TEXTEM
+ * ==========================================================================================
+ */
+
+const mainCanvas = document.getElementById('buseCanvas');
+const mainCtx = mainCanvas.getContext('2d');
+const DOT_RENDER_SIZE = 5;
+
+// Izolovaný textový buffer pro maskování a pre-render textu s plnou podporou barevných emoji
+const memoryBuffer = document.createElement('canvas');
+const memCtx = memoryBuffer.getContext('2d');
+
+// Datové úložiště pro ruční pravoúhlé výplně
+let customRectsArray = [];
+let firstCornerCoords = null;
+
+/**
+ * Propočítá barvu pro zhasnuté diody matice, aby korespondovaly s vybraným pozadím panelu.
+ * Zajišťuje realistický hardwarový rastr.
+ */
+function calculateGridHoleColor(hexBgColor) {
+    let r = parseInt(hexBgColor.slice(1, 3), 16);
+    let g = parseInt(hexBgColor.slice(3, 5), 16);
+    let b = parseInt(hexBgColor.slice(5, 7), 16);
+    
+    // Luminanční koeficient jasu
+    let luma = 0.299 * r + 0.587 * g + 0.114 * b;
+    
+    if (luma < 110) {
+        // Tmavé pozadí -> jemně světlejší mřížka teček
+        return `rgb(${r + 15}, ${g + 15}, ${b + 15})`;
+    } else {
+        // Světlé pozadí -> stínová tmavší mřížka teček
+        return `rgb(${Math.max(0, r - 35)}, ${Math.max(0, g - 35)}, ${Math.max(0, b - 35)})`;
+    }
+}
+
+/**
+ * PŘEDNASTAVENÉ KATEGORIE VELIKOSTÍ PÍSMA
+ * Automaticky přepočítá rozvržení matice podle zvolené výšky panelu.
+ */
+function applyFontPresetCategory() {
+    const presetType = document.getElementById('pFontCategory').value;
+    const currentPanelH = parseInt(document.getElementById('pHeight').value) || 19;
+    
+    if (presetType === 'custom') return; // Ponechání uživatelských hodnot
+
+    const sizeL = document.getElementById('lineSize');
+    const xL = document.getElementById('lineX'); const yL = document.getElementById('lineY');
+    
+    const size1 = document.getElementById('text1Size');
+    const x1 = document.getElementById('text1X'); const y1 = document.getElementById('text1Y');
+    
+    const size2 = document.getElementById('text2Size');
+    const x2 = document.getElementById('text2X'); const y2 = document.getElementById('text2Y');
+
+    switch (presetType) {
+        case 'max':
+            // Pouze jeden velký hlavní text přes celou výšku, druhý řádek je deaktivován (0)
+            sizeL.value = Math.floor(currentPanelH * 0.85); xL.value = 2; yL.value = 1;
+            size1.value = Math.floor(currentPanelH * 0.85); x1.value = 24; y1.value = 1;
+            size2.value = 0; x2.value = 24; y2.value = 0;
+            break;
+            
+        case 'big':
+            // Dominantní horní řádek, subtilnější doplňkový spodní řádek
+            sizeL.value = Math.floor(currentPanelH * 0.85); xL.value = 2; yL.value = 1;
+            size1.value = Math.floor(currentPanelH * 0.58); x1.value = 24; y1.value = 0;
+            size2.value = Math.floor(currentPanelH * 0.42); x2.value = 24; y2.value = Math.floor(currentPanelH * 0.54);
+            break;
+            
+        case 'mid':
+            // Naprosto vyvážené rozložení obou řádků nad sebou
+            sizeL.value = Math.floor(currentPanelH * 0.80); xL.value = 2; yL.value = 1;
+            size1.value = Math.floor(currentPanelH * 0.48); x1.value = 24; y1.value = 0;
+            size2.value = Math.floor(currentPanelH * 0.48); x2.value = 24; y2.value = Math.floor(currentPanelH * 0.49);
+            break;
+            
+        case 'small':
+            // Drobné písmo s mezerami pro delší trasy linky
+            sizeL.value = Math.floor(currentPanelH * 0.75); xL.value = 2; yL.value = 2;
+            size1.value = Math.floor(currentPanelH * 0.40); x1.value = 24; y1.value = 1;
+            size2.value = Math.floor(currentPanelH * 0.40); x2.value = 24; y2.value = Math.floor(currentPanelH * 0.55);
+            break;
+            
+        case 'min':
+            // Extrémně nahuštěný styl zobrazení pro komplexní řetězce
+            sizeL.value = Math.floor(currentPanelH * 0.65); xL.value = 2; yL.value = 3;
+            size1.value = Math.floor(currentPanelH * 0.35); x1.value = 24; y1.value = 1;
+            size2.value = Math.floor(currentPanelH * 0.35); x2.value = 24; y2.value = Math.floor(currentPanelH * 0.61);
+            break;
+    }
+    
+    drawBuse();
+}
+
+/**
+ * RE-RENDER STRUKTURY BOČNÍHO PANELU (SEZNAM VRSTEV)
+ * Aktualizuje seznam vytvořených výplní a přiřadí jim ID pro mazání.
+ */
+function updateSidebarLayerList() {
+    const container = document.getElementById('layerListContainer');
+    const counter = document.getElementById('layerCount');
+    
+    counter.innerText = customRectsArray.length;
+    container.innerHTML = '';
+    
+    if (customRectsArray.length === 0) {
+        container.innerHTML = '<div class="no-layers-placeholder">Žádné ruční výplně. Kliknutím na 2 rohy v panelu vytvoříš podklad.</div>';
+        return;
+    }
+    
+    customRectsArray.forEach((rect, index) => {
+        const item = document.createElement('div');
+        item.className = 'layer-item';
+        item.innerHTML = `
+            <div class="layer-info">
+                <div class="layer-color-indicator" style="background:${rect.color}"></div>
+                <span><strong>Výplň #${index + 1}</strong> [${rect.xMin},${rect.yMin}]➔[${rect.xMax},${rect.yMax}]</span>
+            </div>
+            <button class="btn-delete-layer" onclick="deleteSpecificLayer(${index})" title="Odebrat tuto výplň">×</button>
+        `;
+        container.appendChild(item);
+    });
+}
+
+/**
+ * Odstraní vybraný index obdélníku ze seznamu vrstev.
+ */
+function deleteSpecificLayer(index) {
+    customRectsArray.splice(index, 1);
+    updateSidebarLayerList();
+    drawBuse();
+}
+
+/**
+ * HLAVNÍ GRAFICKÁ RE-RASTERIZAČNÍ FUNKCE MATICE
+ * Kreslí vrstvy v přísném pořadí: Pozadí -> Mřížka -> Ruční výplně -> Text a Emoji přes ně!
+ */
+function drawBuse() {
+    const pWidth = parseInt(document.getElementById('pWidth').value) || 140;
+    const pHeight = parseInt(document.getElementById('pHeight').value) || 19;
+    const ledColor = document.getElementById('pColor').value;
+    const fillColor = document.getElementById('pFill').value;
+    const alphaThreshold = parseInt(document.getElementById('pAlphaThreshold').value) || 25;
+    
+    // Zobrazení aktuální hodnoty citlivosti v UI
+    document.getElementById('alphaValDisplay').innerText = alphaThreshold;
+
+    // Synchronizace hlavní CSS proměnné pro vizuální prvky stránky
+    document.documentElement.style.setProperty('--buse-color', ledColor === '#000000' ? '#ff9d00' : ledColor);
+
+    // Načtení dat a konfigurace fontů pro Linku
+    const lineVal = document.getElementById('lineIn').value;
+    const lineFontFamily = document.getElementById('lineFont').value;
+    const lineSize = parseInt(document.getElementById('lineSize').value) || 0;
+    const lineX = parseInt(document.getElementById('lineX').value) || 0;
+    const lineY = parseInt(document.getElementById('lineY').value) || 0;
+
+    // Načtení dat pro 1. Řádek
+    const text1Val = document.getElementById('textIn1').value;
+    const text1FontFamily = document.getElementById('text1Font').value;
+    const text1Size = parseInt(document.getElementById('text1Size').value) || 0;
+    const text1X = parseInt(document.getElementById('text1X').value) || 0;
+    const text1Y = parseInt(document.getElementById('text1Y').value) || 0;
+
+    // Načtení dat pro 2. Řádek
+    const text2Val = document.getElementById('textIn2').value;
+    const text2FontFamily = document.getElementById('text2Font').value;
+    const text2Size = parseInt(document.getElementById('text2Size').value) || 0;
+    const text2X = parseInt(document.getElementById('text2X').value) || 0;
+    const text2Y = parseInt(document.getElementById('text2Y').value) || 0;
+
+    // Kalibrace šířky hlavního vykreslovacího plátna
+    mainCanvas.width = pWidth * DOT_RENDER_SIZE;
+    mainCanvas.height = pHeight * DOT_RENDER_SIZE;
+
+    // VRSTVA 1: Celoplošné barevné pozadí panelu (Fill)
+    mainCtx.fillStyle = fillColor;
+    mainCtx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
+    
+    // VRSTVA 2: Inicializační rastr zhasnutých LED diod (Hardwarová mřížka)
+    mainCtx.fillStyle = calculateGridHoleColor(fillColor);
+    for (let x = 0; x < pWidth; x++) {
+        for (let y = 0; y < pHeight; y++) {
+            mainCtx.fillRect(x * DOT_RENDER_SIZE, y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
+        }
+    }
+
+    // VRSTVA 3: Příprava textového bufferu (1:1 poměr k bodům matice)
+    // DŮLEŽITÉ: Text se kreslí plnou barvou, ale pro správnou interpretaci celých komplexních
+    // emoji se spoléháme na alfa kanál (průhlednost), nikoliv na jas. Tím se emoji nezdeformuje na kruh.
+    memoryBuffer.width = pWidth;
+    memoryBuffer.height = pHeight;
+    memCtx.clearRect(0, 0, pWidth, pHeight);
+    
+    memCtx.fillStyle = "#ffffff";
+    memCtx.textBaseline = "top";
+    memCtx.textAlign = "left";
+
+    // Vykreslení Linkové vrstvy do bufferu
+    if (lineVal.trim() !== "" && lineSize > 0) {
+        memCtx.font = `bold ${lineSize}px ${lineFontFamily}, -apple-system, sans-serif`;
+        memCtx.fillText(lineVal, lineX, lineY);
+    }
+
+    // Vykreslení 1. řádku do bufferu
+    if (text1Val.trim() !== "" && text1Size > 0) {
+        memCtx.font = `bold ${text1Size}px ${text1FontFamily}, -apple-system, sans-serif`;
+        memCtx.fillText(text1Val, text1X, text1Y);
+    }
+
+    // Vykreslení 2. řádku do bufferu
+    if (text2Val.trim() !== "" && text2Size > 0) {
+        memCtx.font = `bold ${text2Size}px ${text2FontFamily}, -apple-system, sans-serif`;
+        memCtx.fillText(text2Val, text2X, text2Y);
+    }
+
+    // Načtení surových obrazových pixelů z masky textu/emoji
+    const imgData = memCtx.getImageData(0, 0, pWidth, pHeight).data;
+    
+    // VRSTVA 4: Procházení každého bodu matice a vyhodnocení finálního rozsvícení podle priorit
+    for (let x = 0; x < pWidth; x++) {
+        for (let y = 0; y < pHeight; y++) {
+            
+            const pixelIndex = (y * pWidth + x) * 4;
+            const alphaComponent = imgData[pixelIndex + 3];
+
+            // 🌟 PRIORITA 1: HORNÍ VRSTVA - TEXTY A CELÁ EMOJI
+            // Pokud alfa kanál překročí mez citlivosti, bod obsahuje text nebo jakoukoliv část emoji.
+            // Má absolutní přednost před ruční výplní pod ním.
+            if (alphaComponent > alphaThreshold) {
+                mainCtx.fillStyle = ledColor;
+                
+                // Přidání jemné luminiscenční LED záře
+                if (ledColor !== "#000000") {
+                    mainCtx.shadowBlur = DOT_RENDER_SIZE * 0.9;
+                    mainCtx.shadowColor = ledColor;
+                }
+                mainCtx.fillRect(x * DOT_RENDER_SIZE, y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
+                mainCtx.shadowBlur = 0;
+            } 
+            // 🟥 PRIORITA 2: SPODNÍ VRSTVA - RUČNÍ VÝPLNĚ (ZOBRAZÍ SE JEN TAM, KDE NENÍ TEXT)
+            else {
+                let currentActiveRect = null;
+                
+                // Procházení od nejnověji přidaných obdélníků k nejstarším
+                for (let i = customRectsArray.length - 1; i >= 0; i--) {
+                    let rce = customRectsArray[i];
+                    if (x >= rce.xMin && x <= rce.xMax && y >= rce.yMin && y <= rce.yMax) {
+                        currentActiveRect = rce;
+                        break;
+                    }
+                }
+
+                if (currentActiveRect !== null) {
+                    mainCtx.fillStyle = currentActiveRect.color;
+                    if (currentActiveRect.color !== "#000000") {
+                        mainCtx.shadowBlur = DOT_RENDER_SIZE * 0.5;
+                        mainCtx.shadowColor = currentActiveRect.color;
+                    }
+                    mainCtx.fillRect(x * DOT_RENDER_SIZE, y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
+                    mainCtx.shadowBlur = 0;
+                }
+            }
+        }
+    }
+
+    // Pomocná vrstva: Vykreslení zaměřovače, pokud uživatel vybral pouze první roh
+    if (firstCornerCoords !== null) {
+        mainCtx.fillStyle = "#00ffcc";
+        mainCtx.fillRect(firstCornerCoords.x * DOT_RENDER_SIZE, firstCornerCoords.y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
+    }
+}
+
+/**
+ * INTEGRAČNÍ KLIKACÍ SYSTÉM PRO URČENÍ ROHŮ VÝPLNĚ
+ */
+mainCanvas.addEventListener('click', function(e) {
+    const pWidth = parseInt(document.getElementById('pWidth').value) || 140;
+    const pHeight = parseInt(document.getElementById('pHeight').value) || 19;
+    
+    const boundingBox = mainCanvas.getBoundingClientRect();
+    const scaleFactorX = mainCanvas.width / boundingBox.width;
+    const scaleFactorY = mainCanvas.height / boundingBox.height;
+    
+    const calculatedCanvasX = (e.clientX - boundingBox.left) * scaleFactorX;
+    const calculatedCanvasY = (e.clientY - boundingBox.top) * scaleFactorY;
+
+    const matrixGridX = Math.floor(calculatedCanvasX / DOT_RENDER_SIZE);
+    const matrixGridY = Math.floor(calculatedCanvasY / DOT_RENDER_SIZE);
+
+    // Ověření validity souřadnic uvnitř aktivního pole matice
+    if (matrixGridX >= 0 && matrixGridX < pWidth && matrixGridY >= 0 && matrixGridY < pHeight) {
+        if (firstCornerCoords === null) {
+            // Zachycení prvního bodu
+            firstCornerCoords = { x: matrixGridX, y: matrixGridY };
+            document.getElementById('toolStatus').innerText = `📍 Roh 1 uložen [${matrixGridX}, ${matrixGridY}]. Klikni pro protilehlý Roh 2!`;
+            drawBuse();
+        } else {
+            // Zachycení druhého bodu a výpočet matematického rozsahu obdélníku
+            const xMin = Math.min(firstCornerCoords.x, matrixGridX);
+            const xMax = Math.max(firstCornerCoords.x, matrixGridX);
+            const yMin = Math.min(firstCornerCoords.y, matrixGridY);
+            const yMax = Math.max(firstCornerCoords.y, matrixGridY);
+            
+            const selectedFillColor = document.getElementById('pRectColor').value;
+
+            // Vložení obdélníku do globálního pole vrstev
+            customRectsArray.push({ xMin, xMax, yMin, yMax, color: selectedFillColor });
+            
+            // Resetování kurzoru
+            firstCornerCoords = null;
+            document.getElementById('toolStatus').innerText = `✅ Výplň od [${xMin},${yMin}] do [${xMax},${yMax}] uložena pod text.`;
+            
+            updateSidebarLayerList();
+            drawBuse();
+        }
+    }
+});
+
+/**
+ * Kompletně vymaže celou paměť ručně naklikaných obdélníků.
+ */
+function clearCustomRects() {
+    customRectsArray = [];
+    firstCornerCoords = null;
+    document.getElementById('toolStatus').innerText = "🧹 Všechny ruční výplně byly odstraněny.";
+    updateSidebarLayerList();
+    drawBuse();
+}
+
+/**
+ * Vyexportuje hotový panel jako čistý PNG soubor ke stažení.
+ */
+function exportPNG() {
+    const w = document.getElementById('pWidth').value;
+    const h = document.getElementById('pHeight').value;
+    const anchor = document.createElement('a');
+    anchor.download = `SIMT_BUSE_Matrix_${w}x${h}_Pro.png`;
+    anchor.href = mainCanvas.toDataURL("image/png");
+    anchor.click();
+}
+
+// --- REGISTRACE EVENT LISTENEROŮ PRO ŽIVOU AKTUALIZACI PANELU (LIVE FEED) ---
+const interactiveInputSelectors = [
+    'pWidth', 'pHeight', 'pColor', 'pFill', 'pAlphaThreshold', 'pRectColor',
+    'lineIn', 'lineFont', 'lineSize', 'lineX', 'lineY',
+    'textIn1', 'text1Font', 'text1Size', 'text1X', 'text1Y',
+    'textIn2', 'text2Font', 'text2Size', 'text2X', 'text2Y'
+];
+
+interactiveInputSelectors.forEach(function(inputId) {
+    document.getElementById(inputId).addEventListener('input', function() {
+        // Pokud dojde k ruční editaci pozic či velikostí textu, přepneme dropdown kategorií na vlastní režim
+        if (inputId.includes('Size') || inputId.includes('X') || inputId.includes('Y') || inputId.includes('Font')) {
+            document.getElementById('pFontCategory').value = 'custom';
+        }
+        drawBuse();
+    });
+});
+
+// Propojení posuvníku pro zobrazení kategorií velikostí písma
+document.getElementById('pFontCategory').addEventListener('change', applyFontPresetCategory);
+
+// Spuštění inicializačního vykreslení matice ihned po načtení DOM prvků
+window.onload = function() {
+    drawBuse();
+};
+</script>
+
+</body>
+</html>
