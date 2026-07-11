@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SIMT BUSE Editor Pro - Multi-line & Emoji</title>
+    <style>
+        :root {
+            --buse-color: #ff9d00;
+            --ui-bg: #1e1e1e;
+        }
+
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIMT LIŠTA */
+        header {
+            background: #252525;
+            padding: 10px 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            border-bottom: 2px solid #3c3c3c;
+            font-size: 13px;
+            z-index: 10;
+        }
+
+        .simt-brand {
+            font-weight: bold;
+            color: var(--buse-color);
+            border: 1px solid var(--buse-color);
+            padding: 2px 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-box {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        select, input[type="number"] {
+            background: #000000;
+            color: #ffffff;
+            border: 1px solid #555555;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--buse-color);
+            outline: none;
+        }
+
+        /* VIEWPORT S RESIZEM */
+        #viewport {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            background: radial-gradient(circle, #1c1c1c 0%, #000000 100%);
+            overflow: auto;
+        }
+
+        .buse-frame {
+            position: relative;
+            border: 10px solid #282828;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9);
+            background: #000000;
+            padding: 2px;
+        }
+
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        /* OVLÁDACÍ PRVKY */
+        footer {
+            background: var(--ui-bg);
+            border-top: 2px solid #333333;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-row input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            font-size: 15px;
+            border-radius: 6px;
+            background: #000000;
+            color: #ffffff;
+            border: 1px solid #444444;
+        }
+
+        .input-row input[type="text"]:focus {
+            border-color: var(--buse-color);
+            outline: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .btn-refresh { background: var(--buse-color); color: #000000; }
+        .btn-refresh:active { background: #ffb433; }
+        .btn-save { background: #444444; color: #ffffff; }
+        .btn-save:active { background: #555555; }
+
+        @media (max-width: 600px) {
+            header { gap: 8px; padding: 8px; }
+            footer { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="simt-brand">SIMT BUSE</div>
+    
+    <div class="control-box">
+        Šířka: <input type="number" id="pWidth" value="140" min="20" max="300" style="width: 55px;">
+    </div>
+
+    <div class="control-box">
+        Barva bodů (LED): 
+        <select id="pColor">
+            <option value="#ff9d00" selected>Oranžová LED</option>
+            <option value="#ffffff">Bílá LED</option>
+            <option value="#00b31e">Tmavě zelená DOT</option>
+            <option value="#000000">Černá (Inverzní)</option>
+        </select>
+    </div>
+
+    <div class="control-box">
+        Pozadí (Fill): 
+        <select id="pFill">
+            <option value="#000000" selected>Černá (Standard)</option>
+            <option value="#ff9d00">Oranžová</option>
+            <option value="#ffffff">Bílá</option>
+            <option value="#00b31e">Tmavě zelená</option>
+        </select>
+    </div>
+</header>
+
+<div id="viewport">
+    <div class="buse-frame">
+        <canvas id="buseCanvas"></canvas>
+    </div>
+</div>
+
+<footer>
+    <div class="input-group">
+        <div class="input-row">
+            <input type="text" id="lineIn" placeholder="Linka" style="max-width: 75px;" value="12">
+            <input type="text" id="textIn1" placeholder="1. ŘÁDEK (HLAVNÍ CÍL)" value="ŘEČKOVICE 🏙️">
+        </div>
+        <div class="input-row">
+            <input type="text" id="textIn2" placeholder="2. ŘÁDEK (Volitelný druhý řádek...)" value="přes: Semilasso ⚠️">
+        </div>
+    </div>
+    <div class="button-group">
+        <button class="btn-refresh" onclick="drawBuse()">Aktualizovat panel</button>
+        <button class="btn-save" onclick="exportPNG()">Export PNG</button>
+    </div>
+</footer>
+
+<script>
+const canvas = document.getElementById('buseCanvas');
+const ctx = canvas.getContext('2d');
+const FIXED_HEIGHT = 19;
+const DOT_RENDER_SIZE = 5;
+
+// Skryté pomocné plátno pro přesný převod textu/emoji na pixely
+const textBuffer = document.createElement('canvas');
+const bCtx = textBuffer.getContext('2d');
+
+function drawBuse() {
+    const pWidth = parseInt(document.getElementById('pWidth').value) || 140;
+    const ledColor = document.getElementById('pColor').value;
+    const fillColor = document.getElementById('pFill').value;
+    
+    const lineVal = document.getElementById('lineIn').value;
+    const text1Val = document.getElementById('textIn1').value;
+    const text2Val = document.getElementById('textIn2').value;
+
+    // Aktualizace barvy brandu v UI podle zvolené LED
+    document.documentElement.style.setProperty('--buse-color', ledColor === '#000000' ? '#ff9d00' : ledColor);
+
+    // 1. Nastavení rozměrů hlavního zobrazení
+    canvas.width = pWidth * DOT_RENDER_SIZE;
+    canvas.height = FIXED_HEIGHT * DOT_RENDER_SIZE;
+
+    // Vykreslení plného pozadí (Fill)
+    ctx.fillStyle = fillColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Určení barvy "zhasnutých" bodů mřížky podle zvoleného pozadí (Fill)
+    let inactiveDotColor = "#121212"; 
+    if (fillColor === "#ff9d00") inactiveDotColor = "#cc7a00";
+    if (fillColor === "#ffffff") inactiveDotColor = "#e0e0e0";
+    if (fillColor === "#00b31e") inactiveDotColor = "#008015";
+
+    // Vykreslení základní textury bodů mřížky
+    ctx.fillStyle = inactiveDotColor;
+    for (let x = 0; x < pWidth; x++) {
+        for (let y = 0; y < FIXED_HEIGHT; y++) {
+            ctx.fillRect(x * DOT_RENDER_SIZE, y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
+        }
+    }
+
+    // 2. Příprava 1:1 pixelového bufferu pro písmo a emoji
+    textBuffer.width = pWidth;
+    textBuffer.height = FIXED_HEIGHT;
+    bCtx.clearRect(0, 0, pWidth, FIXED_HEIGHT);
+    
+    // Na pomocné plátno kreslíme čistě bíle (zajímají nás jen obsazené pixely)
+    bCtx.fillStyle = "#ffffff";
+    bCtx.textBaseline = "top";
+    bCtx.textAlign = "left";
+
+    let currentX = 2;
+
+    // Vykreslení čísla linky (pokud je zadáno)
+    if (lineVal.trim() !== "") {
+        bCtx.font = "bold 15px 'Segoe UI', Arial, sans-serif";
+        bCtx.fillText(lineVal, currentX, 1);
+        currentX += bCtx.measureText(lineVal).width + 4;
+    }
+
+    // Inteligentní správa ŘÁDKŮ
+    if (text2Val.trim() === "") {
+        // Jednořádkový režim: Text 1 je vycentrovaný a velký
+        bCtx.font = "bold 15px 'Segoe UI', Arial, sans-serif";
+        bCtx.fillText(text1Val, currentX, 1);
+    } else {
+        // Dvouřádkový režim: Oba řádky se zmenší pod sebe do výšky 19px
+        bCtx.font = "bold 9px 'Segoe UI', Arial, sans-serif";
+        bCtx.fillText(text1Val, currentX, 0); // Horní řádek
+        bCtx.fillText(text2Val, currentX, 10); // Spodní řádek
+    }
+
+    // 3. Analýza pixelů a rozsvícení BUSE bodů
+    const imgData = bCtx.getImageData(0, 0, pWidth, FIXED_HEIGHT).data;
+    
+    ctx.fillStyle = ledColor;
+    
+    // Zapnutí jemné záře pro zapnuté LED diody (neplatí pro černou barvu bodů)
+    if (ledColor !== "#000000") {
+        ctx.shadowBlur = DOT_RENDER_SIZE * 1.1;
+        ctx.shadowColor = ledColor;
+    }
+
+    for (let i = 0; i < imgData.length; i += 4) {
+        const alpha = imgData[i + 3]; // Zjišťujeme průhlednost (jestli tam text/emoji zanechal stopu)
+        
+        // Pokud je pixel obsazen, vykreslíme hardwarový bod
+        if (alpha > 40) { 
+            const pixelIndex = i / 4;
+            const x = pixelIndex % pWidth;
+            const y = Math.floor(pixelIndex / pWidth);
+            
+            if (y >= 0 && y < FIXED_HEIGHT) {
+                ctx.fillRect(x * DOT_RENDER_SIZE, y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
+            }
+        }
+    }
+
+    ctx.shadowBlur = 0; // Vypnutí záře pro další procesy
+}
+
+function exportPNG() {
+    const width = document.getElementById('pWidth').value;
+    const link = document.createElement('a');
+    link.download = `SIMT_BUSE_Multi_${width}x19.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+}
+
+// Event Listenery pro okamžité překreslování UI prvků
+document.getElementById('pWidth').addEventListener('input', drawBuse);
+document.getElementById('pColor').addEventListener('change', drawBuse);
+document.getElementById('pFill').addEventListener('change', drawBuse);
+document.getElementById('lineIn').addEventListener('input', drawBuse);
+document.getElementById('textIn1').addEventListener('input', drawBuse);
+document.getElementById('textIn2').addEventListener('input', drawBuse);
+
+// První start
+window.onload = drawBuse;
+</script>
+
+</body>
+</html>
+
