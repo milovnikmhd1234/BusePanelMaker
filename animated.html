@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIMT BUSE Studio Ultra v5.5 - Ultimate Mobile Stable Edition</title>
     
     <!-- Stabilní externí knihovna pro klientské sestavení a export animovaného formátu GIF -->
@@ -232,7 +232,7 @@
             cursor: crosshair;
         }
 
-        /* PREVENTIVNÍ ÚPRAVA: Diagnostické okno přesunuto dolů, zde upraven styl */
+        /* Diagnostické okno na spodku */
         .live-diagnostic-terminal {
             width: calc(100% - 40px);
             margin: 15px 20px 25px 20px;
@@ -246,6 +246,7 @@
             overflow-y: auto;
             color: #888;
             box-shadow: inset 0 0 10px #000;
+            -webkit-overflow-scrolling: touch;
         }
 
         .terminal-log-row {
@@ -380,8 +381,10 @@
             flex-direction: column;
             gap: 10px;
             box-shadow: 0 -10px 45px rgba(0,0,0,0.85);
-            z-index: 90;
+            z-index: 999;
             overflow-x: auto;
+            /* NATIVNÍ FIX PRO iOS SAFARI SWIPE GESTA: */
+            -webkit-overflow-scrolling: touch !important;
         }
 
         /* Konfigurační grid rozložení prvků */
@@ -516,7 +519,7 @@
         .btn-style-gif:hover { background: #166534; }
 
         /* ==========================================================================
-           MODÁLNÍ INFORMAČNÍ OKNO PRO LOADING EXPORTU (GIF COMPILER OVERLAY)
+           MODÁLNÍ INFORMAČNÍ OKNO PRO LOADING EXPORTU
            ========================================================================== */
         #gifLoadingOverlay {
             position: fixed;
@@ -570,11 +573,36 @@
             font-family: monospace;
         }
 
-        /* Responsive Breakpoints */
+        /* ==========================================================================
+           AGRESIVNÍ iOS / MOBILE OVERRIDE PRO ODEMČENÍ HORIZONTÁLNÍHO SWIPU
+           ========================================================================== */
         @media (max-width: 1200px) {
-            .studio-workspace-split { flex-direction: column; }
-            .layer-manager-sidebar { width: 100%; height: auto; border-left: none; border-top: 2px solid var(--border-gray); }
-            body { overflow-y: auto; height: auto; }
+            body { 
+                overflow: auto !important; 
+                height: auto !important; 
+            }
+            .studio-workspace-split { 
+                flex-direction: column; 
+                overflow: visible !important; 
+                height: auto !important;
+            }
+            #canvasViewportContainer {
+                overflow: visible !important;
+                height: auto !important;
+            }
+            .layer-manager-sidebar { 
+                width: 100%; 
+                height: auto !important; 
+                border-left: none; 
+                border-top: 2px solid var(--border-gray); 
+                overflow: visible !important;
+            }
+            footer { 
+                overflow-x: auto !important; 
+                position: relative;
+                display: flex;
+                clear: both;
+            }
         }
     </style>
 </head>
@@ -618,7 +646,7 @@
         </div>
 
         <div class="control-card-node">
-            <label for="pAlphaThreshold">Citlivost Alpha (Maska textu/Emoji):</label>
+            <label for="pAlphaThreshold">Citlivost Alpha:</label>
             <div class="control-card-row">
                 <input type="range" id="pAlphaThreshold" min="2" max="250" value="30">
                 <span id="labelAlphaThresholdText" style="font-size:11px; font-family:monospace; width:25px; text-align:right;">30</span>
@@ -645,7 +673,6 @@
         <div class="hardware-matrix-housing">
             <canvas id="mainStudioMatrixCanvas"></canvas>
         </div>
-        <!-- LOG odsud zmizel, aby neblokoval svajpování a touch eventy -->
     </div>
 
     <!-- PRAVÝ PANEL PRO MONITORING RUČNÍCH STRUKTUR -->
@@ -665,7 +692,7 @@
             <span id="sidebarLayerBadgeCounter" style="color:var(--buse-orange)">0</span>
         </div>
         <div class="vector-layers-stack" id="vectorLayersStackContainer">
-            <div class="stack-empty-placeholder">Žádné ruční výplně. Kliknutím na 2 různé body v poli matice nadefinuješ statický podkladový polygon umístěný pod textovou vrstvou.</div>
+            <div class="stack-empty-placeholder">Žádné ruční výplně. Kliknutím na 2 body nadefinuješ statický podklad.</div>
         </div>
     </div>
 </div>
@@ -674,7 +701,7 @@
 <footer>
     <div class="studio-config-grid">
         <div class="grid-column-header align-left">Prvek</div>
-        <div class="grid-column-header align-left">Obsah řetězce (Podpora Unicode & Full Color Emoji)</div>
+        <div class="grid-column-header align-left">Obsah řetězce (Podpora Unicode & Emoji)</div>
         <div class="grid-column-header">Rodina Písma</div>
         <div class="grid-column-header">Velikost</div>
         <div class="grid-column-header">Pozice X / Y</div>
@@ -771,24 +798,23 @@
 
     <!-- OPERAČNÍ TLAČÍTKA -->
     <div class="global-actions-bar">
-        <button class="control-action-btn btn-style-secondary" onclick="recenterAllOffsets()">Vycentrovat a zarovnat texty</button>
-        <button class="control-action-btn btn-style-danger" onclick="clearAllRegisteredRectangles()">Kompletně vymazat výplně</button>
-        <button class="control-action-btn btn-style-secondary" onclick="exportStaticFramePNG()">Exportovat statický snímek .PNG</button>
-        <button class="control-action-btn btn-style-gif" onclick="compileAndExportAnimatedGIF()">Generovat a exportovat animovaný .GIF 🎬</button>
+        <button class="control-action-btn btn-style-secondary" onclick="recenterAllOffsets()">Vycentrovat texty</button>
+        <button class="control-action-btn btn-style-danger" onclick="clearAllRegisteredRectangles()">Vymazat výplně</button>
+        <button class="control-action-btn btn-style-secondary" onclick="exportStaticFramePNG()">Exportovat .PNG</button>
+        <button class="control-action-btn btn-style-gif" onclick="compileAndExportAnimatedGIF()">Exportovat .GIF 🎬</button>
     </div>
 </footer>
 
-<!-- DIAGNOSTICKÝ TERMINÁL PŘESUNUTÝ ÚPLNĚ NA SPODEK STRÁNKY -->
+<!-- DIAGNOSTICKÝ TERMINÁL ZCELA NA SPODKU -->
 <div class="live-diagnostic-terminal" id="studioDiagnosticTerminal">
     <div class="terminal-log-row success">[SYSTEM] BUSE Core v5.5 Mobile-Stable úspěšně spuštěn.</div>
-    <div class="terminal-log-row info">[INFO] Diagnostické okno přesunuto na spodek stránky k zamezení kolizí dotykových gest.</div>
+    <div class="terminal-log-row info">[iOS FIX] Skrolovací kontejnery kompletně uvolněny pro dotyková gesta Safari.</div>
 </div>
 
 <script>
 /**
  * ==========================================================================================
- * SIMT BUSE ENGINE ULTRA v5.5 - ULTIMATE CORE ARCHITECTURE (MOBILE STABLE)
- * Klientský real-time rastrový simulátor s plnou podporou alpha kanálů, vrstvení a exportů.
+ * SIMT BUSE ENGINE ULTRA v5.5 - ULTIMATE CORE ARCHITECTURE
  * ==========================================================================================
  */
 
@@ -833,7 +859,7 @@ function applyHardwarePresetConfiguration(w, h, color, bg) {
     document.getElementById('regText1Color').value = color;
     document.getElementById('regText2Color').value = color;
     document.getElementById('pFill').value = bg;
-    logToTerminalConsole(`Aplikován hardwarový preset: ${w}x${h} bodů.`, "success");
+    logToTerminalConsole(`Preset: ${w}x${h} bodů.`, "success");
     executeFullMatrixRenderPipeline();
 }
 
@@ -841,29 +867,20 @@ function computeHardwareGridHoleColor(hexBgColor) {
     let r = parseInt(hexBgColor.slice(1, 3), 16) || 0;
     let g = parseInt(hexBgColor.slice(3, 5), 16) || 0;
     let b = parseInt(hexBgColor.slice(5, 7), 16) || 0;
-    
     let luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-    
-    if (luminance < 110) {
-        return `rgb(${r + 15}, ${g + 15}, ${b + 15})`;
-    } else {
-        return `rgb(${Math.max(0, r - 35)}, ${Math.max(0, g - 35)}, ${Math.max(0, b - 35)})`;
-    }
+    return luminance < 110 ? `rgb(${r + 15}, ${g + 15}, ${b + 15})` : `rgb(${Math.max(0, r - 35)}, ${Math.max(0, g - 35)}, ${Math.max(0, b - 35)})`;
 }
 
 function toggleSystemAnimationState() {
     const btn = document.getElementById('btnMasterAnimToggle');
     isSystemAnimationRunning = !isSystemAnimationRunning;
-    
     if (isSystemAnimationRunning) {
         btn.innerText = "Běží (ON)";
         btn.classList.add('state-active');
-        logToTerminalConsole("Globální engine spuštěn.", "info");
         spawnSystemAnimationLoop();
     } else {
         btn.innerText = "Zastaveno (OFF)";
         btn.classList.remove('state-active');
-        logToTerminalConsole("Globální engine pozastaven.", "warn");
         clearInterval(systemAnimationTimerId);
         executeFullMatrixRenderPipeline();
     }
@@ -873,7 +890,6 @@ function recenterAllOffsets() {
     offsetLineScroll = 0;
     offsetText1Scroll = 0;
     offsetText2Scroll = 0;
-    logToTerminalConsole("Pozice skrolovacích registrů resetovány na střed.", "info");
     executeFullMatrixRenderPipeline();
 }
 
@@ -883,7 +899,7 @@ function syncSidebarLayersStack() {
     container.innerHTML = '';
     
     if (registeredRectangles.length === 0) {
-        container.innerHTML = '<div class="stack-empty-placeholder">Žádné ruční výplně. Kliknutím na 2 různé body v poli matice nadefinuješ statický podkladový polygon umístěný pod textovou vrstvou.</div>';
+        container.innerHTML = '<div class="stack-empty-placeholder">Žádné ruční výplně. Kliknutím na 2 body nadefinuješ statický podklad.</div>';
         return;
     }
     
@@ -895,7 +911,7 @@ function syncSidebarLayersStack() {
                 <div class="vector-color-preview" style="background:${rect.color}"></div>
                 <span><strong>Výplň #${idx + 1}</strong> [${rect.xMin},${rect.yMin}]➔[${rect.xMax},${rect.yMax}]</span>
             </div>
-            <button class="btn-node-delete" onclick="removeSpecificVectorLayer(${idx})" title="Smazat prvek">×</button>
+            <button class="btn-node-delete" onclick="removeSpecificVectorLayer(${idx})">×</button>
         `;
         container.appendChild(row);
     });
@@ -903,7 +919,6 @@ function syncSidebarLayersStack() {
 
 function removeSpecificVectorLayer(idx) {
     registeredRectangles.splice(idx, 1);
-    logToTerminalConsole(`Odstraněna ruční polygonová výplň ID #${idx + 1}`, "warn");
     syncSidebarLayersStack();
     executeFullMatrixRenderPipeline();
 }
@@ -911,8 +926,7 @@ function removeSpecificVectorLayer(idx) {
 function clearAllRegisteredRectangles() {
     registeredRectangles = [];
     cachedFirstCornerCoords = null;
-    document.getElementById('realtimeStatusMonitor').innerText = "🧹 Všechny ruční výplně byly vymazány.";
-    logToTerminalConsole("Vyčištěna kompletní databáze ručních výplní.", "warn");
+    document.getElementById('realtimeStatusMonitor').innerText = "🧹 Výplně vymazány.";
     syncSidebarLayersStack();
     executeFullMatrixRenderPipeline();
 }
@@ -1023,37 +1037,24 @@ function executeFullMatrixRenderPipeline(targetCtx = studioCtx, isExportMode = f
 
                 if (hasL) {
                     activeColor = colorLine;
-                    if (bytesLine[cellIndex] !== bytesLine[cellIndex + 1] || bytesLine[cellIndex + 1] !== bytesLine[cellIndex + 2]) {
-                        isSystemEmojiComponent = true;
-                    }
-                    if (isSystemEmojiComponent) {
-                        activeColor = `rgb(${bytesLine[cellIndex]},${bytesLine[cellIndex+1]},${bytesLine[cellIndex+2]})`;
-                    }
+                    if (bytesLine[cellIndex] !== bytesLine[cellIndex + 1] || bytesLine[cellIndex + 1] !== bytesLine[cellIndex + 2]) isSystemEmojiComponent = true;
+                    if (isSystemEmojiComponent) activeColor = `rgb(${bytesLine[cellIndex]},${bytesLine[cellIndex+1]},${bytesLine[cellIndex+2]})`;
                     if (invLine && !isSystemEmojiComponent) activeColor = fillColor;
                 } 
                 else if (hasT1) {
                     activeColor = colorT1;
-                    if (bytesT1[cellIndex] !== bytesT1[cellIndex + 1] || bytesT1[cellIndex + 1] !== bytesT1[cellIndex + 2]) {
-                        isSystemEmojiComponent = true;
-                    }
-                    if (isSystemEmojiComponent) {
-                        activeColor = `rgb(${bytesT1[cellIndex]},${bytesT1[cellIndex+1]},${bytesT1[cellIndex+2]})`;
-                    }
+                    if (bytesT1[cellIndex] !== bytesT1[cellIndex + 1] || bytesT1[cellIndex + 1] !== bytesT1[cellIndex + 2]) isSystemEmojiComponent = true;
+                    if (isSystemEmojiComponent) activeColor = `rgb(${bytesT1[cellIndex]},${bytesT1[cellIndex+1]},${bytesT1[cellIndex+2]})`;
                     if (invT1 && !isSystemEmojiComponent) activeColor = fillColor;
                 } 
                 else if (hasT2) {
                     activeColor = colorT2;
-                    if (bytesT2[cellIndex] !== bytesT2[cellIndex + 1] || bytesT2[cellIndex + 1] !== bytesT2[cellIndex + 2]) {
-                        isSystemEmojiComponent = true;
-                    }
-                    if (isSystemEmojiComponent) {
-                        activeColor = `rgb(${bytesT2[cellIndex]},${bytesT2[cellIndex+1]},${bytesT2[cellIndex+2]})`;
-                    }
+                    if (bytesT2[cellIndex] !== bytesT2[cellIndex + 1] || bytesT2[cellIndex + 1] !== bytesT2[cellIndex + 2]) isSystemEmojiComponent = true;
+                    if (isSystemEmojiComponent) activeColor = `rgb(${bytesT2[cellIndex]},${bytesT2[cellIndex+1]},${bytesT2[cellIndex+2]})`;
                     if (invT2 && !isSystemEmojiComponent) activeColor = fillColor;
                 }
 
                 targetCtx.fillStyle = activeColor;
-                
                 if (!isExportMode && activeColor !== "#000000" && activeColor !== fillColor) {
                     targetCtx.shadowBlur = DOT_RENDER_SIZE * 0.85;
                     targetCtx.shadowColor = activeColor;
@@ -1188,7 +1189,7 @@ studioCanvas.addEventListener('click', function(e) {
     if (matrixPointX >= 0 && matrixPointX < pWidth && matrixPointY >= 0 && matrixPointY < pHeight) {
         if (cachedFirstCornerCoords === null) {
             cachedFirstCornerCoords = { x: matrixPointX, y: matrixPointY };
-            document.getElementById('realtimeStatusMonitor').innerText = `📍 Roh 1 uložen [${matrixPointX}, ${matrixPointY}]. Klikni na protilehlý Roh 2!`;
+            document.getElementById('realtimeStatusMonitor').innerText = `📍 Roh 1 uložen [${matrixPointX}, ${matrixPointY}]. Klikni na Roh 2!`;
             executeFullMatrixRenderPipeline();
         } else {
             const xMin = Math.min(cachedFirstCornerCoords.x, matrixPointX);
@@ -1200,8 +1201,7 @@ studioCanvas.addEventListener('click', function(e) {
             registeredRectangles.push({ xMin, xMax, yMin, yMax, color: targetHexColor });
             
             cachedFirstCornerCoords = null;
-            document.getElementById('realtimeStatusMonitor').innerText = `✅ Tvar uložen: [${xMin},${yMin}] až [${xMax},${yMax}].`;
-            logToTerminalConsole(`Přidána podkladová vrstva polygonu: x[${xMin}-${xMax}], y[${yMin}-${yMax}].`, "success");
+            document.getElementById('realtimeStatusMonitor').innerText = `✅ Tvar uložen.`;
             
             syncSidebarLayersStack();
             executeFullMatrixRenderPipeline();
@@ -1213,10 +1213,9 @@ function exportStaticFramePNG() {
     const w = document.getElementById('pWidth').value;
     const h = document.getElementById('pHeight').value;
     const link = document.createElement('a');
-    link.download = `BUSE_Static_Snapshot_${w}x${h}.png`;
+    link.download = `BUSE_${w}x${h}.png`;
     link.href = studioCanvas.toDataURL("image/png");
     link.click();
-    logToTerminalConsole("Exportován statický snímek .PNG.", "success");
 }
 
 function compileAndExportAnimatedGIF() {
@@ -1224,25 +1223,18 @@ function compileAndExportAnimatedGIF() {
     const pHeight = parseInt(document.getElementById('pHeight').value) || 19;
     const masterSpeed = parseInt(document.getElementById('pMasterSpeed').value) || 65;
     
-    logToTerminalConsole("Spouštím kompilaci animovaného GIF souboru...", "info");
     const overlay = document.getElementById('gifLoadingOverlay');
     const progressLabel = document.getElementById('gifCompileProgressText');
     overlay.classList.add('active');
-    progressLabel.innerText = "Inicializace snímků: 0%";
 
     const previousSystemStateWasPlaying = isSystemAnimationRunning;
-    if (previousSystemStateWasPlaying) {
-        clearInterval(systemAnimationTimerId);
-    }
+    if (previousSystemStateWasPlaying) clearInterval(systemAnimationTimerId);
 
     const backupLineScroll = offsetLineScroll;
     const backupText1Scroll = offsetText1Scroll;
     const backupText2Scroll = offsetText2Scroll;
 
-    offsetLineScroll = 0;
-    offsetText1Scroll = 0;
-    offsetText2Scroll = 0;
-
+    offsetLineScroll = 0; offsetText1Scroll = 0; offsetText2Scroll = 0;
     const framesCollection = [];
     const absoluteFramesCountToCompile = 35; 
 
@@ -1270,30 +1262,10 @@ function compileAndExportAnimatedGIF() {
         executeFullMatrixRenderPipeline(offlineCtx, true);
         framesCollection.push(offlineCompileCanvas.toDataURL("image/png"));
 
-        if (doLine) {
-            const d = stepLine * multLine;
-            offsetLineScroll += (dirLine === 'left') ? -d : d;
-        }
-        if (doT1) {
-            const d = stepT1 * multT1;
-            offsetText1Scroll += (dirT1 === 'left') ? -d : d;
-        }
-        if (doT2) {
-            const d = stepT2 * multT2;
-            offsetText2Scroll += (dirT2 === 'left') ? -d : d;
-        }
-
-        let percent = Math.floor((frameIndex / absoluteFramesCountToCompile) * 100);
-        progressLabel.innerText = `Ukládání do mezipaměti: ${percent}%`;
+        if (doLine) offsetLineScroll += (dirLine === 'left') ? -(stepLine * multLine) : (stepLine * multLine);
+        if (doT1) offsetText1Scroll += (dirT1 === 'left') ? -(stepT1 * multT1) : (stepT1 * multT1);
+        if (doT2) offsetText2Scroll += (dirT2 === 'left') ? -(stepT2 * multT2) : (stepT2 * multT2);
     }
-
-    progressLabel.innerText = "Komprimuji na hlavním jádře (Stabilní režim)...";
-
-    const safetyFallbackTimeout = setTimeout(() => {
-        overlay.classList.remove('active');
-        logToTerminalConsole("Kritická chyba: Export překročil časový limit.", "danger");
-        if (previousSystemStateWasPlaying) spawnSystemAnimationLoop();
-    }, 15000);
 
     gifshot.createGIF({
         images: framesCollection,
@@ -1304,21 +1276,13 @@ function compileAndExportAnimatedGIF() {
         sampleInterval: 10,
         numFrames: absoluteFramesCountToCompile
     }, function (resultObject) {
-        clearTimeout(safetyFallbackTimeout);
         overlay.classList.remove('active');
-
         if (!resultObject.error) {
             const anchor = document.createElement('a');
-            anchor.download = `SIMT_BUSE_Studio_Export_${pWidth}x${pHeight}.gif`;
+            anchor.download = `BUSE_Export.gif`;
             anchor.href = resultObject.image;
             anchor.click();
-            document.getElementById('realtimeStatusMonitor').innerText = "✅ Animovaný GIF byl úspěšně vygenerován!";
-            logToTerminalConsole("GIF úspěšně exportován a stažen.", "success");
-        } else {
-            document.getElementById('realtimeStatusMonitor').innerText = "❌ Kritická chyba při sestavování GIF souboru.";
-            logToTerminalConsole(`Chyba knihovny Gifshot: ${resultObject.error}`, "warn");
         }
-
         offsetLineScroll = backupLineScroll;
         offsetText1Scroll = backupText1Scroll;
         offsetText2Scroll = backupText2Scroll;
@@ -1343,9 +1307,7 @@ inputHooksSelectorsArray.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
         el.addEventListener('input', () => {
-            if (!isSystemAnimationRunning) {
-                executeFullMatrixRenderPipeline();
-            }
+            if (!isSystemAnimationRunning) executeFullMatrixRenderPipeline();
         });
     }
 });
@@ -1359,6 +1321,5 @@ window.onload = function() {
     }
 };
 </script>
-
 </body>
 </html>
