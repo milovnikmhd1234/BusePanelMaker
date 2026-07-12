@@ -3,25 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SIMT BUSE Animation Studio Pro</title>
+    <title>SIMT BUSE Studio Ultra v5.0 - Ultimate Developer Edition</title>
     
-    <!-- Načtení externí knihovny pro klientský export do formátu GIF -->
+    <!-- Stabilní externí knihovna pro klientské sestavení a export animovaného formátu GIF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.4.5/gifshot.min.js"></script>
     
     <style>
-        /* --- PROFI DESIGN SYSTÉM A CONFIG PROMĚNNÉ --- */
+        /* ==========================================================================
+           DESIGN SYSTEM, BAREVNÉ PALETY A GLOBÁLNÍ NASTAVENÍ UI
+           ========================================================================== */
         :root {
-            --buse-default: #ff9d00;
-            --ui-bg: #121212;
-            --sidebar-bg: #1a1a1a;
-            --panel-bg: #000000;
-            --input-bg: #080808;
-            --border-color: #2d2d2d;
-            --accent-cyan: #00ffcc;
-            --accent-green: #22c55e;
-            --danger-color: #ef4444;
+            --buse-orange: #ff9d00;
+            --buse-green: #22c55e;
+            --buse-cyan: #00ffcc;
+            --bg-ultra-dark: #050505;
+            --bg-panel-dark: #121212;
+            --bg-sidebar-dark: #181818;
+            --bg-input-black: #000000;
+            --border-gray: #2c2c2c;
+            --text-light: #e2e8f0;
+            --text-muted: #718096;
+            --danger-red: #ef4444;
+            --danger-hover: #b91c1c;
+            --success-green: #15803d;
         }
 
+        /* Vynulování základních vlastností pro přesný layout */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -29,9 +36,9 @@
         }
 
         body {
-            background-color: #050505;
-            color: #e2e8f0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: var(--bg-ultra-dark);
+            color: var(--text-light);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -39,82 +46,108 @@
             user-select: none;
         }
 
-        /* --- NABÍŠENÁ KONTROLNÍ LIŠTA (DASHBOARD HEADER) --- */
+        /* Výchozí nastavení posuvníků a skrolovacích lišt */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #252525;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #353535;
+        }
+
+        /* ==========================================================================
+           HLAVNÍ KONTROLNÍ LIŠTA (HEADER DASHBOARD)
+           ========================================================================== */
         header {
-            background: #181818;
-            padding: 12px 25px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
-            border-bottom: 2px solid var(--border-color);
-            z-index: 10;
-            box-shadow: 0 4px 25px rgba(0,0,0,0.7);
-        }
-
-        .brand-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .brand-badge {
-            font-weight: 900;
-            color: var(--buse-default);
-            border: 2px solid var(--buse-default);
-            padding: 4px 12px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            border-radius: 5px;
-            background: rgba(0,0,0,0.3);
-            font-size: 13px;
-        }
-
-        .control-flex-container {
+            background: var(--bg-sidebar-dark);
+            padding: 10px 20px;
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
+            align-items: center;
+            border-bottom: 2px solid var(--border-gray);
+            z-index: 100;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.8);
         }
 
-        .ui-card {
+        .studio-brand-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .studio-logo-badge {
+            font-weight: 900;
+            color: var(--buse-orange);
+            border: 2px solid var(--buse-orange);
+            padding: 5px 14px;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.5);
+            font-size: 13px;
+            text-shadow: 0 0 8px rgba(255, 157, 0, 0.4);
+        }
+
+        .global-controls-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .control-card-node {
             display: flex;
             flex-direction: column;
             justify-content: center;
-            background: var(--input-bg);
+            background: var(--bg-input-black);
             padding: 6px 12px;
             border-radius: 6px;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border-gray);
         }
 
-        .ui-card label {
+        .control-card-node label {
             font-weight: 700;
-            color: #718096;
-            font-size: 10px;
+            color: var(--text-muted);
+            font-size: 9px;
             text-transform: uppercase;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
             letter-spacing: 0.5px;
         }
 
-        .ui-card-row {
+        .control-card-row {
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
+        /* Formulářové prvky a selektory */
         select, input[type="number"], input[type="color"], input[type="range"] {
-            background: #000000;
+            background: #090909;
             color: #ffffff;
-            border: 1px solid #3a3a3a;
+            border: 1px solid #333333;
             padding: 4px 6px;
             border-radius: 4px;
             font-size: 12px;
             font-weight: bold;
+            outline: none;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--buse-orange);
         }
 
         input[type="range"] {
             padding: 0;
             cursor: pointer;
-            width: 75px;
+            width: 80px;
+            accent-color: var(--buse-orange);
         }
 
         input[type="color"] {
@@ -122,67 +155,73 @@
             height: 22px;
             cursor: pointer;
             padding: 0;
-            border: 1px solid #444;
+            border: 1px solid #333;
         }
 
-        /* TLAČÍTKA ANIMACE V LIŠTĚ */
-        .btn-anim-state {
-            padding: 6px 12px;
+        /* Hlavní master tlačítko stavu animace */
+        .master-anim-btn {
+            padding: 5px 12px;
             font-size: 11px;
             font-weight: bold;
             text-transform: uppercase;
-            border: 1px solid #333;
+            border: 1px solid #444;
             border-radius: 4px;
             cursor: pointer;
-            background: #222;
-            color: #fff;
+            background: #222222;
+            color: #ffffff;
+            transition: all 0.2s;
         }
-        .btn-anim-state.playing {
-            background: #1b4332;
-            border-color: var(--accent-green);
-            color: var(--accent-green);
+        
+        .master-anim-btn.state-active {
+            background: #0f3421;
+            border-color: var(--buse-green);
+            color: var(--buse-green);
+            text-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
         }
 
-        #statusMonitor {
+        #realtimeStatusMonitor {
             font-weight: bold;
-            color: var(--accent-cyan);
+            color: var(--buse-cyan);
             margin-left: auto;
-            background: #001a14;
-            padding: 8px 16px;
+            background: #001712;
+            padding: 8px 14px;
             border-radius: 6px;
-            border: 1px solid #004d3d;
+            border: 1px solid #003d30;
             font-size: 11px;
+            letter-spacing: 0.5px;
         }
 
-        /* --- PRACOVNÍ PLOCHA (WORKSPACE COMPONENT) --- */
-        .workspace-split {
+        /* ==========================================================================
+           STŘEDNÍ PRACOVNÍ PROSTOR (WORKSPACE SPLIT LAYOUT)
+           ========================================================================== */
+        .studio-workspace-split {
             flex: 1;
             display: flex;
             position: relative;
             overflow: hidden;
-            background: #0b0b0b;
+            background: #090909;
         }
 
-        /* ZOBRAZENÍ PANELU */
-        #panelViewport {
+        /* Centrální oblast pro náhled plátna (Viewport) */
+        #canvasViewportContainer {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 30px;
+            padding: 40px;
             overflow: auto;
-            background: radial-gradient(circle, #1c1c1c 0%, #020202 100%);
+            background: radial-gradient(circle, #191919 0%, #020202 100%);
         }
 
-        .matrix-housing {
+        .hardware-matrix-housing {
             position: relative;
-            border: 16px solid #242424;
-            border-top-color: #2e2e2e;
-            border-bottom-color: #1a1a1a;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.95), inset 0 0 20px rgba(0,0,0,0.8);
+            border: 18px solid #222222;
+            border-top-color: #2c2c2c;
+            border-bottom-color: #181818;
+            box-shadow: 0 25px 65px rgba(0,0,0,0.95), inset 0 0 25px rgba(0,0,0,0.9);
             background: #000000;
-            padding: 4px;
-            border-radius: 6px;
+            padding: 5px;
+            border-radius: 8px;
         }
 
         canvas {
@@ -191,32 +230,32 @@
             cursor: crosshair;
         }
 
-        /* BOČNÍ PANEL PRO SPRÁVU SUB-VRSTEV */
-        .layer-sidebar {
-            width: 290px;
-            background: var(--sidebar-bg);
-            border-left: 2px solid var(--border-color);
+        /* Pravý boční panel pro správu vrstev (Sidebar Layer Manager) */
+        .layer-manager-sidebar {
+            width: 300px;
+            background: var(--bg-sidebar-dark);
+            border-left: 2px solid var(--border-gray);
             display: flex;
             flex-direction: column;
-            padding: 15px;
+            padding: 16px;
             overflow-y: auto;
         }
 
-        .sidebar-header-title {
+        .sidebar-node-title {
             font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.2px;
             color: #a0aec0;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             font-weight: bold;
             border-bottom: 1px solid #2d2d2d;
-            padding-bottom: 6px;
+            padding-bottom: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .layers-stack {
+        .vector-layers-stack {
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -224,800 +263,1097 @@
             overflow-y: auto;
         }
 
-        .stack-item {
-            background: #111111;
-            border: 1px solid #2d2d2d;
-            border-radius: 5px;
-            padding: 8px 10px;
+        .vector-stack-item {
+            background: var(--bg-panel-dark);
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            padding: 10px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             font-size: 11px;
+            transition: border-color 0.2s;
         }
 
-        .stack-item-meta {
+        .vector-stack-item:hover {
+            border-color: #444;
+        }
+
+        .vector-meta-info {
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .color-dot {
-            width: 12px;
-            height: 12px;
+        .vector-color-preview {
+            width: 14px;
+            height: 14px;
             border-radius: 3px;
             border: 1px solid #444;
         }
 
-        .btn-remove-node {
+        .btn-node-delete {
             background: transparent;
-            color: var(--danger-color);
+            color: var(--danger-red);
             border: none;
             cursor: pointer;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0 4px;
         }
 
-        .empty-stack-notice {
+        .btn-node-delete:hover {
+            color: #ff6b6b;
+        }
+
+        .stack-empty-placeholder {
             color: #4a5568;
             font-style: italic;
             text-align: center;
-            margin-top: 25px;
+            margin-top: 30px;
             font-size: 11px;
+            line-height: 1.5;
         }
 
-        /* --- SPODNÍ EDITAČNÍ KONZOLE (FOOTER MATRIX) --- */
+        /* ==========================================================================
+           SPODNÍ DIGITÁLNÍ KONTROLNÍ KONZOLE (FOOTER RIG)
+           ========================================================================== */
         footer {
-            background: var(--ui-bg);
-            border-top: 2px solid var(--border-color);
-            padding: 20px;
+            background: var(--bg-panel-dark);
+            border-top: 2px solid var(--border-gray);
+            padding: 20px 25px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
-            z-index: 5;
+            gap: 14px;
+            box-shadow: 0 -10px 45px rgba(0,0,0,0.85);
+            z-index: 90;
         }
 
-        /* MŘÍŽKA ELEMENTŮ */
-        .matrix-grid {
+        /* Konfigurační grid rozložení prvků */
+        .studio-config-grid {
             display: grid;
-            grid-template-columns: 100px 2fr 100px 90px 120px 45px 75px;
-            gap: 12px;
+            grid-template-columns: 90px 2.2fr 90px 65px 110px 40px 65px 50px 50px 50px;
+            gap: 10px;
             align-items: center;
         }
 
-        .grid-node-header {
+        .grid-column-header {
             font-weight: 800;
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
-            color: #718096;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #2d2d2d;
-            padding-bottom: 4px;
+            color: var(--text-muted);
+            letter-spacing: 0.8px;
+            border-bottom: 1px solid #282828;
+            padding-bottom: 6px;
+            text-align: center;
+        }
+        
+        .grid-column-header.align-left {
+            text-align: left;
         }
 
-        .matrix-grid input[type="text"] {
-            padding: 8px 12px;
+        .studio-config-grid input[type="text"] {
+            padding: 8px 10px;
             font-size: 13px;
             border-radius: 5px;
             background: #000000;
             color: #ffffff;
-            border: 1px solid #3a3a3a;
-            transition: border-color 0.2s;
+            border: 1px solid #333333;
             width: 100%;
         }
         
-        .matrix-grid input[type="text"]:focus {
-            border-color: var(--buse-default);
-            outline: none;
+        .studio-config-grid input[type="text"]:focus {
+            border-color: var(--buse-orange);
         }
 
-        .tag-descriptor {
+        .layer-tag-label {
             font-weight: bold;
             font-size: 11px;
             text-transform: uppercase;
             color: #cbd5e0;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
         }
 
-        .xy-compound {
+        .coordinate-flex-box {
             display: flex;
             gap: 4px;
         }
 
-        .xy-compound div {
+        .coordinate-flex-box div {
             display: flex;
             align-items: center;
-            background: #000;
-            border: 1px solid #3a3a3a;
+            background: #000000;
+            border: 1px solid #333333;
             border-radius: 4px;
             padding: 2px 4px;
         }
 
-        .xy-compound span {
+        .coordinate-flex-box span {
             font-size: 9px;
-            color: #555;
-            margin-right: 2px;
+            color: #555555;
+            margin-right: 3px;
             font-weight: bold;
         }
 
-        .xy-compound input {
+        .coordinate-flex-box input {
             border: none !important;
             background: transparent !important;
             width: 28px;
             text-align: center;
-            color: #fff;
+            color: #ffffff;
             font-size: 11px;
         }
 
-        /* GLOBÁLNÍ OPERAČNÍ LIŠTA TLAČÍTEK */
-        .action-bar {
+        /* Centrování checkboxů a voleb v tabulce */
+        .center-flex-cell {
             display: flex;
-            gap: 12px;
-            margin-top: 4px;
+            justify-content: center;
+            align-items: center;
         }
 
-        button.studio-btn {
+        .center-flex-cell input[type="checkbox"] {
+            cursor: pointer;
+            width: 15px;
+            height: 15px;
+            accent-color: var(--buse-orange);
+        }
+
+        /* Systém globálních operačních tlačítek */
+        .global-actions-bar {
+            display: flex;
+            gap: 14px;
+            margin-top: 6px;
+        }
+
+        button.control-action-btn {
             flex: 1;
-            padding: 12px;
+            padding: 13px;
             font-weight: bold;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
             text-transform: uppercase;
             font-size: 12px;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
             transition: transform 0.1s, background-color 0.2s;
         }
 
-        button.studio-btn:active { transform: scale(0.99); }
+        button.control-action-btn:active {
+            transform: scale(0.98);
+        }
 
-        .btn-action-primary { background: var(--buse-default); color: #000; }
-        .btn-action-primary:hover { background: #ffb540; }
-        .btn-action-danger { background: #4a1212; color: #fff; border: 1px solid #631717; }
-        .btn-action-danger:hover { background: #5c1616; }
-        .btn-action-secondary { background: #2d3748; color: #fff; border: 1px solid #4a5568; }
-        .btn-action-secondary:hover { background: #3a465c; }
-        .btn-action-gif { background: #1b4332; color: #var(--accent-green); border: 1px solid var(--accent-green); color: #fff; }
-        .btn-action-gif:hover { background: #2d6a4f; }
+        .btn-style-secondary { background: #262f3d; color: #ffffff; border: 1px solid #374357; }
+        .btn-style-secondary:hover { background: #323f52; }
+        
+        .btn-style-danger { background: #4c1717; color: #ffffff; border: 1px solid #6b2121; }
+        .btn-style-danger:hover { background: #611d1d; }
+        
+        .btn-style-gif { 
+            background: var(--success-green); 
+            color: #ffffff; 
+            border: 1px solid var(--buse-green);
+            text-shadow: 0 0 6px rgba(0,0,0,0.6);
+        }
+        .btn-style-gif:hover { background: #166534; }
 
-        /* RESPONSIVNÍ ODCHYLKY */
-        @media (max-width: 1100px) {
-            .workspace-split { flex-direction: column; }
-            .layer-sidebar { width: 100%; height: 130px; border-left: none; border-top: 2px solid var(--border-color); }
-            .matrix-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
-            .grid-node-header { display: none; }
+        /* ==========================================================================
+           MODÁLNÍ INFORMAČNÍ OKNO PRO LOADING EXPORTU (GIF COMPILER OVERLAY)
+           ========================================================================== */
+        #gifLoadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        #gifLoadingOverlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .spinner-box {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #222;
+            border-top: 5px solid var(--buse-orange);
+            border-radius: 50%;
+            animation: spinAnimation 1s linear infinite;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(255, 157, 0, 0.3);
+        }
+
+        @keyframes spinAnimation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(36deg); }
+        }
+
+        .loading-title-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .loading-subtitle-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1200px) {
+            .studio-workspace-split { flex-direction: column; }
+            .layer-manager-sidebar { width: 100%; height: 160px; border-left: none; border-top: 2px solid var(--border-gray); }
+            .studio-config-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .grid-column-header { display: none; }
             body { overflow-y: auto; height: auto; }
         }
     </style>
 </head>
 <body>
 
-<!-- HLAVNÍ KONTROLNÍ MODUL -->
+<!-- BLOKOVACÍ INFORMAČNÍ MODÁL PRO EXPORTY -->
+<div id="gifLoadingOverlay">
+    <div class="spinner-box"></div>
+    <div class="loading-title-text">BUSE RASTER ENGINE COMPILING...</div>
+    <div class="loading-subtitle-text" id="gifCompileProgressText">Snímání a kvantizace snímků: 0%</div>
+</div>
+
+<!-- TOP NAVIGAČNÍ A MASTER KONTROLNÍ LIŠTA -->
 <header>
-    <div class="brand-box">
-        <div class="brand-badge">BUSE Studio Pro</div>
+    <div class="studio-brand-container">
+        <div class="studio-logo-badge">BUSE Engine Ultra</div>
     </div>
     
-    <div class="control-flex-container">
-        <div class="ui-card">
-            <label for="pWidth">Šířka panelu (px):</label>
-            <input type="number" id="pWidth" value="140" min="10" max="450" style="width: 58px;">
+    <div class="global-controls-wrapper">
+        <div class="control-card-node">
+            <label for="pWidth">Šířka matice (Body):</label>
+            <input type="number" id="pWidth" value="140" min="10" max="500" style="width: 60px;">
         </div>
         
-        <div class="ui-card">
-            <label for="pHeight">Výška panelu (px):</label>
-            <input type="number" id="pHeight" value="19" min="5" max="120" style="width: 52px;">
+        <div class="control-card-node">
+            <label for="pHeight">Výška matice (Body):</label>
+            <input type="number" id="pHeight" value="19" min="5" max="150" style="width: 55px;">
         </div>
 
-        <div class="ui-card">
-            <label>Engine Animace:</label>
-            <button class="btn-anim-state playing" id="btnAnimToggle" onclick="toggleAnimationState()">Běží (ON)</button>
+        <div class="control-card-node">
+            <label>Stav simulace:</label>
+            <button class="master-anim-btn state-active" id="btnMasterAnimToggle" onclick="toggleSystemAnimationState()">Běží (ON)</button>
         </div>
 
-        <div class="ui-card">
-            <label for="pAnimSpeed">Rychlost (ms/rámec):</label>
-            <div class="ui-card-row">
-                <input type="range" id="pAnimSpeed" min="20" max="400" value="70">
-                <span id="speedValText" style="font-size:10px; font-family:monospace; width:22px;">70</span>
+        <div class="control-card-node">
+            <label for="pMasterSpeed">Rychlost (ms/rámec):</label>
+            <div class="control-card-row">
+                <input type="range" id="pMasterSpeed" min="15" max="500" value="65">
+                <span id="labelMasterSpeedText" style="font-size:11px; font-family:monospace; width:25px; text-align:right;">65</span>
             </div>
         </div>
 
-        <div class="ui-card">
-            <label for="pAnimStep">Krok posunu (px):</label>
-            <div class="ui-card-row">
-                <input type="range" id="pAnimStep" min="1" max="10" value="1">
-                <span id="stepValText" style="font-size:10px; font-family:monospace; width:15px;">1</span>
+        <div class="control-card-node">
+            <label for="pAlphaThreshold">Citlivost Alpha (Maska textu/Emoji):</label>
+            <div class="control-card-row">
+                <input type="range" id="pAlphaThreshold" min="2" max="250" value="30">
+                <span id="labelAlphaThresholdText" style="font-size:11px; font-family:monospace; width:25px; text-align:right;">30</span>
             </div>
         </div>
 
-        <div class="ui-card">
-            <label for="pFill">Pozadí panelu:</label>
+        <div class="control-card-node">
+            <label for="pFill">Podkladový panel:</label>
             <input type="color" id="pFill" value="#000000">
         </div>
 
-        <div class="ui-card">
-            <label for="pRectColor">Barva příští výplně:</label>
+        <div class="control-card-node">
+            <label for="pRectColor">Barevný tón výplně:</label>
             <input type="color" id="pRectColor" value="#ef4444">
         </div>
     </div>
 
-    <div id="statusMonitor">Nástroj: Urči Roh 1 kliknutím do matice</div>
+    <div id="realtimeStatusMonitor">Stav: Urči Roh 1 klikem do matice.</div>
 </header>
 
-<!-- STŘEDNÍ SEKCIONÁLNÍ SPLIT -->
-<div class="workspace-split">
-    <div id="panelViewport">
-        <div class="matrix-housing">
-            <canvas id="buseStudioCanvas"></canvas>
+<!-- STŘEDNÍ SEKCIONÁLNÍ PRACOVNÍ DIV -->
+<div class="studio-workspace-split">
+    <div id="canvasViewportContainer">
+        <div class="hardware-matrix-housing">
+            <canvas id="mainStudioMatrixCanvas"></canvas>
         </div>
     </div>
 
-    <!-- SIDEBAR PRO MANUÁLNÍ NAKLIKANÉ STRUKTURY -->
-    <div class="layer-sidebar">
-        <div class="sidebar-header-title">
-            <span>Vrstvené Podklady</span>
-            <span id="layerCounter" style="color:var(--buse-default)">0</span>
+    <!-- PRAVÝ PANEL PRO MONITORING RUČNÍCH STRUKTUR -->
+    <div class="layer-manager-sidebar">
+        <div class="sidebar-node-title">
+            <span>Uložené podkladové tvary</span>
+            <span id="sidebarLayerBadgeCounter" style="color:var(--buse-orange)">0</span>
         </div>
-        <div class="layers-stack" id="layersStackContainer">
-            <div class="empty-stack-notice">Žádné ruční výplně. Kliknutím na dva rohy v matici vytvoříš statické podkladové tvary.</div>
+        <div class="vector-layers-stack" id="vectorLayersStackContainer">
+            <div class="stack-empty-placeholder">Žádné ruční výplně. Kliknutím na 2 různé body v poli matice nadefinuješ statický podkladový polygon umístěný pod textovou vrstvou.</div>
         </div>
     </div>
 </div>
 
-<!-- SPODNÍ DESKA SPRÁVY PALET A TEXTŮ -->
+<!-- SPODNÍ DIGITÁLNÍ KONTROLNÍ KONZOLE REGISTRŮ -->
 <footer>
-    <div class="matrix-grid">
-        <div class="grid-node-header">Vrstva</div>
-        <div class="grid-node-header">Obsah (Podpora kompletní sady Emoji znaků)</div>
-        <div class="grid-node-header">Typ Fontu</div>
-        <div class="grid-node-header">Velikost (px)</div>
-        <div class="grid-node-header">Odsazení (X / Y)</div>
-        <div class="grid-node-header">Barva</div>
-        <div class="grid-node-header">Animační posun</div>
+    <div class="studio-config-grid">
+        <div class="grid-column-header align-left">Prvek</div>
+        <div class="grid-column-header align-left">Obsah řetězce (Podpora Unicode & Full Color Emoji)</div>
+        <div class="grid-column-header">Rodina Písma</div>
+        <div class="grid-column-header">Velikost</div>
+        <div class="grid-column-header">Pozice X / Y</div>
+        <div class="grid-column-header">Paleta</div>
+        <div class="grid-column-header">Krok (px)</div>
+        <div class="grid-column-header">Násobič</div>
+        <div class="grid-column-header">Směr</div>
+        <div class="grid-column-header">Blik</div>
+        <div class="grid-column-header">Inverze</div>
+        <div class="grid-column-header">Rolovat</div>
     </div>
 
-    <!-- VRSTVA: ČÍSLO LINKY -->
-    <div class="matrix-grid">
-        <span class="tag-descriptor" style="color: #cbd5e0;">📟 Linka:</span>
-        <input type="text" id="lineText" value="12">
-        <select id="lineFont">
+    <!-- REGISTR 1: LINKA -->
+    <div class="studio-config-grid">
+        <span class="layer-tag-label" style="color: #a0aec0;">📟 Linka:</span>
+        <input type="text" id="regLineInput" value="12">
+        <select id="regLineFont">
             <option value="sans-serif" selected>Sans-Serif Bold</option>
             <option value="monospace">Monospace</option>
-            <option value="serif">Serif Pro</option>
+            <option value="serif">Serif Serif</option>
         </select>
-        <input type="number" id="lineSize" value="16" min="4" max="100">
-        <div class="xy-compound">
-            <div><span>X</span><input type="number" id="lineX" value="2"></div>
-            <div><span>Y</span><input type="number" id="lineY" value="1"></div>
+        <input type="number" id="regLineSize" value="16" min="4" max="120">
+        <div class="coordinate-flex-box">
+            <div><span>X</span><input type="number" id="regLineX" value="2"></div>
+            <div><span>Y</span><input type="number" id="regLineY" value="1"></div>
         </div>
-        <input type="color" id="lineColor" value="#22c55e">
-        <div style="display:flex; align-items:center; gap:4px;">
-            <input type="checkbox" id="lineAnimCheck"> <span style="font-size:10px; color:#aaa;">Rolovat</span>
-        </div>
+        <input type="color" id="regLineColor" value="#22c55e">
+        <input type="number" id="regLineStep" value="1" min="1" max="10">
+        <input type="number" id="regLineMult" value="1" min="1" max="5">
+        <select id="regLineDir" style="font-size:10px; padding:2px;">
+            <option value="left" selected>L</option>
+            <option value="right">R</option>
+        </select>
+        <div class="center-flex-cell"><input type="checkbox" id="regLineBlink"></div>
+        <div class="center-flex-cell"><input type="checkbox" id="regLineInverse"></div>
+        <div class="center-flex-cell"><input type="checkbox" id="regLineAnimActive"></div>
     </div>
 
-    <!-- VRSTVA: PRVNÍ TEXTOVÝ ŘÁDEK -->
-    <div class="matrix-grid">
-        <span class="tag-descriptor" style="color: #cbd5e0;">🔤 1. Řádek:</span>
-        <input type="text" id="text1Text" value="ŘEČKOVICE 🏙️">
-        <select id="text1Font">
+    <!-- REGISTR 2: TEXT 1 -->
+    <div class="studio-config-grid">
+        <span class="layer-tag-label" style="color: #a0aec0;">🔤 Řádek 1:</span>
+        <input type="text" id="regText1Input" value="ŘEČKOVICE 🏙️">
+        <select id="regText1Font">
             <option value="sans-serif" selected>Sans-Serif Bold</option>
             <option value="monospace">Monospace</option>
-            <option value="serif">Serif Pro</option>
+            <option value="serif">Serif Serif</option>
         </select>
-        <input type="number" id="text1Size" value="9" min="4" max="100">
-        <div class="xy-compound">
-            <div><span>X</span><input type="number" id="text1X" value="24"></div>
-            <div><span>Y</span><input type="number" id="text1Y" value="0"></div>
+        <input type="number" id="regText1Size" value="9" min="4" max="120">
+        <div class="coordinate-flex-box">
+            <div><span>X</span><input type="number" id="regText1X" value="24"></div>
+            <div><span>Y</span><input type="number" id="regText1Y" value="0"></div>
         </div>
-        <input type="color" id="text1Color" value="#ff9d00">
-        <div style="display:flex; align-items:center; gap:4px;">
-            <input type="checkbox" id="text1AnimCheck" checked> <span style="font-size:10px; color:#aaa;">Rolovat</span>
-        </div>
+        <input type="color" id="regText1Color" value="#ff9d00">
+        <input type="number" id="regText1Step" value="1" min="1" max="10">
+        <input type="number" id="regText1Mult" value="1" min="1" max="5">
+        <select id="regText1Dir" style="font-size:10px; padding:2px;">
+            <option value="left" selected>L</option>
+            <option value="right">R</option>
+        </select>
+        <div class="center-flex-cell"><input type="checkbox" id="regText1Blink"></div>
+        <div class="center-flex-cell"><input type="checkbox" id="regText1Inverse"></div>
+        <div class="center-flex-cell"><input type="checkbox" id="regText1AnimActive" checked></div>
     </div>
 
-    <!-- VRSTVA: DRUHÝ TEXTOVÝ ŘÁDEK -->
-    <div class="matrix-grid">
-        <span class="tag-descriptor" style="color: #cbd5e0;">🔤 2. Řádek:</span>
-        <input type="text" id="text2Text" value="přes: Semilasso ⚠️">
-        <select id="text2Font">
+    <!-- REGISTR 3: TEXT 2 -->
+    <div class="studio-config-grid">
+        <span class="layer-tag-label" style="color: #a0aec0;">🔤 Řádek 2:</span>
+        <input type="text" id="regText2Input" value="přes: Semilasso ⚠️">
+        <select id="regText2Font">
             <option value="sans-serif" selected>Sans-Serif Bold</option>
             <option value="monospace">Monospace</option>
-            <option value="serif">Serif Pro</option>
+            <option value="serif">Serif Serif</option>
         </select>
-        <input type="number" id="text2Size" value="9" min="4" max="100">
-        <div class="xy-compound">
-            <div><span>X</span><input type="number" id="text2X" value="24"></div>
-            <div><span>Y</span><input type="number" id="text2Y" value="10"></div>
+        <input type="number" id="regText2Size" value="9" min="4" max="120">
+        <div class="coordinate-flex-box">
+            <div><span>X</span><input type="number" id="regText2X" value="24"></div>
+            <div><span>Y</span><input type="number" id="regText2Y" value="10"></div>
         </div>
-        <input type="color" id="text2Color" value="#ff9d00">
-        <div style="display:flex; align-items:center; gap:4px;">
-            <input type="checkbox" id="text2AnimCheck"> <span style="font-size:10px; color:#aaa;">Rolovat</span>
-        </div>
+        <input type="color" id="regText2Color" value="#ff9d00">
+        <input type="number" id="regText2Step" value="1" min="1" max="10">
+        <input type="number" id="regText2Mult" value="1" min="1" max="5">
+        <select id="regText2Dir" style="font-size:10px; padding:2px;">
+            <option value="left" selected>L</option>
+            <option value="right">R</option>
+        </select>
+        <div class="center-flex-cell"><input type="checkbox" id="regText2Blink"></div>
+        <div class="center-flex-cell"><input type="checkbox" id="regText2Inverse"></div>
+        <div class="center-flex-cell"><input type="checkbox" id="regText2AnimActive"></div>
     </div>
 
-    <!-- AKČNÍ LIŠTA PRO EXPORTY A RESET -->
-    <div class="action-bar">
-        <button class="studio-btn btn-action-secondary" onclick="resetAnimationOffsets()">Vycentrovat texty</button>
-        <button class="studio-btn btn-action-danger" onclick="clearAllCustomRects()">Vymazat všechny výplně</button>
-        <button class="studio-btn btn-action-secondary" onclick="exportStaticPNG()">Export Statický .PNG</button>
-        <button class="studio-btn btn-action-gif" onclick="exportAnimatedGIF()">Exportovat animovaný .GIF 🎬</button>
+    <!-- OPERAČNÍ TLAČÍTKA -->
+    <div class="global-actions-bar">
+        <button class="control-action-btn btn-style-secondary" onclick="recenterAllOffsets()">Vycentrovat a zarovnat texty</button>
+        <button class="control-action-btn btn-style-danger" onclick="clearAllRegisteredRectangles()">Kompletně vymazat výplně</button>
+        <button class="control-action-btn btn-style-secondary" onclick="exportStaticFramePNG()">Exportovat statický snímek .PNG</button>
+        <button class="control-action-btn btn-style-gif" onclick="compileAndExportAnimatedGIF()">Generovat a exportovat animovaný .GIF 🎬</button>
     </div>
 </footer>
 
 <script>
 /**
  * ==========================================================================================
- * SIMT BUSE STUDIO CORE ENGINE v4.0 - ANIMATION & MULTI-PALETTE ADVANCED SYSTEM
+ * SIMT BUSE ENGINE ULTRA v5.0 - ULTIMATE CORE ARCHITECTURE
+ * Klientský real-time rastrový simulátor s plnou podporou alpha kanálů, vrstvení a exportů.
  * ==========================================================================================
  */
 
-const studioCanvas = document.getElementById('buseStudioCanvas');
+// Získání elementu hlavního plátna a jeho 2D kreslícího kontextu
+const studioCanvas = document.getElementById('mainStudioMatrixCanvas');
 const studioCtx = studioCanvas.getContext('2d');
-const DOT_RENDER_SIZE = 5;
+const DOT_RENDER_SIZE = 5; // Multiplikátor fyzického zobrazení jednoho bodu matice
 
-// Nezávislé paměťové plátna (buffery) pro separátní před-renderování jednotlivých textových vrstev
-// Tento přístup zaručuje, že každá vrstva může mít nezávislou barvu z palety a vlastní pohybový offset.
-const lineBuffer = document.createElement('canvas');
-const t1Buffer = document.createElement('canvas');
-const t2Buffer = document.createElement('canvas');
+// Vytvoření oddělených skrytých 1:1 pláten (bufferů) pro pokročilý pre-rendering a maskování
+const bufferLine = document.createElement('canvas');
+const bufferT1 = document.createElement('canvas');
+const bufferT2 = document.createElement('canvas');
 
-const lCtx = lineBuffer.getContext('2d');
-const t1Ctx = t1Buffer.getContext('2d');
-const t2Ctx = t2Buffer.getContext('2d');
+const ctxLine = bufferLine.getContext('2d');
+const ctxT1 = bufferT1.getContext('2d');
+const ctxT2 = bufferT2.getContext('2d');
 
-// Stavové proměnné animačního subsystému
-let isAnimationRunning = true;
-let animationIntervalId = null;
+// Globální stavové registry animačního subsystému
+let isSystemAnimationRunning = true;
+let systemAnimationTimerId = null;
+let globalCycleFrameCounter = 0; // Počítadlo rámců pro efekty jako blikání (Blink)
 
-// Běžící horizontální offsety (posuny v pixelech) pro jednotlivé textové řádky
-let lineScrollOffset = 0;
-let text1ScrollOffset = 0;
-let text2ScrollOffset = 0;
+// Běžící horizontální posuny v pixelech pro jednotlivé textové řetězce
+let offsetLineScroll = 0;
+let offsetText1Scroll = 0;
+let offsetText2Scroll = 0;
 
-// Datové úložiště pro ručně vykreslené obdélníky
-let staticRectangles = [];
-let pointZeroCorner = null;
+// Datové úložiště pro ručně naklikané vektorové polygony (výplně)
+let registeredRectangles = [];
+let cachedFirstCornerCoords = null;
 
 /**
- * Propočítá barvu pro zhasnuté diody matice, aby korespondovaly s vybraným pozadím panelu.
+ * Funkce vypočítá tón barvy pro neaktivní (zhasnuté) diody matice na základě
+ * zadané barvy pozadí. Zajišťuje realistický hardwarový rastr.
+ * @param {string} hexBgColor - Hexadecimální kód barvy pozadí panelu
+ * @returns {string} - Výsledný RGB řetězec stínového bodu
  */
-function getGridHoleDimmedColor(hexBgColor) {
+function computeHardwareGridHoleColor(hexBgColor) {
     let r = parseInt(hexBgColor.slice(1, 3), 16);
     let g = parseInt(hexBgColor.slice(3, 5), 16);
     let b = parseInt(hexBgColor.slice(5, 7), 16);
-    let luma = 0.299 * r + 0.587 * g + 0.114 * b;
-    return luma < 110 ? `rgb(${r + 14}, ${g + 14}, ${b + 14})` : `rgb(${Math.max(0, r - 35)}, ${Math.max(0, g - 35)}, ${Math.max(0, b - 35)})`;
-}
-
-/**
- * Spustí nebo pozastaví smyčku animace
- */
-function toggleAnimationState() {
-    const btn = document.getElementById('btnAnimToggle');
-    isAnimationRunning = !isAnimationRunning;
     
-    if (isAnimationRunning) {
-        btn.innerText = "Běží (ON)";
-        btn.classList.add('playing');
-        initAnimationLoop();
+    // Výpočet relativního jasu podle standardu ITU-R BT.601
+    let luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+    
+    if (luminance < 110) {
+        // Tmavé pozadí -> jemně rozsvítíme mřížku pro efekt plastických děr diod
+        return `rgb(${r + 15}, ${g + 15}, ${b + 15})`;
     } else {
-        btn.innerText = "Zastaveno (OFF)";
-        btn.classList.remove('playing');
-        clearInterval(animationIntervalId);
-        drawBuseStudioFrame();
+        // Světlé pozadí -> vygenerujeme hlubokou stínovou mřížku
+        return `rgb(${Math.max(0, r - 35)}, ${Math.max(0, g - 35)}, ${Math.max(0, b - 35)})`;
     }
 }
 
 /**
- * Vynuluje veškeré posuny a vrátí text na původní souřadnice X zadané v UI
+ * Přepíná globální stav běžící smyčky animace a mění vizuální stav UI tlačítka
  */
-function resetAnimationOffsets() {
-    lineScrollOffset = 0;
-    text1ScrollOffset = 0;
-    text2ScrollOffset = 0;
-    drawBuseStudioFrame();
+function toggleSystemAnimationState() {
+    const btn = document.getElementById('btnMasterAnimToggle');
+    isSystemAnimationRunning = !isSystemAnimationRunning;
+    
+    if (isSystemAnimationRunning) {
+        btn.innerText = "Běží (ON)";
+        btn.classList.add('state-active');
+        spawnSystemAnimationLoop();
+    } else {
+        btn.innerText = "Zastaveno (OFF)";
+        btn.classList.remove('state-active');
+        clearInterval(systemAnimationTimerId);
+        executeFullMatrixRenderPipeline();
+    }
 }
 
 /**
- * RE-RENDER STRUKTURY BOČNÍHO PANELU (SEZNAM VRSTEV)
+ * Resetuje veškeré posuny na nulovou hodnotu a překreslí plátno
  */
-function renderSidebarStack() {
-    const container = document.getElementById('layersStackContainer');
-    document.getElementById('layerCounter').innerText = staticRectangles.length;
+function recenterAllOffsets() {
+    offsetLineScroll = 0;
+    offsetText1Scroll = 0;
+    offsetText2Scroll = 0;
+    executeFullMatrixRenderPipeline();
+}
+
+/**
+ * Aktualizuje seznam naklikaných vrstev na pravé straně obrazovky
+ */
+function syncSidebarLayersStack() {
+    const container = document.getElementById('vectorLayersStackContainer');
+    document.getElementById('sidebarLayerBadgeCounter').innerText = registeredRectangles.length;
     container.innerHTML = '';
     
-    if (staticRectangles.length === 0) {
-        container.innerHTML = '<div class="empty-stack-notice">Žádné ruční výplně. Kliknutím na dva rohy v matici vytvoříš statické podkladové tvary.</div>';
+    if (registeredRectangles.length === 0) {
+        container.innerHTML = '<div class="stack-empty-placeholder">Žádné ruční výplně. Kliknutím na 2 různé body v poli matice nadefinuješ statický podkladový polygon umístěný pod textovou vrstvou.</div>';
         return;
     }
     
-    staticRectangles.forEach((rect, index) => {
+    registeredRectangles.forEach((rect, idx) => {
         const row = document.createElement('div');
-        row.className = 'stack-item';
+        row.className = 'vector-stack-item';
         row.innerHTML = `
-            <div class="stack-item-meta">
-                <div class="color-dot" style="background:${rect.color}"></div>
-                <span><strong>Výplň #${index + 1}</strong> [${rect.xMin},${rect.yMin}]➔[${rect.xMax},${rect.yMax}]</span>
+            <div class="vector-meta-info">
+                <div class="vector-color-preview" style="background:${rect.color}"></div>
+                <span><strong>Výplň #${idx + 1}</strong> [${rect.xMin},${rect.yMin}]➔[${rect.xMax},${rect.yMax}]</span>
             </div>
-            <button class="btn-remove-node" onclick="removeSpecificLayer(${index})">×</button>
+            <button class="btn-node-delete" onclick="removeSpecificVectorLayer(${idx})" title="Smazat prvek">×</button>
         `;
         container.appendChild(row);
     });
 }
 
-function removeSpecificLayer(idx) {
-    staticRectangles.splice(idx, 1);
-    renderSidebarStack();
-    drawBuseStudioFrame();
-}
-
-function clearAllCustomRects() {
-    staticRectangles = [];
-    pointZeroCorner = null;
-    document.getElementById('statusMonitor').innerText = "🧹 Všechny ruční výplně byly odstraněny.";
-    renderSidebarStack();
-    drawBuseStudioFrame();
+/**
+ * Odstraní vybraný prvek ze seznamu registrovaných výplní
+ * @param {number} idx - Index v poli
+ */
+function removeSpecificVectorLayer(idx) {
+    registeredRectangles.splice(idx, 1);
+    syncSidebarLayersStack();
+    executeFullMatrixRenderPipeline();
 }
 
 /**
- * JÁDRO VYKRESLOVÁNÍ - SESTAVÍ JEDEN SNÍMEK PANELU V PŘÍSNÉM GEOMETRICKÉM POŘADÍ
+ * Vyčistí kompletní paměť naklikaných obdélníků
  */
-function drawBuseStudioFrame(targetCtx = studioCtx, exportMode = false) {
+function clearAllRegisteredRectangles() {
+    registeredRectangles = [];
+    cachedFirstCornerCoords = null;
+    document.getElementById('realtimeStatusMonitor').innerText = "🧹 Všechny ruční výplně byly vymazány.";
+    syncSidebarLayersStack();
+    executeFullMatrixRenderPipeline();
+}
+
+/**
+ * MAIN PIPELINE ARCHITECTURE - RASTERIZACE A SESTAVENÍ OBRAZU MATICE
+ * Kreslí vrstvy v přísném pořadí: Pozadí -> Mřížka -> Ruční výplně -> Texty a celá barevná emoji!
+ * @param {CanvasRenderingContext2D} targetCtx - Cílový kontext (hlavní plátno nebo kompilátor GIFu)
+ * @param {boolean} isExportMode - Vlajka pro potlačení efektů záření a pomocných kurzorů
+ */
+function executeFullMatrixRenderPipeline(targetCtx = studioCtx, isExportMode = false) {
     const pWidth = parseInt(document.getElementById('pWidth').value) || 140;
     const pHeight = parseInt(document.getElementById('pHeight').value) || 19;
     const fillColor = document.getElementById('pFill').value;
-    
-    // Načtení dat a palet pro Linku
-    const lineVal = document.getElementById('lineText').value;
-    const lineFont = document.getElementById('lineFont').value;
-    const lineSize = parseInt(document.getElementById('lineSize').value) || 0;
-    const lineX = parseInt(document.getElementById('lineX').value) || 0;
-    const lineY = parseInt(document.getElementById('lineY').value) || 0;
-    const lineColor = document.getElementById('lineColor').value;
+    const alphaThreshold = parseInt(document.getElementById('pAlphaThreshold').value) || 30;
 
-    // Načtení dat a palet pro 1. řádek
-    const t1Val = document.getElementById('text1Text').value;
-    const t1Font = document.getElementById('text1Font').value;
-    const t1Size = parseInt(document.getElementById('text1Size').value) || 0;
-    const t1X = parseInt(document.getElementById('text1X').value) || 0;
-    const t1Y = parseInt(document.getElementById('text1Y').value) || 0;
-    const t1Color = document.getElementById('text1Color').value;
+    // Aktualizace textových hodnot citlivosti v horní liště
+    document.getElementById('labelAlphaThresholdText').innerText = alphaThreshold;
 
-    // Načtení dat a palet pro 2. řádek
-    const t2Val = document.getElementById('text2Text').value;
-    const t2Font = document.getElementById('text2Font').value;
-    const t2Size = parseInt(document.getElementById('text2Size').value) || 0;
-    const t2X = parseInt(document.getElementById('text2X').value) || 0;
-    const t2Y = parseInt(document.getElementById('text2Y').value) || 0;
-    const t2Color = document.getElementById('text2Color').value;
+    // Načtení registrů nastavení pro LINKU
+    const strLine = document.getElementById('regLineInput').value;
+    const fontLine = document.getElementById('regLineFont').value;
+    const sizeLine = parseInt(document.getElementById('regLineSize').value) || 0;
+    const xLine = parseInt(document.getElementById('regLineX').value) || 0;
+    const yLine = parseInt(document.getElementById('regLineY').value) || 0;
+    const colorLine = document.getElementById('regLineColor').value;
+    const blinkLine = document.getElementById('regLineBlink').checked;
+    const invLine = document.getElementById('regLineInverse').checked;
 
-    // Přizpůsobení velikosti cílového plátna
+    // Načtení registrů nastavení pro ŘÁDEK 1
+    const strT1 = document.getElementById('regText1Input').value;
+    const fontT1 = document.getElementById('regText1Font').value;
+    const sizeT1 = parseInt(document.getElementById('regText1Size').value) || 0;
+    const xT1 = parseInt(document.getElementById('regText1X').value) || 0;
+    const yT1 = parseInt(document.getElementById('regText1Y').value) || 0;
+    const colorT1 = document.getElementById('regText1Color').value;
+    const blinkT1 = document.getElementById('regText1Blink').checked;
+    const invT1 = document.getElementById('regText1Inverse').checked;
+
+    // Načtení registrů nastavení pro ŘÁDEK 2
+    const strT2 = document.getElementById('regText2Input').value;
+    const fontT2 = document.getElementById('regText2Font').value;
+    const sizeT2 = parseInt(document.getElementById('regText2Size').value) || 0;
+    const xT2 = parseInt(document.getElementById('regText2X').value) || 0;
+    const yT2 = parseInt(document.getElementById('regText2Y').value) || 0;
+    const colorT2 = document.getElementById('regText2Color').value;
+    const blinkT2 = document.getElementById('regText2Blink').checked;
+    const invT2 = document.getElementById('regText2Inverse').checked;
+
+    // Synchronizace rozměrů hlavního canvasu s nastavením velikosti matice
     if (targetCtx === studioCtx) {
         studioCanvas.width = pWidth * DOT_RENDER_SIZE;
         studioCanvas.height = pHeight * DOT_RENDER_SIZE;
     }
 
-    // KROK 1: Vyčištění a podkladová barva (Pozadí)
+    // VRSTVA 1: Celoplošné podkladové barevné pozadí panelu
     targetCtx.fillStyle = fillColor;
     targetCtx.fillRect(0, 0, pWidth * DOT_RENDER_SIZE, pHeight * DOT_RENDER_SIZE);
     
-    // KROK 2: Hardwarová textura zhasnutých LED bodů
-    targetCtx.fillStyle = getGridHoleDimmedColor(fillColor);
+    // VRSTVA 2: Hardwarový rastr zhasnutých LED diod (Stínová mřížka)
+    targetCtx.fillStyle = computeHardwareGridHoleColor(fillColor);
     for (let x = 0; x < pWidth; x++) {
         for (let y = 0; y < pHeight; y++) {
             targetCtx.fillRect(x * DOT_RENDER_SIZE, y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
         }
     }
 
-    // KROK 3: Příprava oddělených 1:1 paměťových bufferů pro aplikaci palet barev
-    lineBuffer.width = pWidth; lineBuffer.height = pHeight; lCtx.clearRect(0, 0, pWidth, pHeight);
-    t1Buffer.width = pWidth; t1Buffer.height = pHeight; t1Ctx.clearRect(0, 0, pWidth, pHeight);
-    t2Buffer.width = pWidth; t2Buffer.height = pHeight; t2Ctx.clearRect(0, 0, pWidth, pHeight);
+    // VRSTVA 3: Inicializace 1:1 paměťových bufferů pro aplikaci nezávislých palet barev
+    bufferLine.width = pWidth; bufferLine.height = pHeight; ctxLine.clearRect(0, 0, pWidth, pHeight);
+    bufferT1.width = pWidth; bufferT1.height = pHeight; ctxT1.clearRect(0, 0, pWidth, pHeight);
+    bufferT2.width = pWidth; bufferT2.height = pHeight; ctxT2.clearRect(0, 0, pWidth, pHeight);
 
-    // Kreslení Linky do bufferu s uvážením animačního posunu
-    if (lineVal.trim() !== "" && lineSize > 0) {
-        lCtx.textBaseline = "top"; lCtx.textAlign = "left";
-        lCtx.font = `bold ${lineSize}px ${lineFont}, -apple-system, sans-serif`;
-        // Pro zachování plných barev emoji kreslíme přímo. Pro běžný text slouží barva jako maska.
-        lCtx.fillStyle = "#ffffff";
-        lCtx.fillText(lineVal, lineX + lineScrollOffset, lineY);
+    // Kreslení textu LINKY do separátního bufferu (podpora Blikání)
+    let hideLineDueToBlink = blinkLine && (Math.floor(globalCycleFrameCounter / 6) % 2 === 0);
+    if (strLine.trim() !== "" && sizeLine > 0 && !hideLineDueToBlink) {
+        ctxLine.textBaseline = "top"; ctxLine.textAlign = "left";
+        ctxLine.font = `bold ${sizeLine}px ${fontLine}, -apple-system, sans-serif`;
+        ctxLine.fillStyle = "#ffffff"; // Maska pro detekci pixelu
+        ctxLine.fillText(strLine, xLine + offsetLineScroll, yLine);
     }
 
-    // Kreslení 1. řádku do bufferu s uvážením animačního posunu
-    if (t1Val.trim() !== "" && t1Size > 0) {
-        t1Ctx.textBaseline = "top"; t1Ctx.textAlign = "left";
-        t1Ctx.font = `bold ${t1Size}px ${t1Font}, -apple-system, sans-serif`;
-        t1Ctx.fillStyle = "#ffffff";
-        t1Ctx.fillText(t1Val, t1X + text1ScrollOffset, t1Y);
+    // Kreslení 1. ŘÁDKU do separátního bufferu
+    let hideT1DueToBlink = blinkT1 && (Math.floor(globalCycleFrameCounter / 6) % 2 === 0);
+    if (strT1.trim() !== "" && sizeT1 > 0 && !hideT1DueToBlink) {
+        ctxT1.textBaseline = "top"; ctxT1.textAlign = "left";
+        ctxT1.font = `bold ${sizeT1}px ${fontT1}, -apple-system, sans-serif`;
+        ctxT1.fillStyle = "#ffffff";
+        ctxT1.fillText(strT1, xT1 + offsetText1Scroll, yT1);
     }
 
-    // Kreslení 2. řádku do bufferu s uvážením animačního posunu
-    if (t2Val.trim() !== "" && t2Size > 0) {
-        t2Ctx.textBaseline = "top"; t2Ctx.textAlign = "left";
-        t2Ctx.font = `bold ${t2Size}px ${t2Font}, -apple-system, sans-serif`;
-        t2Ctx.fillStyle = "#ffffff";
-        t2Ctx.fillText(t2Val, t2X + text2ScrollOffset, t2Y);
+    // Kreslení 2. ŘÁDKU do separátního bufferu
+    let hideT2DueToBlink = blinkT2 && (Math.floor(globalCycleFrameCounter / 6) % 2 === 0);
+    if (strT2.trim() !== "" && sizeT2 > 0 && !hideT2DueToBlink) {
+        ctxT2.textBaseline = "top"; ctxT2.textAlign = "left";
+        ctxT2.font = `bold ${sizeT2}px ${fontT2}, -apple-system, sans-serif`;
+        ctxT2.fillStyle = "#ffffff";
+        ctxT2.fillText(strT2, xT2 + offsetText2Scroll, yT2);
     }
 
-    // Načtení surových obrazových dat pixelů ze všech tří textových vrstev
-    const lData = lCtx.getImageData(0, 0, pWidth, pHeight).data;
-    const t1Data = t1Ctx.getImageData(0, 0, pWidth, pHeight).data;
-    const t2Data = t2Ctx.getImageData(0, 0, pWidth, pHeight).data;
+    // Načtení surových obrazových bajtů z paměťových masek pro přesné vyhodnocení
+    const bytesLine = ctxLine.getImageData(0, 0, pWidth, pHeight).data;
+    const bytesT1 = ctxT1.getImageData(0, 0, pWidth, pHeight).data;
+    const bytesT2 = ctxT2.getImageData(0, 0, pWidth, pHeight).data;
 
-    // KROK 4: Skenování matice bod po bodu a finální aplikace priorit (Pozadí -> Výplně -> Texty přes ně)
+    // VRSTVA 4: Procházení každého bodu matice a vyhodnocení finálního stavu podle priorit a filtrů
     for (let x = 0; x < pWidth; x++) {
         for (let y = 0; y < pHeight; y++) {
-            const idx = (y * pWidth + x) * 4;
             
-            // Extrakce alfa kanálů (přítomnosti textu) z jednotlivých vrstev
-            const lAlpha = lData[idx + 3];
-            const t1Alpha = t1Data[idx + 3];
-            const t2Alpha = t2Data[idx + 3];
+            const cellIndex = (y * pWidth + x) * 4;
+            
+            // Získání hodnoty alfa kanálu (průhlednosti) pro každou textovou komponentu
+            const alphaL = bytesLine[cellIndex + 3];
+            const alpha1 = bytesT1[cellIndex + 3];
+            const alpha2 = bytesT2[cellIndex + 3];
 
-            // 👑 PRIORITA A: NAJVYŠŠÍ VRSTVA - TEXTY A BAREVNÁ EMOJI (VŽDY NAVRCHU PŘES VÝPLNĚ)
-            if (lAlpha > 25 || t1Alpha > 25 || t2Alpha > 25) {
-                let chosenColor = "#fff";
-                let activeAlpha = 255;
-                let isEmojiPixel = false;
+            // Detekce přítomnosti aktivního bodu na základě uživatelského prahu citlivosti (pAlphaThreshold)
+            const hasL = alphaL > alphaThreshold;
+            const hasT1 = alpha1 > alphaThreshold;
+            const hasT2 = alpha2 > alphaThreshold;
 
-                // Určení, která vrstva má na dané souřadnici aktivní bod (a přiřazení barvy z příslušné palety)
-                if (lAlpha > 25) {
-                    chosenColor = lineColor; activeAlpha = lAlpha;
-                    // Detekce, zda se jedná o barevný bod systémového Emoji (pokud RGB není čistě bílá maska)
-                    if (lData[idx] !== lData[idx+1] || lData[idx+1] !== lData[idx+2]) isEmojiPixel = true;
-                    if (isEmojiPixel) chosenColor = `rgb(${lData[idx]},${lData[idx+1]},${lData[idx+2]})`;
-                } else if (t1Alpha > 25) {
-                    chosenColor = t1Color; activeAlpha = t1Alpha;
-                    if (t1Data[idx] !== t1Data[idx+1] || t1Data[idx+1] !== t1Data[idx+2]) isEmojiPixel = true;
-                    if (isEmojiPixel) chosenColor = `rgb(${t1Data[idx]},${t1Data[idx+1]},${t1Data[idx+2]})`;
-                } else if (t2Alpha > 25) {
-                    chosenColor = t2Color; activeAlpha = t2Alpha;
-                    if (t2Data[idx] !== t2Data[idx+1] || t2Data[idx+1] !== t2Data[idx+2]) isEmojiPixel = true;
-                    if (isEmojiPixel) chosenColor = `rgb(${t2Data[idx]},${t2Data[idx+1]},${t2Data[idx+2]})`;
+            // 👑 PRIORITA A: HORNÍ VRSTVA - TEXTY A KOMPLETNÍ EMOJI (Zobrazí se VŽDY přes výplň)
+            if (hasL || hasT1 || hasT2) {
+                let activeColor = "#ffffff";
+                let isSystemEmojiComponent = false;
+
+                // Určení barevného tónu z konkrétní palety s integrovaným detektorem vícebarevných Emoji
+                if (hasL) {
+                    activeColor = colorLine;
+                    // Detekce emoji: Pokud se hodnoty R, G, B v masce liší, jedná se o nativní emoji vykreslené prohlížečem
+                    if (bytesLine[cellIndex] !== bytesLine[cellIndex + 1] || bytesLine[cellIndex + 1] !== bytesLine[cellIndex + 2]) {
+                        isSystemEmojiComponent = true;
+                    }
+                    if (isSystemEmojiComponent) {
+                        activeColor = `rgb(${bytesLine[cellIndex]},${bytesLine[cellIndex+1]},${bytesLine[cellIndex+2]})`;
+                    }
+                    if (invLine && !isSystemEmojiComponent) activeColor = fillColor; // Podpora inverze
+                } 
+                else if (hasT1) {
+                    activeColor = colorT1;
+                    if (bytesT1[cellIndex] !== bytesT1[cellIndex + 1] || bytesT1[cellIndex + 1] !== bytesT1[cellIndex + 2]) {
+                        isSystemEmojiComponent = true;
+                    }
+                    if (isSystemEmojiComponent) {
+                        activeColor = `rgb(${bytesT1[cellIndex]},${bytesT1[cellIndex+1]},${bytesT1[cellIndex+2]})`;
+                    }
+                    if (invT1 && !isSystemEmojiComponent) activeColor = fillColor;
+                } 
+                else if (hasT2) {
+                    activeColor = colorT2;
+                    if (bytesT2[cellIndex] !== bytesT2[cellIndex + 1] || bytesT2[cellIndex + 1] !== bytesT2[cellIndex + 2]) {
+                        isSystemEmojiComponent = true;
+                    }
+                    if (isSystemEmojiComponent) {
+                        activeColor = `rgb(${bytesT2[cellIndex]},${bytesT2[cellIndex+1]},${bytesT2[cellIndex+2]})`;
+                    }
+                    if (invT2 && !isSystemEmojiComponent) activeColor = fillColor;
                 }
 
-                // Vykreslení rozsvíceného fyzického LED bodu
-                targetCtx.fillStyle = chosenColor;
+                // Vykreslení rozsvícené LED diody
+                targetCtx.fillStyle = activeColor;
                 
-                // Efekt záření LED diody (vypnuto při exportech pro zachování ostrých hran)
-                if (!exportMode && chosenColor !== "#000000") {
-                    targetCtx.shadowBlur = DOT_RENDER_SIZE * 0.9;
-                    targetCtx.shadowColor = chosenColor;
+                // Přidání hardwarového efektu záře (pouze v režimu reálného zobrazení na monitoru)
+                if (!isExportMode && activeColor !== "#000000" && activeColor !== fillColor) {
+                    targetCtx.shadowBlur = DOT_RENDER_SIZE * 0.85;
+                    targetCtx.shadowColor = activeColor;
                 }
                 targetCtx.fillRect(x * DOT_RENDER_SIZE, y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
                 targetCtx.shadowBlur = 0;
-            }
-            // 🟥 PRIORITA B: SPODNÍ VRSTVA - RUČNÍ NAKLIKANÉ VÝPLNĚ ROHŮ
+            } 
+            // 🟥 PRIORITA B: SPODNÍ VRSTVA - RUČNÍ PODKLADOVÉ VÝPLNĚ NEBO INVERZNÍ STAV
             else {
-                let matchedRect = null;
-                for (let i = staticRectangles.length - 1; i >= 0; i--) {
-                    let r = staticRectangles[i];
+                let activeShape = null;
+                
+                // Procházení od nejnověji přidaných obdélníků (klasický LIFO zásobník vrstev)
+                for (let i = registeredRectangles.length - 1; i >= 0; i--) {
+                    let r = registeredRectangles[i];
                     if (x >= r.xMin && x <= r.xMax && y >= r.yMin && y <= r.yMax) {
-                        matchedRect = r;
+                        activeShape = r;
                         break;
                     }
                 }
 
-                if (matchedRect !== null) {
-                    targetCtx.fillStyle = matchedRect.color;
+                // Kontrola, zda na dané prázdné souřadnici nemá běžet inverzní režim některého z fontů
+                // Pokud je zapnutá inverze a maska zaznamenala prázdné místo okolo textu uvnitř jeho bounding boxu
+                let applyInverseBackground = false;
+                let inverseColor = "#ffffff";
+
+                // Hrubá detekce polohy textu pro inverzní výplň okolí
+                if (invLine && alphaL > 0 && alphaL <= alphaThreshold) { applyInverseBackground = true; inverseColor = colorLine; }
+                if (invT1 && alpha1 > 0 && alpha1 <= alphaThreshold) { applyInverseBackground = true; inverseColor = colorT1; }
+                if (invT2 && alpha2 > 0 && alpha2 <= alphaThreshold) { applyInverseBackground = true; inverseColor = colorT2; }
+
+                if (applyInverseBackground) {
+                    targetCtx.fillStyle = inverseColor;
+                    targetCtx.fillRect(x * DOT_RENDER_SIZE, y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
+                } else if (activeShape !== null) {
+                    // Vykreslení klasické uživatelské výplně naklikané myší
+                    targetCtx.fillStyle = activeShape.color;
                     targetCtx.fillRect(x * DOT_RENDER_SIZE, y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
                 }
             }
         }
     }
 
-    // Pomocný indikační zaměřovač při klikání prvního rohu
-    if (!exportMode && pointZeroCorner !== null && targetCtx === studioCtx) {
-        targetCtx.fillStyle = varAccentCyan = "#00ffcc";
-        targetCtx.fillRect(pointZeroCorner.x * DOT_RENDER_SIZE, pointZeroCorner.y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
+    // Pomocný nitkový kříž/bod pro vizuální navádění při klikání prvního rohu výplně
+    if (!isExportMode && cachedFirstCornerCoords !== null && targetCtx === studioCtx) {
+        targetCtx.fillStyle = "#00ffcc";
+        targetCtx.fillRect(cachedFirstCornerCoords.x * DOT_RENDER_SIZE, cachedFirstCornerCoords.y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
     }
 }
 
 /**
- * ASYNCHRONNÍ SMYČKA ENGINU ANIMACE
- * Stará se o plynulé přičítání offsetů a automatický wrap-around (smyčkování) textu.
+ * INTEGROVANÝ ANIMATOR ENGINE
+ * Provádí iterace posunů na základě individuálních směrů, kroků a násobičů rychlosti.
  */
-function initAnimationLoop() {
-    clearInterval(animationIntervalId);
+function spawnSystemAnimationLoop() {
+    clearInterval(systemAnimationTimerId);
     
-    const loopExec = () => {
+    const engineStepExecution = () => {
         const pWidth = parseInt(document.getElementById('pWidth').value) || 140;
-        const speedMs = parseInt(document.getElementById('pAnimSpeed').value) || 70;
-        const stepPx = parseInt(document.getElementById('pAnimStep').value) || 1;
+        const masterSpeed = parseInt(document.getElementById('pMasterSpeed').value) || 65;
         
-        // Aktualizace textových hodnot v reálném čase v UI
-        document.getElementById('speedValText').innerText = speedMs;
-        document.getElementById('pAnimStep').nextElementSibling.innerText = stepPx;
+        // Zobrazení aktuální rychlosti v UI
+        document.getElementById('labelMasterSpeedText').innerText = masterSpeed;
 
-        // Kontrola stavů zaškrtávacích políček "Rolovat"
-        const animLine = document.getElementById('lineAnimCheck').checked;
-        const animT1 = document.getElementById('text1AnimCheck').checked;
-        const animT2 = document.getElementById('text2AnimCheck').checked;
+        globalCycleFrameCounter++;
 
-        // Načtení textů pro změření šířky ve skrytém kontextu pro inteligentní reset smyčky
-        if (animLine) {
-            lineScrollOffset -= stepPx;
-            const textWidth = lCtx.measureText(document.getElementById('lineText').value).width || 30;
-            if (lineScrollOffset < -textWidth - 10) lineScrollOffset = pWidth;
-        }
-        if (animT1) {
-            text1ScrollOffset -= stepPx;
-            const textWidth = t1Ctx.measureText(document.getElementById('text1Text').value).width || 100;
-            if (text1ScrollOffset < -textWidth - 10) text1ScrollOffset = pWidth;
-        }
-        if (animT2) {
-            text2ScrollOffset -= stepPx;
-            const textWidth = t2Ctx.measureText(document.getElementById('text2Text').value).width || 100;
-            if (text2ScrollOffset < -textWidth - 10) text2ScrollOffset = pWidth;
+        // Načtení voleb chování a rychlosti pro komponentu: LINKA
+        const doAnimLine = document.getElementById('regLineAnimActive').checked;
+        const stepLine = parseInt(document.getElementById('regLineStep').value) || 1;
+        const multLine = parseInt(document.getElementById('regLineMult').value) || 1;
+        const dirLine = document.getElementById('regLineDir').value;
+
+        // Načtení voleb chování a rychlosti pro komponentu: ŘÁDEK 1
+        const doAnimT1 = document.getElementById('regText1AnimActive').checked;
+        const stepT1 = parseInt(document.getElementById('regText1Step').value) || 1;
+        const multT1 = parseInt(document.getElementById('regText1Mult').value) || 1;
+        const dirT1 = document.getElementById('regText1Dir').value;
+
+        // Načtení voleb chování a rychlosti pro komponentu: ŘÁDEK 2
+        const doAnimT2 = document.getElementById('regText2AnimActive').checked;
+        const stepT2 = parseInt(document.getElementById('regText2Step').value) || 1;
+        const multT2 = parseInt(document.getElementById('regText2Mult').value) || 1;
+        const dirT2 = document.getElementById('regText2Dir').value;
+
+        // 1. Zpracování rolování Linky
+        if (doAnimLine) {
+            const delta = stepLine * multLine;
+            if (dirLine === 'left') {
+                offsetLineScroll -= delta;
+                const estimatedWidth = ctxLine.measureText(document.getElementById('regLineInput').value).width || 40;
+                if (offsetLineScroll < -estimatedWidth - 10) offsetLineScroll = pWidth;
+            } else {
+                offsetLineScroll += delta;
+                const estimatedWidth = ctxLine.measureText(document.getElementById('regLineInput').value).width || 40;
+                if (offsetLineScroll > pWidth + 10) offsetLineScroll = -estimatedWidth;
+            }
         }
 
-        drawBuseStudioFrame();
+        // 2. Zpracování rolování 1. řádku textu
+        if (doAnimT1) {
+            const delta = stepT1 * multT1;
+            if (dirT1 === 'left') {
+                offsetText1Scroll -= delta;
+                const estimatedWidth = ctxT1.measureText(document.getElementById('regText1Input').value).width || 120;
+                if (offsetText1Scroll < -estimatedWidth - 10) offsetText1Scroll = pWidth;
+            } else {
+                offsetText1Scroll += delta;
+                const estimatedWidth = ctxT1.measureText(document.getElementById('regText1Input').value).width || 120;
+                if (offsetText1Scroll > pWidth + 10) offsetText1Scroll = -estimatedWidth;
+            }
+        }
+
+        // 3. Zpracování rolování 2. řádku textu
+        if (doAnimT2) {
+            const delta = stepT2 * multT2;
+            if (dirT2 === 'left') {
+                offsetText2Scroll -= delta;
+                const estimatedWidth = ctxT2.measureText(document.getElementById('regText2Input').value).width || 120;
+                if (offsetText2Scroll < -estimatedWidth - 10) offsetText2Scroll = pWidth;
+            } else {
+                offsetText2Scroll += delta;
+                const estimatedWidth = ctxT2.measureText(document.getElementById('regText2Input').value).width || 120;
+                if (offsetText2Scroll > pWidth + 10) offsetText2Scroll = -estimatedWidth;
+            }
+        }
+
+        // Vykreslení aktuálního snímku na monitor
+        executeFullMatrixRenderPipeline();
     };
 
-    const currentSpeed = parseInt(document.getElementById('pAnimSpeed').value) || 70;
-    animationIntervalId = setInterval(loopExec, currentSpeed);
+    const currentIntervalDelay = parseInt(document.getElementById('pMasterSpeed').value) || 65;
+    systemAnimationTimerId = setInterval(engineStepExecution, currentIntervalDelay);
 }
 
 /**
- * REAKCE NA ZMĚNU RYCHLOSTI POSUVNÍKU ZA BĚHU
+ * NAVÁZÁNÍ KROKOVÉHO POSUVNÍKU RYCHLOSTI ZA BĚHU
  */
-document.getElementById('pAnimSpeed').addEventListener('input', () => {
-    document.getElementById('speedValText').innerText = document.getElementById('pAnimSpeed').value;
-    if (isAnimationRunning) initAnimationLoop();
+document.getElementById('pMasterSpeed').addEventListener('input', () => {
+    document.getElementById('labelMasterSpeedText').innerText = document.getElementById('pMasterSpeed').value;
+    if (isSystemAnimationRunning) spawnSystemAnimationLoop();
 });
 
 /**
- * INTERAKTIVNÍ DETEKCE KLIKNUTÍ DO MATICE PRO TVORBU RUČNÍCH VÝPLNÍ
+ * EVENT LISTENER PRO ZACHYCENÍ KLIKNUTÍ DO MATICE (DETEKCE SOUŘADNIC PANELU)
  */
-studioCanvas.addEventListener('click', function(event) {
+studioCanvas.addEventListener('click', function(e) {
     const pWidth = parseInt(document.getElementById('pWidth').value) || 140;
     const pHeight = parseInt(document.getElementById('pHeight').value) || 19;
     
-    const boundingBox = studioCanvas.getBoundingClientRect();
-    const scaleFactorX = studioCanvas.width / boundingBox.width;
-    const scaleFactorY = studioCanvas.height / boundingBox.height;
+    const rectBounds = studioCanvas.getBoundingClientRect();
+    const scaleX = studioCanvas.width / rectBounds.width;
+    const scaleY = studioCanvas.height / rectBounds.height;
     
-    const computedX = (event.clientX - boundingBox.left) * scaleFactorX;
-    const computedY = (event.clientY - boundingBox.top) * scaleFactorY;
+    const clickCanvasX = (e.clientX - rectBounds.left) * scaleX;
+    const clickCanvasY = (e.clientY - rectBounds.top) * scaleY;
 
-    const matrixGridX = Math.floor(computedX / DOT_RENDER_SIZE);
-    const matrixGridY = Math.floor(computedY / DOT_RENDER_SIZE);
+    const matrixPointX = Math.floor(clickCanvasX / DOT_RENDER_SIZE);
+    const matrixPointY = Math.floor(clickCanvasY / DOT_RENDER_SIZE);
 
-    if (matrixGridX >= 0 && matrixGridX < pWidth && matrixGridY >= 0 && matrixGridY < pHeight) {
-        if (pointZeroCorner === null) {
-            pointZeroCorner = { x: matrixGridX, y: matrixGridY };
-            document.getElementById('statusMonitor').innerText = `📍 Roh 1 fixován [${matrixGridX}, ${matrixGridY}]. Kliknutím na Roh 2 uzavřeš plochu.`;
-            drawBuseStudioFrame();
+    // Verifikace, že kliknutí směřuje dovnitř aktivního rastru matice
+    if (matrixPointX >= 0 && matrixPointX < pWidth && matrixPointY >= 0 && matrixPointY < pHeight) {
+        if (cachedFirstCornerCoords === null) {
+            // Zápis prvního rohu do vyrovnávací paměti
+            cachedFirstCornerCoords = { x: matrixPointX, y: matrixPointY };
+            document.getElementById('realtimeStatusMonitor').innerText = `📍 Roh 1 uložen [${matrixPointX}, ${matrixPointY}]. Klikni na protilehlý Roh 2!`;
+            executeFullMatrixRenderPipeline();
         } else {
-            const xMin = Math.min(pointZeroCorner.x, matrixGridX);
-            const xMax = Math.max(pointZeroCorner.x, matrixGridX);
-            const yMin = Math.min(pointZeroCorner.y, matrixGridY);
-            const yMax = Math.max(pointZeroCorner.y, matrixGridY);
+            // Druhý klik uzavírá geometrii a vypočítává minimální a maximální meze
+            const xMin = Math.min(cachedFirstCornerCoords.x, matrixPointX);
+            const xMax = Math.max(cachedFirstCornerCoords.x, matrixPointX);
+            const yMin = Math.min(cachedFirstCornerCoords.y, matrixPointY);
+            const yMax = Math.max(cachedFirstCornerCoords.y, matrixPointY);
             
-            const fillCol = document.getElementById('pRectColor').value;
-            staticRectangles.push({ xMin, xMax, yMin, yMax, color: fillCol });
+            const targetHexColor = document.getElementById('pRectColor').value;
             
-            pointZeroCorner = null;
-            document.getElementById('statusMonitor').innerText = `✅ Vytvořena podkladová výplň od [${xMin},${yMin}] do [${xMax},${yMax}].`;
+            // Uložení struktury do globálního zásobníku vrstev pozadí
+            registeredRectangles.push({ xMin, xMax, yMin, yMax, color: targetHexColor });
             
-            renderSidebarStack();
-            drawBuseStudioFrame();
+            // Resetování kurzoru pro další použití
+            cachedFirstCornerCoords = null;
+            document.getElementById('realtimeStatusMonitor').innerText = `✅ Tvar uložen: [${xMin},${yMin}] až [${xMax},${yMax}]. Umístěn pod text.`;
+            
+            syncSidebarLayersStack();
+            executeFullMatrixRenderPipeline();
         }
     }
 });
 
 /**
- * EXPORT STRÁNKY DO STATICKÉHO SOUBORU .PNG
+ * STÁHNE AKTUÁLNÍ STAV MATICE JAKO ČISTÝ SOUBOR .PNG
  */
-function exportStaticPNG() {
+function exportStaticFramePNG() {
     const w = document.getElementById('pWidth').value;
     const h = document.getElementById('pHeight').value;
-    const dl = document.createElement('a');
-    dl.download = `BUSE_Static_Frame_${w}x${h}.png`;
-    dl.href = studioCanvas.toDataURL("image/png");
-    dl.click();
+    const link = document.createElement('a');
+    link.download = `BUSE_Static_Snapshot_${w}x${h}.png`;
+    link.href = studioCanvas.toDataURL("image/png");
+    link.click();
 }
 
 /**
- * EXTRACTOR A GENERÁTOR ANIMOVANÉHO .GIFU POMOCÍ KLIENTSKÉ KNIHOVNY GIFSHOT
- * Automaticky nasnímá přesně jeden kompletní otočný cyklus na základě rozměrů matice.
+ * ADVANCED HIGH-PERFORMANCE GIF COMPILER & EXPORTER
+ * Zpracuje kompletní sadu nezávislých snímků animace a exportuje je lokálně.
  */
-function exportAnimatedGIF() {
+function compileAndExportAnimatedGIF() {
     const pWidth = parseInt(document.getElementById('pWidth').value) || 140;
     const pHeight = parseInt(document.getElementById('pHeight').value) || 19;
-    const speedMs = parseInt(document.getElementById('pAnimSpeed').value) || 70;
+    const masterSpeed = parseInt(document.getElementById('pMasterSpeed').value) || 65;
     
-    document.getElementById('statusMonitor').innerText = "⏳ Generuji animovaný GIF... Počkej prosím.";
-    
-    // Dočasné zastavení hlavní běžící animace, abychom si nekonkurovali v registrech offsetů
-    const internalWasPlaying = isAnimationRunning;
-    if (internalWasPlaying) {
-        clearInterval(animationIntervalId);
+    // Aktivace celoobrazovkového loading overlaye
+    const overlay = document.getElementById('gifLoadingOverlay');
+    const progressLabel = document.getElementById('gifCompileProgressText');
+    overlay.classList.add('active');
+    progressLabel.innerText = "Inicializace paměťových registrů: 0%";
+
+    // Dočasné zastavení asynchronní smyčky renderování na monitoru
+    const previousSystemStateWasPlaying = isSystemAnimationRunning;
+    if (previousSystemStateWasPlaying) {
+        clearInterval(systemAnimationTimerId);
     }
 
-    // Resetování pozic textů pro čistý start záznamu od nultého bodu
-    lineScrollOffset = 0;
-    text1ScrollOffset = 0;
-    text2ScrollOffset = 0;
+    // Uložení aktuálních pozic pro pozdější obnovu
+    const backupLineScroll = offsetLineScroll;
+    const backupText1Scroll = offsetText1Scroll;
+    const backupText2Scroll = offsetText2Scroll;
 
-    const recordedFrames = [];
-    const totalFramesToRecord = 45; // Počet snímků k zachycení (ideální délka pro plynulou smyčku)
+    // Resetování offsetů pro synchronizovaný start záznamu od počátečního stavu
+    offsetLineScroll = 0;
+    offsetText1Scroll = 0;
+    offsetText2Scroll = 0;
 
-    // Vytvoření skrytého plátna pro renderování čistých snímků bez systémových zaměřovačů
-    const compileCanvas = document.createElement('canvas');
-    compileCanvas.width = pWidth * DOT_RENDER_SIZE;
-    compileCanvas.height = pHeight * DOT_RENDER_SIZE;
-    const cCtx = compileCanvas.getContext('2d');
+    const framesCollection = [];
+    const absoluteFramesCountToCompile = 50; // Počet snímků zaručující dokonalou plynulost smyčky
 
-    const stepPx = parseInt(document.getElementById('pAnimStep').value) || 1;
-    const animLine = document.getElementById('lineAnimCheck').checked;
-    const animT1 = document.getElementById('text1AnimCheck').checked;
-    const animT2 = document.getElementById('text2AnimCheck').checked;
+    // Vytvoření dedikovaného offline plátna pro renderování čistého exportního profilu
+    const offlineCompileCanvas = document.createElement('canvas');
+    offlineCompileCanvas.width = pWidth * DOT_RENDER_SIZE;
+    offlineCompileCanvas.height = pHeight * DOT_RENDER_SIZE;
+    const offlineCtx = offlineCompileCanvas.getContext('2d');
 
-    // Sběr snímků krok za krokem
-    for (let f = 0; f < totalFramesToRecord; f++) {
-        drawBuseStudioFrame(cCtx, true); // Vykreslení čistého snímku v exportním režimu
-        recordedFrames.push(compileCanvas.toDataURL("image/png"));
+    // Načtení kroků a směrů pro vnitřní matematický inkrementátor exportu
+    const doLine = document.getElementById('regLineAnimActive').checked;
+    const stepLine = parseInt(document.getElementById('regLineStep').value) || 1;
+    const multLine = parseInt(document.getElementById('regLineMult').value) || 1;
+    const dirLine = document.getElementById('regLineDir').value;
 
-        // Posunout offset pro příští snímek záznamu
-        if (animLine) lineScrollOffset -= stepPx;
-        if (animT1) text1ScrollOffset -= stepPx;
-        if (animT2) text2ScrollOffset -= stepPx;
-    }
+    const doT1 = document.getElementById('regText1AnimActive').checked;
+    const stepT1 = parseInt(document.getElementById('regText1Step').value) || 1;
+    const multT1 = parseInt(document.getElementById('regText1Mult').value) || 1;
+    const dirT1 = document.getElementById('regText1Dir').value;
 
-    // Volání vestavěného kompilátoru knihovny gifshot
-    gifshot.createGIF({
-        images: recordedFrames,
-        gifWidth: pWidth * DOT_RENDER_SIZE,
-        gifHeight: pHeight * DOT_RENDER_SIZE,
-        interval: speedMs / 1000, // Převod z milisekund na sekundy
-        numWorkers: 2
-    }, function (obj) {
-        if (!obj.error) {
-            const downloadLink = document.createElement('a');
-            downloadLink.download = `SIMT_BUSE_Animated_${pWidth}x${pHeight}.gif`;
-            downloadLink.href = obj.image;
-            downloadLink.click();
-            document.getElementById('statusMonitor').innerText = "✅ GIF úspěšně stažen!";
-        } else {
-            document.getElementById('statusMonitor').innerText = "❌ Chyba kompilace GIF souboru.";
+    const doT2 = document.getElementById('regText2AnimActive').checked;
+    const stepT2 = parseInt(document.getElementById('regText2Step').value) || 1;
+    const multT2 = parseInt(document.getElementById('regText2Mult').value) || 1;
+    const dirT2 = document.getElementById('regText2Dir').value;
+
+    // Sekvenční generování jednotlivých snímků a plnění paměťového pole
+    for (let frameIndex = 0; frameIndex < absoluteFramesCountToCompile; frameIndex++) {
+        // Vykreslení čistého snímku (isExportMode = true potlačuje nitkové kříže a záři)
+        executeFullMatrixRenderPipeline(offlineCtx, true);
+        
+        // Konverze plátna na base64 řetězec a uložení
+        framesCollection.push(offlineCompileCanvas.toDataURL("image/png"));
+
+        // Výpočet vnitřních offsetů pro následující snímek
+        if (doLine) {
+            const d = stepLine * multLine;
+            offsetLineScroll += (dirLine === 'left') ? -d : d;
+        }
+        if (doT1) {
+            const d = stepT1 * multT1;
+            offsetText1Scroll += (dirT1 === 'left') ? -d : d;
+        }
+        if (doT2) {
+            const d = stepT2 * multT2;
+            offsetText2Scroll += (dirT2 === 'left') ? -d : d;
         }
 
-        // Navrácení původního stavu aplikace po dokončení exportu
-        if (internalWasPlaying) {
-            isAnimationRunning = true;
-            initAnimationLoop();
+        // Aktualizace loading stavu v procentech pro uživatele
+        let percent = Math.floor((frameIndex / absoluteFramesCountToCompile) * 100);
+        progressLabel.innerText = `Snímání a kvantizace snímků: ${percent}%`;
+    }
+
+    progressLabel.innerText = "Komprimuji a sestavuji výsledný .GIF soubor...";
+
+    // Spuštění asynchronního kompilátoru externí knihovny gifshot
+    gifshot.createGIF({
+        images: framesCollection,
+        gifWidth: pWidth * DOT_RENDER_SIZE,
+        gifHeight: pHeight * DOT_RENDER_SIZE,
+        interval: masterSpeed / 1000, // Přepočet z milisekund na sekundy
+        numWorkers: 2,
+        sampleInterval: 10,
+        numFrames: absoluteFramesCountToCompile
+    }, function (resultObject) {
+        // Schování modálního okna
+        overlay.classList.remove('active');
+
+        if (!resultObject.error) {
+            const anchor = document.createElement('a');
+            anchor.download = `SIMT_BUSE_Studio_Export_${pWidth}x${pHeight}.gif`;
+            anchor.href = resultObject.image;
+            anchor.click();
+            document.getElementById('realtimeStatusMonitor').innerText = "✅ Animovaný GIF byl úspěšně vygenerován a stažen!";
         } else {
-            resetAnimationOffsets();
+            document.getElementById('realtimeStatusMonitor').innerText = "❌ Kritická chyba při sestavování GIF souboru.";
+            console.error("Gifshot Error: ", resultObject.error);
+        }
+
+        // Obnova původního stavu registrů a spuštění časovače, pokud předtím běžel
+        offsetLineScroll = backupLineScroll;
+        offsetText1Scroll = backupText1Scroll;
+        offsetText2Scroll = backupText2Scroll;
+
+        if (previousSystemStateWasPlaying) {
+            isSystemAnimationRunning = true;
+            spawnSystemAnimationLoop();
+        } else {
+            executeFullMatrixRenderPipeline();
         }
     });
 }
 
-// --- REGISTRACE EVENT LISTENEROŮ PRO ŽIVOU REAKCI OVLÁDACÍCH PRVKŮ ---
-const inputHooks = [
-    'pWidth', 'pHeight', 'pFill', 'pRectColor',
-    'lineText', 'lineFont', 'lineSize', 'lineX', 'lineY', 'lineColor',
-    'text1Text', 'text1Font', 'text1Size', 'text1X', 'text1Y', 'text1Color',
-    'text2Text', 'text2Font', 'text2Size', 'text2X', 'text2Y', 'text2Color',
-    'lineAnimCheck', 'text1AnimCheck', 'text2AnimCheck', 'pAnimStep'
+// ==========================================================================
+// REGISTRACE VŠECH HÁKŮ (EVENT LISTENERS) PRO OKAMŽITOU REAL-TIME REAKCI UI
+// ==========================================================================
+const inputHooksSelectorsArray = [
+    'pWidth', 'pHeight', 'pFill', 'pAlphaThreshold', 'pRectColor', 'pMasterSpeed',
+    'regLineInput', 'regLineFont', 'regLineSize', 'regLineX', 'regLineY', 'regLineColor', 'regLineStep', 'regLineMult', 'regLineDir', 'regLineBlink', 'regLineInverse', 'regLineAnimActive',
+    'regText1Input', 'regText1Font', 'regText1Size', 'regText1X', 'regText1Y', 'regText1Color', 'regText1Step', 'regText1Mult', 'regText1Dir', 'regText1Blink', 'regText1Inverse', 'regText1AnimActive',
+    'regText2Input', 'regText2Font', 'regText2Size', 'regText2X', 'regText2Y', 'regText2Color', 'regText2Step', 'regText2Mult', 'regText2Dir', 'regText2Blink', 'regText2Inverse', 'regText2AnimActive'
 ];
 
-inputHooks.forEach(id => {
-    document.getElementById(id).addEventListener('input', () => {
-        if (!isAnimationRunning) drawBuseStudioFrame();
-    });
+inputHooksSelectorsArray.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('input', () => {
+            // Pokud je animace zastavená, okamžitě překreslíme scénu pro vizuální odezvu změny hodnoty
+            if (!isSystemAnimationRunning) {
+                executeFullMatrixRenderPipeline();
+            }
+        });
+    }
 });
 
-// Automatické spuštění enginu při načtení celé aplikace
+// Inicializační spuštění systému po kompletním načtení dokumentu prohlížečem
 window.onload = function() {
-    renderSidebarStack();
-    if (isAnimationRunning) {
-        initAnimationLoop();
+    syncSidebarLayersStack();
+    if (isSystemAnimationRunning) {
+        spawnSystemAnimationLoop();
     } else {
-        drawBuseStudioFrame();
+        executeFullMatrixRenderPipeline();
     }
 };
 </script>
