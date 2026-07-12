@@ -232,17 +232,17 @@
             cursor: crosshair;
         }
 
-        /* Diagnostické okno pod plátnem */
+        /* PREVENTIVNÍ ÚPRAVA: Diagnostické okno přesunuto dolů, zde upraven styl */
         .live-diagnostic-terminal {
-            width: 100%;
-            max-width: 700px;
+            width: calc(100% - 40px);
+            margin: 15px 20px 25px 20px;
             background: #050505;
             border: 1px solid #1e1e1e;
             border-radius: 5px;
             font-family: monospace;
-            font-size: 10px;
-            padding: 8px;
-            height: 70px;
+            font-size: 11px;
+            padding: 10px;
+            height: 85px;
             overflow-y: auto;
             color: #888;
             box-shadow: inset 0 0 10px #000;
@@ -551,7 +551,6 @@
             box-shadow: 0 0 15px rgba(255, 157, 0, 0.3);
         }
 
-        /* OPRAVENO: Plynulá 360 stupňová rotace namísto 36 stupňů */
         @keyframes spinAnimation {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -646,11 +645,7 @@
         <div class="hardware-matrix-housing">
             <canvas id="mainStudioMatrixCanvas"></canvas>
         </div>
-        <!-- Diagnostický terminál -->
-        <div class="live-diagnostic-terminal" id="studioDiagnosticTerminal">
-            <div class="terminal-log-row success">[SYSTEM] BUSE Core v5.5 Mobile-Stable úspěšně spuštěn.</div>
-            <div class="terminal-log-row info">[INFO] Zpracování GIF upraveno: Bypassed Web Workers k zamezení freeze na iOS.</div>
-        </div>
+        <!-- LOG odsud zmizel, aby neblokoval svajpování a touch eventy -->
     </div>
 
     <!-- PRAVÝ PANEL PRO MONITORING RUČNÍCH STRUKTUR -->
@@ -747,7 +742,7 @@
         <div class="center-flex-cell"><input type="checkbox" id="regText1AnimActive" checked></div>
     </div>
 
-    <!-- REGISTR 3: TEXT 2 (Nové rozšíření) -->
+    <!-- REGISTR 3: TEXT 2 -->
     <div class="studio-config-grid">
         <span class="layer-tag-label" style="color: #a0aec0;">🔤 Řádek 2:</span>
         <input type="text" id="regText2Input" value="přes: Semilasso ⚠️">
@@ -783,6 +778,12 @@
     </div>
 </footer>
 
+<!-- DIAGNOSTICKÝ TERMINÁL PŘESUNUTÝ ÚPLNĚ NA SPODEK STRÁNKY -->
+<div class="live-diagnostic-terminal" id="studioDiagnosticTerminal">
+    <div class="terminal-log-row success">[SYSTEM] BUSE Core v5.5 Mobile-Stable úspěšně spuštěn.</div>
+    <div class="terminal-log-row info">[INFO] Diagnostické okno přesunuto na spodek stránky k zamezení kolizí dotykových gest.</div>
+</div>
+
 <script>
 /**
  * ==========================================================================================
@@ -791,12 +792,10 @@
  * ==========================================================================================
  */
 
-// Získání elementu hlavního plátna a jeho 2D kreslícího kontextu
 const studioCanvas = document.getElementById('mainStudioMatrixCanvas');
 const studioCtx = studioCanvas.getContext('2d');
-const DOT_RENDER_SIZE = 5; // Multiplikátor fyzického zobrazení jednoho bodu matice
+const DOT_RENDER_SIZE = 5; 
 
-// Vytvoření oddělených skrytých 1:1 pláten (bufferů) pro pokročilý pre-rendering a maskování
 const bufferLine = document.createElement('canvas');
 const bufferT1 = document.createElement('canvas');
 const bufferT2 = document.createElement('canvas');
@@ -805,25 +804,17 @@ const ctxLine = bufferLine.getContext('2d');
 const ctxT1 = bufferT1.getContext('2d');
 const ctxT2 = bufferT2.getContext('2d');
 
-// Globální stavové registry animačního subsystému
 let isSystemAnimationRunning = true;
 let systemAnimationTimerId = null;
-let globalCycleFrameCounter = 0; // Počítadlo rámců pro efekty jako blikání (Blink)
+let globalCycleFrameCounter = 0; 
 
-// Běžící horizontální posuny v pixelech pro jednotlivé textové řetězce
 let offsetLineScroll = 0;
 let offsetText1Scroll = 0;
 let offsetText2Scroll = 0;
 
-// Datové úložiště pro ručně naklikané vektorové polygony (výplně)
 let registeredRectangles = [];
 let cachedFirstCornerCoords = null;
 
-/**
- * Pomocná funkce pro zápis do vizuálního diagnostického terminálu na ploše
- * @param {string} msg - Zpráva k zalogování
- * @param {string} type - Typ logu (info, warn, success)
- */
 function logToTerminalConsole(msg, type = "info") {
     const term = document.getElementById('studioDiagnosticTerminal');
     if (!term) return;
@@ -836,9 +827,6 @@ function logToTerminalConsole(msg, type = "info") {
     term.scrollTop = term.scrollHeight;
 }
 
-/**
- * Aplikuje rozměrové a barevné konfigurace na základě stisknutého presetu
- */
 function applyHardwarePresetConfiguration(w, h, color, bg) {
     document.getElementById('pWidth').value = w;
     document.getElementById('pHeight').value = h;
@@ -849,12 +837,6 @@ function applyHardwarePresetConfiguration(w, h, color, bg) {
     executeFullMatrixRenderPipeline();
 }
 
-/**
- * Funkce vypočítá tón barvy pro neaktivní (zhasnuté) diody matice na základě
- * zadané barvy pozadí. Zajišťuje realistický hardwarový rastr.
- * @param {string} hexBgColor - Hexadecimální kód barvy pozadí panelu
- * @returns {string} - Výsledný RGB řetězec stínového bodu
- */
 function computeHardwareGridHoleColor(hexBgColor) {
     let r = parseInt(hexBgColor.slice(1, 3), 16) || 0;
     let g = parseInt(hexBgColor.slice(3, 5), 16) || 0;
@@ -869,9 +851,6 @@ function computeHardwareGridHoleColor(hexBgColor) {
     }
 }
 
-/**
- * Přepíná globální stav běžící smyčky animace a mění vizuální stav UI tlačítka
- */
 function toggleSystemAnimationState() {
     const btn = document.getElementById('btnMasterAnimToggle');
     isSystemAnimationRunning = !isSystemAnimationRunning;
@@ -890,9 +869,6 @@ function toggleSystemAnimationState() {
     }
 }
 
-/**
- * Resetuje veškeré posuny na nulovou hodnotu a překreslí plátno
- */
 function recenterAllOffsets() {
     offsetLineScroll = 0;
     offsetText1Scroll = 0;
@@ -901,9 +877,6 @@ function recenterAllOffsets() {
     executeFullMatrixRenderPipeline();
 }
 
-/**
- * Aktualizuje seznam naklikaných vrstev na pravé straně obrazovky
- */
 function syncSidebarLayersStack() {
     const container = document.getElementById('vectorLayersStackContainer');
     document.getElementById('sidebarLayerBadgeCounter').innerText = registeredRectangles.length;
@@ -928,10 +901,6 @@ function syncSidebarLayersStack() {
     });
 }
 
-/**
- * Odstraní vybraný prvek ze seznamu registrovaných výplní
- * @param {number} idx - Index v poli
- */
 function removeSpecificVectorLayer(idx) {
     registeredRectangles.splice(idx, 1);
     logToTerminalConsole(`Odstraněna ruční polygonová výplň ID #${idx + 1}`, "warn");
@@ -939,9 +908,6 @@ function removeSpecificVectorLayer(idx) {
     executeFullMatrixRenderPipeline();
 }
 
-/**
- * Vyčistí kompletní paměť naklikaných obdélníků
- */
 function clearAllRegisteredRectangles() {
     registeredRectangles = [];
     cachedFirstCornerCoords = null;
@@ -951,12 +917,6 @@ function clearAllRegisteredRectangles() {
     executeFullMatrixRenderPipeline();
 }
 
-/**
- * MAIN PIPELINE ARCHITECTURE - RASTERIZACE A SESTAVENÍ OBRAZU MATICE
- * Kreslí vrstvy v přísném pořadí: Pozadí -> Mřížka -> Ruční výplně -> Texty a celá barevná emoji!
- * @param {CanvasRenderingContext2D} targetCtx - Cílový kontext (hlavní plátno nebo kompilátor GIFu)
- * @param {boolean} isExportMode - Vlajka pro potlačení efektů záření a pomocných kurzorů
- */
 function executeFullMatrixRenderPipeline(targetCtx = studioCtx, isExportMode = false) {
     const pWidth = parseInt(document.getElementById('pWidth').value) || 140;
     const pHeight = parseInt(document.getElementById('pHeight').value) || 19;
@@ -965,7 +925,6 @@ function executeFullMatrixRenderPipeline(targetCtx = studioCtx, isExportMode = f
 
     document.getElementById('labelAlphaThresholdText').innerText = alphaThreshold;
 
-    // Načtení nastavení pro LINKU
     const strLine = document.getElementById('regLineInput').value;
     const fontLine = document.getElementById('regLineFont').value;
     const sizeLine = parseInt(document.getElementById('regLineSize').value) || 0;
@@ -976,7 +935,6 @@ function executeFullMatrixRenderPipeline(targetCtx = studioCtx, isExportMode = f
     const invLine = document.getElementById('regLineInverse').checked;
     const kernLine = parseInt(document.getElementById('regLineKerning').value) || 0;
 
-    // Načtení nastavení pro ŘÁDEK 1
     const strT1 = document.getElementById('regText1Input').value;
     const fontT1 = document.getElementById('regText1Font').value;
     const sizeT1 = parseInt(document.getElementById('regText1Size').value) || 0;
@@ -987,7 +945,6 @@ function executeFullMatrixRenderPipeline(targetCtx = studioCtx, isExportMode = f
     const invT1 = document.getElementById('regText1Inverse').checked;
     const kernT1 = parseInt(document.getElementById('regText1Kerning').value) || 0;
 
-    // Načtení nastavení pro ŘÁDEK 2
     const strT2 = document.getElementById('regText2Input').value;
     const fontT2 = document.getElementById('regText2Font').value;
     const sizeT2 = parseInt(document.getElementById('regText2Size').value) || 0;
@@ -1003,11 +960,9 @@ function executeFullMatrixRenderPipeline(targetCtx = studioCtx, isExportMode = f
         studioCanvas.height = pHeight * DOT_RENDER_SIZE;
     }
 
-    // VRSTVA 1: Podkladové pozadí panelu
     targetCtx.fillStyle = fillColor;
     targetCtx.fillRect(0, 0, pWidth * DOT_RENDER_SIZE, pHeight * DOT_RENDER_SIZE);
     
-    // VRSTVA 2: Hardwarový rastr zhasnutých LED diod
     targetCtx.fillStyle = computeHardwareGridHoleColor(fillColor);
     for (let x = 0; x < pWidth; x++) {
         for (let y = 0; y < pHeight; y++) {
@@ -1015,41 +970,34 @@ function executeFullMatrixRenderPipeline(targetCtx = studioCtx, isExportMode = f
         }
     }
 
-    // VRSTVA 3: Inicializace 1:1 paměťových bufferů
     bufferLine.width = pWidth; bufferLine.height = pHeight; ctxLine.clearRect(0, 0, pWidth, pHeight);
     bufferT1.width = pWidth; bufferT1.height = pHeight; ctxT1.clearRect(0, 0, pWidth, pHeight);
     bufferT2.width = pWidth; bufferT2.height = pHeight; ctxT2.clearRect(0, 0, pWidth, pHeight);
 
-    // Kreslení textu LINKY s podporou vlastního kerningu
     let hideLineDueToBlink = blinkLine && (Math.floor(globalCycleFrameCounter / 6) % 2 === 0);
     if (strLine.trim() !== "" && sizeLine > 0 && !hideLineDueToBlink) {
         ctxLine.textBaseline = "top"; ctxLine.textAlign = "left";
         ctxLine.font = `bold ${sizeLine}px ${fontLine}, -apple-system, sans-serif`;
         ctxLine.fillStyle = "#ffffff";
-        if (kernLine !== 0) ctxLine.letterSpacing = `${kernLine}px`;
-        else ctxLine.letterSpacing = "0px";
+        ctxLine.letterSpacing = `${kernLine}px`;
         ctxLine.fillText(strLine, xLine + offsetLineScroll, yLine);
     }
 
-    // Kreslení 1. ŘÁDKU
     let hideT1DueToBlink = blinkT1 && (Math.floor(globalCycleFrameCounter / 6) % 2 === 0);
     if (strT1.trim() !== "" && sizeT1 > 0 && !hideT1DueToBlink) {
         ctxT1.textBaseline = "top"; ctxT1.textAlign = "left";
         ctxT1.font = `bold ${sizeT1}px ${fontT1}, -apple-system, sans-serif`;
         ctxT1.fillStyle = "#ffffff";
-        if (kernT1 !== 0) ctxT1.letterSpacing = `${kernT1}px`;
-        else ctxT1.letterSpacing = "0px";
+        ctxT1.letterSpacing = `${kernT1}px`;
         ctxT1.fillText(strT1, xT1 + offsetText1Scroll, yT1);
     }
 
-    // Kreslení 2. ŘÁDKU
     let hideT2DueToBlink = blinkT2 && (Math.floor(globalCycleFrameCounter / 6) % 2 === 0);
     if (strT2.trim() !== "" && sizeT2 > 0 && !hideT2DueToBlink) {
         ctxT2.textBaseline = "top"; ctxT2.textAlign = "left";
         ctxT2.font = `bold ${sizeT2}px ${fontT2}, -apple-system, sans-serif`;
         ctxT2.fillStyle = "#ffffff";
-        if (kernT2 !== 0) ctxT2.letterSpacing = `${kernT2}px`;
-        else ctxT2.letterSpacing = "0px";
+        ctxT2.letterSpacing = `${kernT2}px`;
         ctxT2.fillText(strT2, xT2 + offsetText2Scroll, yT2);
     }
 
@@ -1057,10 +1005,8 @@ function executeFullMatrixRenderPipeline(targetCtx = studioCtx, isExportMode = f
     const bytesT1 = ctxT1.getImageData(0, 0, pWidth, pHeight).data;
     const bytesT2 = ctxT2.getImageData(0, 0, pWidth, pHeight).data;
 
-    // VRSTVA 4: Procházení každého bodu matice a vyhodnocení stavu (Emoji a texty)
     for (let x = 0; x < pWidth; x++) {
         for (let y = 0; y < pHeight; y++) {
-            
             const cellIndex = (y * pWidth + x) * 4;
             
             const alphaL = bytesLine[cellIndex + 3];
@@ -1149,9 +1095,6 @@ function executeFullMatrixRenderPipeline(targetCtx = studioCtx, isExportMode = f
     }
 }
 
-/**
- * INTEGROVANÝ ANIMATOR ENGINE
- */
 function spawnSystemAnimationLoop() {
     clearInterval(systemAnimationTimerId);
     
@@ -1228,9 +1171,6 @@ document.getElementById('pMasterSpeed').addEventListener('input', () => {
     if (isSystemAnimationRunning) spawnSystemAnimationLoop();
 });
 
-/**
- * NASTAVENÍ MOUSE-CLICK POLYGONŮ
- */
 studioCanvas.addEventListener('click', function(e) {
     const pWidth = parseInt(document.getElementById('pWidth').value) || 140;
     const pHeight = parseInt(document.getElementById('pHeight').value) || 19;
@@ -1279,9 +1219,6 @@ function exportStaticFramePNG() {
     logToTerminalConsole("Exportován statický snímek .PNG.", "success");
 }
 
-/**
- * OPRAVENÝ HIGH-PERFORMANCE GIF COMPILER BEZ POŽADAVKU NA WEB WORKERY
- */
 function compileAndExportAnimatedGIF() {
     const pWidth = parseInt(document.getElementById('pWidth').value) || 140;
     const pHeight = parseInt(document.getElementById('pHeight').value) || 19;
@@ -1307,7 +1244,7 @@ function compileAndExportAnimatedGIF() {
     offsetText2Scroll = 0;
 
     const framesCollection = [];
-    const absoluteFramesCountToCompile = 35; // Optimalizovaný počet rámců pro mobilní zařízení
+    const absoluteFramesCountToCompile = 35; 
 
     const offlineCompileCanvas = document.createElement('canvas');
     offlineCompileCanvas.width = pWidth * DOT_RENDER_SIZE;
@@ -1329,7 +1266,6 @@ function compileAndExportAnimatedGIF() {
     const multT2 = parseInt(document.getElementById('regText2Mult').value) || 1;
     const dirT2 = document.getElementById('regText2Dir').value;
 
-    // Sběr snímků
     for (let frameIndex = 0; frameIndex < absoluteFramesCountToCompile; frameIndex++) {
         executeFullMatrixRenderPipeline(offlineCtx, true);
         framesCollection.push(offlineCompileCanvas.toDataURL("image/png"));
@@ -1353,15 +1289,12 @@ function compileAndExportAnimatedGIF() {
 
     progressLabel.innerText = "Komprimuji na hlavním jádře (Stabilní režim)...";
 
-    // Ochranný nouzový timeout: Pokud by selhala knihovna, po 15 sekundách shodíme overlay
     const safetyFallbackTimeout = setTimeout(() => {
         overlay.classList.remove('active');
         logToTerminalConsole("Kritická chyba: Export překročil časový limit.", "danger");
         if (previousSystemStateWasPlaying) spawnSystemAnimationLoop();
     }, 15000);
 
-    // KONEČNÁ OPRAVA PRO MOBILNÍ ZAŘÍZENÍ: Změněno numWorkers z 2 na 0.
-    // Vlákna na pozadí nebudou shazovat mobilní Safari.
     gifshot.createGIF({
         images: framesCollection,
         gifWidth: pWidth * DOT_RENDER_SIZE,
@@ -1371,7 +1304,6 @@ function compileAndExportAnimatedGIF() {
         sampleInterval: 10,
         numFrames: absoluteFramesCountToCompile
     }, function (resultObject) {
-        // Zrušení bezpečnostní pojistky, kód doběhl úspěšně
         clearTimeout(safetyFallbackTimeout);
         overlay.classList.remove('active');
 
@@ -1400,7 +1332,6 @@ function compileAndExportAnimatedGIF() {
     });
 }
 
-// ODKYTÁNÍ VŠECH VSTUPNÍCH PRVKŮ PRO REAL-TIME SYNCHRONIZACI
 const inputHooksSelectorsArray = [
     'pWidth', 'pHeight', 'pFill', 'pAlphaThreshold', 'pRectColor', 'pMasterSpeed',
     'regLineInput', 'regLineFont', 'regLineSize', 'regLineX', 'regLineY', 'regLineColor', 'regLineStep', 'regLineMult', 'regLineDir', 'regLineBlink', 'regLineInverse', 'regLineAnimActive', 'regLineKerning',
