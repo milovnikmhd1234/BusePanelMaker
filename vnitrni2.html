@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMT BUSE Internal Widescreen Developer Station</title>
+    <!-- Načtení knihovny pro věrný export HTML elementu do obrázku -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --editor-bg: #111215;
+            --card-bg: #18191e;
+            --accent-color: #00bcd4;
+            --border-color: #2b2d35;
+            --text-muted: #8b90a0;
+            --odis-yellow: #fff200;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--editor-bg);
+            color: #f1f3f9;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- HLAVNÍ HLAVIČKA --- */
+        header {
+            background: #090a0c;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .badge-buse {
+            background: #ff5722;
+            color: #fff;
+            font-weight: 900;
+            padding: 5px 12px;
+            border-radius: 4px;
+            letter-spacing: 1.5px;
+            font-size: 14px;
+        }
+
+        .station-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        /* --- PRACOVNÍ PLOCHA (DVA SLOUPCE) --- */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            padding: 25px;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        @media (min-width: 1200px) {
+            .workspace {
+                grid-template-columns: 1.4fr 1fr;
+            }
+        }
+
+        /* --- LEVÁ ČÁST: SIMULÁTOR PANELU (Fyzické šasi BUSE) --- */
+        .viewport-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chassis-bezel {
+            background: #111111;
+            border: 14px solid #252525;
+            border-top-color: #333333;
+            border-bottom-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8), inset 0 0 10px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        /* Vlastní ultraširokoúhlá obrazovka (cca 32:9) */
+        .lcd-screen {
+            width: 100%;
+            aspect-ratio: 32 / 10;
+            background: #000;
+            color: #000;
+            display: grid;
+            grid-template-columns: 55% 45%;
+            overflow: hidden;
+            position: relative;
+            font-weight: bold;
+        }
+
+        /* Svislá dělící čára mezi trasou a přestupy */
+        .lcd-screen::after {
+            content: "";
+            position: absolute;
+            left: 55%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background-color: #000000;
+            z-index: 10;
+        }
+
+        /* SPOLEČNÉ SEKCE PRO LEVOU A PRAVOU ČÁST OBRAZOVKY */
+        .lcd-left-pane, .lcd-right-pane {
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Černé záhlaví panelu */
+        .lcd-header {
+            background-color: #000000;
+            color: #ffffff;
+            height: 18%;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 1.8cqw;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lcd-body {
+            height: 82%;
+            position: relative;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1% 0;
+        }
+
+        /* LEVÁ ČÁST: TRASA / ZASTÁVKY */
+        .route-timeline {
+            position: absolute;
+            left: 14%;
+            top: 5%;
+            bottom: 5%;
+            width: 8px;
+            background-color: #94a3b8;
+            border-radius: 4px;
+            z-index: 1;
+        }
+
+        .stop-row {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            height: 23%;
+            padding: 0 15px;
+            position: relative;
+            z-index: 2;
+            transition: background-color 0.2s;
+        }
+
+        /* Aktivní žlutý řádek (příští zastávka) */
+        .stop-row.active-stop {
+            background-color: var(--odis-yellow);
+        }
+
+        /* Kontejner pro pásma / zóny */
+        .zone-container {
+            display: flex;
+            gap: 4px;
+            width: 12%;
+            height: 85%;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .zone-pill {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 0.9cqw;
+            font-weight: 900;
+            width: 18px;
+            height: 100%;
+            border-radius: 3px;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            text-align: center;
+            box-shadow: inset 0 0 4px rgba(0,0,0,0.2);
+        }
+
+        /* Bod na svislé ose */
+        .timeline-node {
+            width: 1.8cqw;
+            height: 1.8cqw;
+            background-color: #e11d48; /* Červený bod */
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            margin-left: 2%;
+            margin-right: 4%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 3;
+        }
+
+        .stop-row.active-stop .timeline-node {
+            background-color: #e11d48;
+            transform: scale(1.15);
+            border-color: #000;
+        }
+
+        .stop-name-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .stop-name {
+            font-size: 1.9cqw;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stop-row.active-stop .stop-name {
+            color: #000000;
+            font-size: 2.1cqw;
+            font-weight: 900;
+        }
+
+        .stop-subtext {
+            font-size: 1cqw;
+            color: #ef4444;
+            font-weight: bold;
+            margin-top: -2px;
+        }
+
+        .stop-time {
+            font-size: 1.8cqw;
+            color: #475569;
+            margin-left: auto;
+            padding-right: 10px;
+        }
+
+        .stop-row.active-stop .stop-time {
+            color: #000000;
+            font-weight: 900;
+        }
+
+        /* PRAVÁ ČÁST: PŘESTUPY / REKLAMA */
+        .lcd-right-pane .lcd-header {
+            justify-content: space-between;
+            background-color: #000000;
+        }
+
+        .header-destination {
+            color: #ffffff;
+            font-size: 1.6cqw;
+        }
+
+        .header-clock-box {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .header-clock-label {
+            font-size: 0.7cqw;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+
+        .header-clock-time {
+            font-size: 1.8cqw;
+            font-family: monospace;
+            color: #ffffff;
+            line-height: 1;
+        }
+
+        /* Seznam přípojů */
+        .transfers-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5%;
+            padding: 3% 15px;
+            height: 100%;
+            justify-content: flex-start;
+        }
+
+        .transfer-row {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1%;
+            height: 14%;
+        }
+
+        .transfer-row:last-child {
+            border-bottom: none;
+        }
+
+        .transfer-line {
+            background-color: #ffffff;
+            border: 2.5px solid #000000;
+            color: #000000;
+            font-size: 1.4cqw;
+            font-weight: 900;
+            padding: 1px 6px;
+            min-width: 3.5cqw;
+            text-align: center;
+            margin-right: 3%;
+            border-radius: 3px;
+        }
+
+        .transfer-dest {
+            font-size: 1.4cqw;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        .transfer-mins {
+            font-size: 1.4cqw;
+            color: #000000;
+            font-weight: bold;
+            white-space: nowrap;
+            margin-left: auto;
+        }
+
+        /* Modul Reklamy */
+        .ad-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .ad-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Brand logo na spodku hardwaru */
+        .chassis-brand {
+            text-align: center;
+            color: #666;
+            font-weight: 900;
+            letter-spacing: 5px;
+            font-size: 12px;
+            margin-top: 8px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* --- PRAVÁ ČÁST: KONTROLNÍ PANELY (EDITOR) --- */
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .card-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #fff;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        @media (min-width: 600px) {
+            .control-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        input[type="text"], select, input[type="file"] {
+            background: #0d0e12;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, select:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* Dynamické stolové řádky pro zastávky a přípoje */
+        .manager-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .manager-table th {
+            text-align: left;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            padding: 6px;
+        }
+
+        .manager-table td {
+            padding: 6px 4px;
+            vertical-align: middle;
+        }
+
+        .btn {
+            background: #2b2d35;
+            color: #fff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn:hover {
+            background: #393c47;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: #00e5ff;
+        }
+
+        .btn-preset {
+            background: #ff9800;
+            color: #000;
+        }
+
+        .btn-preset:hover {
+            background: #ffb74d;
+        }
+
+        .flex-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .radio-active-stop {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo-area">
+        <div class="badge-buse">BUSE</div>
+        <div class="station-title">BS 370 LCD - Vnitřní širokoúhlý panel</div>
+    </div>
+    <button class="btn btn-preset" onclick="loadDefaultOdisData()">Načíst předlohu (Rýmařov-Bruntál)</button>
+</header>
+
+<div class="workspace">
+    
+    <!-- LEVÁ ČÁST: SIMULÁTOR PANELU -->
+    <div class="viewport-container">
+        <div class="chassis-bezel">
+            <!-- Skutečný LCD display, který se bude exportovat -->
+            <div class="lcd-screen" id="exportableDisplay" style="container-type: inline-size;">
+                
+                <!-- LEVÝ PANEL: TRASA -->
+                <div class="lcd-left-pane">
+                    <div class="lcd-header" id="dispLineTarget">850873 Rýmařov aut.st.</div>
+                    <div class="lcd-body">
+                        <div class="route-timeline"></div>
+                        
+                        <!-- Zastávka 1 -->
+                        <div class="stop-row" id="dispStopRow0">
+                            <div class="zone-container" id="dispStopZones0"></div>
+                            <div class="timeline-node"></div>
+                            <div class="stop-name-wrapper">
+                                <div class="stop-name" id="dispStopName0">Zastávka 1</div>
+                            </div>
+                            <div class="stop-time" id="dispStopTime0">--:--</div>
+                        </div>
+
+                        <!-- Zastávka 2 -->
+                        <div class="stop-row" id="dispStopRow1">
+                            <div class="zone-container" id="dispStopZones1"></div>
+                            <div class="timeline-node"></div>
+                            <div class="stop-name-wrapper">
+                                <div class="stop-name" id="dispStopName1">Zastávka 2</div>
+                            </div>
+                            <div class="stop-time" id="dispStopTime1">--:--</div>
+                        </div>
+
+                        <!-- Zastávka 3 -->
+                        <div class="stop-row" id="dispStopRow2">
+                            <div class="zone-container" id="dispStopZones2"></div>
+                            <div class="timeline-node"></div>
+                            <div class="stop-name-wrapper">
+                                <div class="stop-name" id="dispStopName2">Zastávka 3</div>
+                            </div>
+                            <div class="stop-time" id="dispStopTime2">--:--</div>
+                        </div>
+
+                        <!-- Zastávka 4 -->
+                        <div class="stop-row" id="dispStopRow3">
+                            <div class="zone-container" id="dispStopZones3"></div>
+                            <div class="timeline-node"></div>
+                            <div class="stop-name-wrapper">
+                                <div class="stop-name" id="dispStopName3">Zastávka 4</div>
+                                <div class="stop-subtext" id="dispStopSub3">>> nácestné přestupy</div>
+                            </div>
+                            <div class="stop-time" id="dispStopTime3">--:--</div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- PRAVÝ PANEL: PŘESTUPY NEBO REKLAMA -->
+                <div class="lcd-right-pane">
+                    
+                    <!-- Hlavička pravého panelu (Skryje se, pokud je zobrazena celoplošná reklama) -->
+                    <div class="lcd-header" id="rightPanelHeader">
+                        <div class="header-destination" id="dispRightTarget">09:09 ▸ Bruntál Seliko</div>
+                        <div class="header-clock-box">
+                            <div class="header-clock-label">Čas / Time</div>
+                            <div class="header-clock-time" id="dispCurrentTime">08:52:17</div>
+                        </div>
+                    </div>
+
+                    <!-- Obsah pravého panelu: buď tabulka přestupů, nebo reklamní prostor -->
+                    <div style="height: 82%; background: #fff;" id="rightPanelContent">
+                        
+                        <!-- REŽIM A: Přestupy -->
+                        <div class="transfers-container" id="transfersView">
+                            <div class="transfer-row">
+                                <div class="transfer-line" id="dispTransLine0">---</div>
+                                <div class="transfer-dest" id="dispTransDest0">Směr přípoje</div>
+                                <div class="transfer-mins" id="dispTransMin0">-- min</div>
+                            </div>
+                            <div class="transfer-row">
+                                <div class="transfer-line" id="dispTransLine1">---</div>
+                                <div class="transfer-dest" id="dispTransDest1">Směr přípoje</div>
+                                <div class="transfer-mins" id="dispTransMin1">-- min</div>
+                            </div>
+                            <div class="transfer-row">
+                                <div class="transfer-line" id="dispTransLine2">---</div>
+                                <div class="transfer-dest" id="dispTransDest2">Směr přípoje</div>
+                                <div class="transfer-mins" id="dispTransMin2">-- min</div>
+                            </div>
+                            <div class="transfer-row">
+                                <div class="transfer-line" id="dispTransLine3">---</div>
+                                <div class="transfer-dest" id="dispTransDest3">Směr přípoje</div>
+                                <div class="transfer-mins" id="dispTransMin3">-- min</div>
+                            </div>
+                            <div class="transfer-row">
+                                <div class="transfer-line" id="dispTransLine4">---</div>
+                                <div class="transfer-dest" id="dispTransDest4">Směr přípoje</div>
+                                <div class="transfer-mins" id="dispTransMin4">-- min</div>
+                            </div>
+                            <div class="transfer-row">
+                                <div class="transfer-line" id="dispTransLine5">---</div>
+                                <div class="transfer-dest" id="dispTransDest5">Směr přípoje</div>
+                                <div class="transfer-mins" id="dispTransMin5">-- min</div>
+                            </div>
+                        </div>
+
+                        <!-- REŽIM B: Reklama (ve výchozím stavu skrytá) -->
+                        <div class="ad-container" id="adView" style="display: none;">
+                            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='450' height='250' viewBox='0 0 450 250'><rect width='100%' height='100%' fill='%23111' /><text x='50%' y='45%' font-family='sans-serif' font-weight='bold' font-size='24' fill='%23ff9800' dominant-baseline='middle' text-anchor='middle'>REKLAMNÍ PLOCHA</text><text x='50%' y='60%' font-family='sans-serif' font-size='14' fill='%23888' dominant-baseline='middle' text-anchor='middle'>Sem bude nahrán váš obrázek</text></svg>" class="ad-image" id="uploadedAdImage">
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="chassis-brand">BUSE</div>
+        </div>
+
+        <div class="flex-buttons">
+            <button class="btn btn-primary" style="flex: 1;" onclick="exportAsPNG()">Exportovat panel do .PNG</button>
+        </div>
+    </div>
+
+    <!-- PRAVÁ ČÁST: EDITOR HODNOT -->
+    <div class="editor-container">
+        
+        <!-- GLOBÁLNÍ PARAMETRY -->
+        <div class="card">
+            <div class="card-title">Hlavní konfigurace panelu</div>
+            <div class="control-grid">
+                <div class="input-group">
+                    <label for="inpLine">Linka & Cíl (Záhlaví vlevo)</label>
+                    <input type="text" id="inpLine" value="850873 Rýmařov aut.st." oninput="updatePanel()">
+                </div>
+                <div class="input-group">
+                    <label for="inpRightTarget">Příští cíl (Záhlaví vpravo)</label>
+                    <input type="text" id="inpRightTarget" value="09:09 ▸ Bruntál Seliko" oninput="updatePanel()">
+                </div>
+                <div class="input-group">
+                    <label for="inpTime">Čas na panelu (HH:MM:SS)</label>
+                    <input type="text" id="inpTime" value="08:52:17" oninput="updatePanel()">
+                </div>
+                <div class="input-group">
+                    <label for="inpTimeMode">Režim času</label>
+                    <select id="inpTimeMode" onchange="toggleTimeSimulation()">
+                        <option value="static" selected>Statický (Ručně zadaný)</option>
+                        <option value="live">Živý (Aktualizovat podle PC)</option>
+                    </select>
+                </div>
+                <div class="input-group" style="grid-column: span 2;">
+                    <label for="inpRightMode">Režim pravé poloviny</label>
+                    <select id="inpRightMode" onchange="toggleRightMode()">
+                        <option value="transfers">Přestupy (Přípoje)</option>
+                        <option value="ad">Reklama (Obrázek / Banner)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- REŽIM REKLAMA: NAHRÁNÍ OBRÁZKU -->
+        <div class="card" id="cardAdSettings" style="display: none;">
+            <div class="card-title">Správa reklamního banneru</div>
+            <div class="input-group">
+                <label for="inpAdFile">Nahrát obrázek (Doporučený poměr cca 4:3 nebo 16:9)</label>
+                <input type="file" id="inpAdFile" accept="image/*" onchange="handleAdImageUpload(this)">
+            </div>
+        </div>
+
+        <!-- EDITOR ZASTÁVEK A PÁSEM -->
+        <div class="card" id="cardStops">
+            <div class="card-title">Zastávky a tarifní pásma</div>
+            <table class="manager-table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">Aktiv</th>
+                        <th style="width: 45%;">Zastávka</th>
+                        <th style="width: 25%;">Zóny (Pásma)</th>
+                        <th style="width: 22%;">Čas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Řádek 1 -->
+                    <tr>
+                        <td><input type="radio" name="activeStop" class="radio-active-stop" value="0" onchange="updateActiveStop(0)"></td>
+                        <td><input type="text" style="width: 100%;" id="inpStopName0" value="Jamartice,hřbitov" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpStopZones0" value="110-G,114-O" oninput="updatePanel()" placeholder="110-G,114-O"></td>
+                        <td><input type="text" style="width: 100%;" id="inpStopTime0" value="08:59" oninput="updatePanel()"></td>
+                    </tr>
+                    <!-- Řádek 2 -->
+                    <tr>
+                        <td><input type="radio" name="activeStop" class="radio-active-stop" value="1" onchange="updateActiveStop(1)"></td>
+                        <td><input type="text" style="width: 100%;" id="inpStopName1" value="Malá Štáhle rest." oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpStopZones1" value="110-G,114-O" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpStopTime1" value="08:58" oninput="updatePanel()"></td>
+                    </tr>
+                    <!-- Řádek 3 -->
+                    <tr>
+                        <td><input type="radio" name="activeStop" class="radio-active-stop" value="2" onchange="updateActiveStop(2)"></td>
+                        <td><input type="text" style="width: 100%;" id="inpStopName2" value="Václavov střed" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpStopZones2" value="110-G,114-O" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpStopTime2" value="08:51" oninput="updatePanel()"></td>
+                    </tr>
+                    <!-- Řádek 4 -->
+                    <tr>
+                        <td><input type="radio" name="activeStop" class="radio-active-stop" value="3" checked onchange="updateActiveStop(3)"></td>
+                        <td><input type="text" style="width: 100%;" id="inpStopName3" value="Bruntál Seliko" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpStopZones3" value="100-R,110-O" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpStopTime3" value="08:42" oninput="updatePanel()"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 10px; line-height: 1.4;">
+                <strong>Nápověda pro zóny:</strong> Zadej čísla oddělená čárkou. Pro barvu přidej pomlčku a kód barvy (<strong>R</strong> = Červená, <strong>G</strong> = Zelená, <strong>O</strong> = Oranžová, <strong>Y</strong> = Žlutá, <strong>B</strong> = Modrá). Příklad: <code style="color:#00ffcc">100-R,110-O</code>
+            </div>
+        </div>
+
+        <!-- EDITOR PŘESTUPŮ (PŘÍPOJŮ) -->
+        <div class="card" id="cardTransfers">
+            <div class="card-title">Odjezdy přípojů (Přestupy)</div>
+            <table class="manager-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Linka</th>
+                        <th style="width: 60%;">Směr / Cíl přestupu</th>
+                        <th style="width: 25%;">Odjezd</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" style="width: 100%; font-weight: bold;" id="inpTransLine0" value="861" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpTransDest0" value="Vrbno p.Prad.,rozc.Ludvíkov" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpTransMin0" value="8 min" oninput="updatePanel()"></td>
+                    </tr>
+                    <tr>
+                        <td><input type="text" style="width: 100%; font-weight: bold;" id="inpTransLine1" value="861" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpTransDest1" value="Bruntál,žel.st." oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpTransMin1" value="22 min" oninput="updatePanel()"></td>
+                    </tr>
+                    <tr>
+                        <td><input type="text" style="width: 100%; font-weight: bold;" id="inpTransLine2" value="862" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpTransDest2" value="Bruntál,žel.st." oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpTransMin2" value="22 min" oninput="updatePanel()"></td>
+                    </tr>
+                    <tr>
+                        <td><input type="text" style="width: 100%; font-weight: bold;" id="inpTransLine3" value="873" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpTransDest3" value="Rýmařov,aut.st." oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpTransMin3" value="31 min" oninput="updatePanel()"></td>
+                    </tr>
+                    <tr>
+                        <td><input type="text" style="width: 100%; font-weight: bold;" id="inpTransLine4" value="862" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpTransDest4" value="Karlova Studánka,dolní parkoviště" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpTransMin4" value="34 min" oninput="updatePanel()"></td>
+                    </tr>
+                    <tr>
+                        <td><input type="text" style="width: 100%; font-weight: bold;" id="inpTransLine5" value="930201" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpTransDest5" value="Ostrava,UAN" oninput="updatePanel()"></td>
+                        <td><input type="text" style="width: 100%;" id="inpTransMin5" value="56 min" oninput="updatePanel()"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    let activeStopIndex = 3; // Výchozí aktivní zastávka (Bruntál Seliko)
+    let liveClockInterval = null;
+
+    // Barevná mapa pro zóny ODIS
+    const ZONE_COLORS = {
+        'R': '#e11d48', // Red
+        'G': '#16a34a', // Green
+        'O': '#ea580c', // Orange
+        'Y': '#eab308', // Yellow
+        'B': '#2563eb'  // Blue
+    };
+
+    /**
+     * PŘEVOD TEXTOVÉHO FORMÁTU ZÓN NA BAREVNÉ ŠTÍTKY (Pill)
+     */
+    function parseZonesToHtml(zoneText) {
+        if (!zoneText.trim()) return '';
+        const zones = zoneText.split(',');
+        let html = '';
+        
+        zones.forEach(zone => {
+            const parts = zone.trim().split('-');
+            const val = parts[0] || '---';
+            const colorCode = parts[1] ? parts[1].toUpperCase() : 'G';
+            const hexColor = ZONE_COLORS[colorCode] || ZONE_COLORS['G'];
+            
+            html += `<div class="zone-pill" style="background-color: ${hexColor};">${val}</div>`;
+        });
+        
+        return html;
+    }
+
+    /**
+     * ŽIVÝ RE-RENDER PANELU PODLE INPUTŮ
+     */
+    function updatePanel() {
+        // Hlavičky
+        document.getElementById('dispLineTarget').innerText = document.getElementById('inpLine').value;
+        document.getElementById('dispRightTarget').innerText = document.getElementById('inpRightTarget').value;
+        
+        if (document.getElementById('inpTimeMode').value === 'static') {
+            document.getElementById('dispCurrentTime').innerText = document.getElementById('inpTime').value;
+        }
+
+        // Zastávky (Stops)
+        for (let i = 0; i < 4; i++) {
+            const stopName = document.getElementById(`inpStopName${i}`).value;
+            const stopTime = document.getElementById(`inpStopTime${i}`).value;
+            const stopZones = document.getElementById(`inpStopZones${i}`).value;
+            
+            document.getElementById(`dispStopName${i}`).innerText = stopName;
+            document.getElementById(`dispStopTime${i}`).innerText = stopTime;
+            document.getElementById(`dispStopZones${i}`).innerHTML = parseZonesToHtml(stopZones);
+
+            const row = document.getElementById(`dispStopRow${i}`);
+            if (i === activeStopIndex) {
+                row.classList.add('active-stop');
+                // Podtext ">> nácestné přestupy" se zobrazí pouze pod aktuálně vybranou stanicí
+                if (i === 3) {
+                    document.getElementById('dispStopSub3').style.display = 'block';
+                }
+            } else {
+                row.classList.remove('active-stop');
+                if (i === 3) {
+                    document.getElementById('dispStopSub3').style.display = 'none';
+                }
+            }
+        }
+
+        // Přestupy (Transfers)
+        for (let i = 0; i < 6; i++) {
+            document.getElementById(`dispTransLine${i}`).innerText = document.getElementById(`inpTransLine${i}`).value;
+            document.getElementById(`dispTransDest${i}`).innerText = document.getElementById(`inpTransDest${i}`).value;
+            document.getElementById(`dispTransMin${i}`).innerText = document.getElementById(`inpTransMin${i}`).value;
+        }
+    }
+
+    /**
+     * ZMĚNA AKTIVNÍ (HIGHLIGHTOVANÉ) ZASTÁVKY
+     */
+    function updateActiveStop(idx) {
+        activeStopIndex = idx;
+        updatePanel();
+    }
+
+    /**
+     * PŘEPÍNÁNÍ PRAVÉ STRANY: PŘESTUPY NEBO REKLAMA
+     */
+    function toggleRightMode() {
+        const mode = document.getElementById('inpRightMode').value;
+        const transfersView = document.getElementById('transfersView');
+        const adView = document.getElementById('adView');
+        const cardAdSettings = document.getElementById('cardAdSettings');
+        const cardTransfers = document.getElementById('cardTransfers');
+        const rightHeader = document.getElementById('rightPanelHeader');
+
+        if (mode === 'ad') {
+            transfersView.style.display = 'none';
+            adView.style.display = 'flex';
+            cardAdSettings.style.display = 'block';
+            cardTransfers.style.display = 'none';
+            // V reálných vozech se při reklamě přes celou pravou stranu skrývá i pravá hlavička
+            rightHeader.style.display = 'none';
+            document.getElementById('rightPanelContent').style.height = '100%';
+        } else {
+            transfersView.style.display = 'flex';
+            adView.style.display = 'none';
+            cardAdSettings.style.display = 'none';
+            cardTransfers.style.display = 'block';
+            rightHeader.style.display = 'flex';
+            document.getElementById('rightPanelContent').style.height = '82%';
+        }
+        updatePanel();
+    }
+
+    /**
+     * NAHRÁNÍ VLASTNÍHO OBRÁZKU PRO REKLAMU
+     */
+    function handleAdImageUpload(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('uploadedAdImage').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    /**
+     * SIMULACE REÁLNÉHO ČASU
+     */
+    function toggleTimeSimulation() {
+        const mode = document.getElementById('inpTimeMode').value;
+        const timeInput = document.getElementById('inpTime');
+
+        if (mode === 'live') {
+            timeInput.disabled = true;
+            liveClockInterval = setInterval(() => {
+                const now = new Date();
+                const hrs = String(now.getHours()).padStart(2, '0');
+                const mins = String(now.getMinutes()).padStart(2, '0');
+                const secs = String(now.getSeconds()).padStart(2, '0');
+                document.getElementById('dispCurrentTime').innerText = `${hrs}:${mins}:${secs}`;
+            }, 1000);
+        } else {
+            if (liveClockInterval) clearInterval(liveClockInterval);
+            timeInput.disabled = false;
+            updatePanel();
+        }
+    }
+
+    /**
+     * EXPORT COMPONENTU JAKO ČISTÝ PNG SOUBOR (ZACHRÁNÍ STYL I POMĚR)
+     */
+    function exportAsPNG() {
+        const target = document.getElementById('exportableDisplay');
+        
+        // Dočasné odstranění okrajů šasi pro čistý screenshot obrazovky
+        html2canvas(target, {
+            backgroundColor: '#000000',
+            scale: 2, // Zvýšení kvality renderu
+            logging: false
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'Vnitrni_BUSE_Panel_Export.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+
+    /**
+     * PRESET: NAČTENÍ DAT PODLE TVÉ PŘEDLOHY
+     */
+    function loadDefaultOdisData() {
+        // Globální data
+        document.getElementById('inpLine').value = "850873 Rýmařov aut.st.";
+        document.getElementById('inpRightTarget').value = "09:09 ▸ Bruntál Seliko";
+        document.getElementById('inpTime').value = "08:52:17";
+        document.getElementById('inpTimeMode').value = "static";
+        if (liveClockInterval) clearInterval(liveClockInterval);
+        document.getElementById('inpTime').disabled = false;
+
+        // Zastávky
+        const stopData = [
+            { name: "Jamartice,hřbitov", zones: "110-G,114-O", time: "08:59" },
+            { name: "Malá Štáhle rest.", zones: "110-G,114-O", time: "08:58" },
+            { name: "Václavov střed", zones: "110-G,114-O", time: "08:51" },
+            { name: "Bruntál Seliko", zones: "100-R,110-O", time: "08:42" }
+        ];
+
+        stopData.forEach((data, i) => {
+            document.getElementById(`inpStopName${i}`).value = data.name;
+            document.getElementById(`inpStopZones${i}`).value = data.zones;
+            document.getElementById(`inpStopTime${i}`).value = data.time;
+        });
+
+        // Nastavení aktivní zastávky
+        activeStopIndex = 3;
+        const radios = document.getElementsByName('activeStop');
+        radios[3].checked = true;
+
+        // Přestupy
+        const transferData = [
+            { line: "861", dest: "Vrbno p.Prad.,rozc.Ludvíkov", min: "8 min" },
+            { line: "861", dest: "Bruntál,žel.st.", min: "22 min" },
+            { line: "862", dest: "Bruntál,žel.st.", min: "22 min" },
+            { line: "873", dest: "Rýmařov,aut.st.", min: "31 min" },
+            { line: "862", dest: "Karlova Studánka,dolní parkoviště", min: "34 min" },
+            { line: "930201", dest: "Ostrava,UAN", min: "56 min" }
+        ];
+
+        transferData.forEach((data, i) => {
+            document.getElementById(`inpTransLine${i}`).value = data.line;
+            document.getElementById(`inpTransDest${i}`).value = data.dest;
+            document.getElementById(`inpTransMin${i}`).value = data.min;
+        });
+
+        // Reset režimu
+        document.getElementById('inpRightMode').value = "transfers";
+        toggleRightMode();
+
+        updatePanel();
+    }
+
+    // Inicializace aplikace
+    window.onload = function() {
+        updatePanel();
+    };
+</script>
+
+</body>
+</html>
