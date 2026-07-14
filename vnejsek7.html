@@ -412,7 +412,7 @@
         </div>
 
         <div class="control-box">
-            <label for="pAlphaThreshold">Citlivost Emoji (Alpha):</label>
+            <label for="pAlphaThreshold">Citlivost (Alpha):</label>
             <div class="control-box-row">
                 <input type="range" id="pAlphaThreshold" min="5" max="240" value="25">
                 <span id="alphaValDisplay" style="font-size:10px; font-family:monospace; width:20px;">25</span>
@@ -461,7 +461,7 @@
 <footer>
     <div class="editor-grid">
         <div class="grid-header">Prvek</div>
-        <div class="grid-header">Obsah vrstvy (Zadej [S] pro Esko)</div>
+        <div class="grid-header">Obsah vrstvy (Zkratky: [S] | [vyluka] | [kafe] | libovolná emoji)</div>
         <div class="grid-header">Barva</div>
         <div class="grid-header">Styl písma</div>
         <div class="grid-header">Velikost (px)</div>
@@ -471,8 +471,8 @@
     <!-- WRAPPER PRO LINKOVOU VRSTVU -->
     <div class="editor-grid">
         <span class="label-tag" style="color: var(--buse-color);">📟 Linka:</span>
-        <input type="text" id="lineIn" value="S3">
-        <input type="color" id="lineColor" value="#ff9d00">
+        <input type="text" id="lineIn" value="[vyluka]">
+        <input type="color" id="lineColor" value="#ef4444">
         <select id="lineFont">
             <option value="sans-serif" selected>Sans-Serif Bold</option>
             <option value="monospace">Monospace</option>
@@ -489,7 +489,7 @@
     <!-- WRAPPER PRO PRVNÍ ŘÁDEK TEXTU -->
     <div class="editor-grid">
         <span class="label-tag">🔤 1. Řádek:</span>
-        <input type="text" id="textIn1" value="HLAVNÍ NÁDRAŽÍ [S]">
+        <input type="text" id="textIn1" value="ODKLON TRASY [S]">
         <input type="color" id="text1Color" value="#ff9d00">
         <select id="text1Font">
             <option value="sans-serif" selected>Sans-Serif Bold</option>
@@ -507,15 +507,15 @@
     <!-- WRAPPER PRO DRUHÝ ŘÁDEK TEXTU -->
     <div class="editor-grid">
         <span class="label-tag">🔤 2. Řádek:</span>
-        <input type="text" id="textIn2" value="">
-        <input type="color" id="text2Color" value="#ff9d00">
+        <input type="text" id="textIn2" value="NÁHRADNÍ SPOJ [kafe]">
+        <input type="color" id="text2Color" value="#10b981">
         <select id="text2Font">
             <option value="sans-serif" selected>Sans-Serif Bold</option>
             <option value="monospace">Monospace</option>
             <option value="serif">Serif Pro</option>
             <option value="impact">Impact Style</option>
         </select>
-        <input type="number" id="text2Size" value="0" min="0" max="120">
+        <input type="number" id="text2Size" value="10" min="0" max="120">
         <div class="coordinate-inputs">
             <div><span>X</span><input type="number" id="text2X" value="26"></div>
             <div><span>Y</span><input type="number" id="text2Y" value="9"></div>
@@ -533,8 +533,8 @@
 <script>
 /**
  * ==========================================================================================
- * SIMT BUSE ULTIMATE MATRIX CORE ENGINE v3.1 - ADVANCED ESKO MATRIX EDITION
- * ARCHITEKTURA S KUSTOMIZOVANÝMI BARVAMI ŘÁDKŮ A MATICOVÝM ESKO LOGEM
+ * SIMT BUSE ULTIMATE MATRIX CORE ENGINE v3.5 - MULTI-BUFFER HARDWARE EDITION
+ * ARCHITEKTURA S SEPARÁTNÍMI VRSTVAMI, PODPOROU PRO [vyluka], [kafe] A MONOCHROMATIZACÍ EMOJI
  * ==========================================================================================
  */
 
@@ -542,26 +542,31 @@ const mainCanvas = document.getElementById('buseCanvas');
 const mainCtx = mainCanvas.getContext('2d');
 const DOT_RENDER_SIZE = 5;
 
-// Izolovaný textový buffer pro maskování a pre-render textu s plnou podporou barevných emoji a log
+// Hlavní paměťový buffer, kam se sloučí všechny korigované textové vrstvy
 const memoryBuffer = document.createElement('canvas');
 const memCtx = memoryBuffer.getContext('2d');
+
+// Pomocný jedno-vrstvý buffer k provedení nedestruktivního maskování barev (source-in)
+const layerCanvas = document.createElement('canvas');
+const lCtx = layerCanvas.getContext('2d');
 
 // Datové úložiště pro ruční pravoúhlé výplně
 let customRectsArray = [];
 let firstCornerCoords = null;
 
 /**
- * Pokročilý textový renderer, který detekuje řetězec [S] a na jeho pozici vygeneruje
- * věrnou maticovou podobu loga Esko (plný kruh s průhledným vyřezaným "S").
+ * Pokročilý textový renderer, který vyhodnocuje standardní text, nativní emoji 
+ * a speciální zkratky [S], [vyluka] a [kafe]. Vše kreslí čistě bíle do mezivrstvy.
  */
-function drawBuseTextWithEsko(ctx, text, startX, startY, fontSize, fontFamily, color) {
+function drawBuseTextWithCustomSymbols(ctx, text, startX, startY, fontSize, fontFamily) {
     ctx.textBaseline = "top"; 
     ctx.textAlign = "left";
     ctx.font = `bold ${fontSize}px ${fontFamily}, -apple-system, sans-serif`;
-    ctx.fillStyle = color;
+    ctx.fillStyle = "#ffffff"; // Vždy kreslíme bíle pro následné celoplošné obarvení vrstvy
 
     let currentX = startX;
-    let segments = text.split(/(\[S\])/g);
+    // Detekce zkratek v textovém řetězci
+    let segments = text.split(/(\[S\]|\[vyluka\]|\[kafe\])/g);
     
     segments.forEach((segment) => {
         if (segment === '[S]') {
@@ -572,29 +577,113 @@ function drawBuseTextWithEsko(ctx, text, startX, startY, fontSize, fontFamily, c
             let radius = badgeSize / 2;
 
             ctx.save();
-            
-            // 1. Nakreslíme plné kruhové pozadí v aktuální barvě vrstvy
-            ctx.fillStyle = color;
+            // 1. Plný kruhový podklad
+            ctx.fillStyle = "#ffffff";
             ctx.beginPath();
             ctx.arc(cx, cy, radius, 0, Math.PI * 2);
             ctx.fill();
 
-            // 2. Vykousneme prostřední "S" pomocí kompozitní operace destination-out
+            // 2. Vykousnutí písmene "S" skrz kompozitní operaci
             ctx.globalCompositeOperation = 'destination-out';
-            
-            // Masivní tučné písmo pro "S" zajišťující správné proporce vykousnutí
             ctx.font = `900 ${Math.floor(badgeSize * 0.95)}px "Arial Black", "Impact", sans-serif`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            
-            // Jemné vycentrování písmene S na střed kruhu
             const offsetY = badgeSize * 0.04;
             ctx.fillText("S", cx, cy + offsetY);
-            
             ctx.restore();
 
             currentX += badgeSize + (padding * 2);
-        } else if (segment.length > 0) {
+        } 
+        else if (segment === '[vyluka]') {
+            let badgeSize = fontSize;
+            let padding = 1;
+            let cx = currentX + badgeSize / 2 + padding;
+            let cy = startY + badgeSize / 2;
+            let radius = badgeSize / 2;
+
+            ctx.save();
+            
+            // Kreslení cesty objížďky (výluky) podle originálního vzoru z obrázku
+            ctx.beginPath();
+            // Start vlevo dole
+            ctx.moveTo(cx - radius * 0.8, cy + radius * 0.45);
+            // První ohyb vpravo
+            ctx.lineTo(cx - radius * 0.35, cy + radius * 0.45);
+            // Svisle nahoru
+            ctx.lineTo(cx - radius * 0.35, cy - radius * 0.5);
+            // Vodorovně doprava přes mostík
+            ctx.lineTo(cx + radius * 0.35, cy - radius * 0.5);
+            // Svisle dolů
+            ctx.lineTo(cx + radius * 0.35, cy + radius * 0.45);
+            // Vodorovně doprava k hlavě šipky
+            ctx.lineTo(cx + radius * 0.70, cy + radius * 0.45);
+            
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = Math.max(1.5, radius * 0.28); // proporcionální tloušťka linky
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.stroke();
+
+            // Kreslení plného trojúhelníkového hrotu šipky (směřuje doprava)
+            ctx.beginPath();
+            ctx.moveTo(cx + radius * 0.50, cy + radius * 0.08);
+            ctx.lineTo(cx + radius * 0.95, cy + radius * 0.45);
+            ctx.lineTo(cx + radius * 0.50, cy + radius * 0.82);
+            ctx.closePath();
+            ctx.fillStyle = "#ffffff";
+            ctx.fill();
+
+            ctx.restore();
+
+            currentX += badgeSize + (padding * 2);
+        } 
+        else if (segment === '[kafe]') {
+            let badgeSize = fontSize;
+            let padding = 1;
+            let cx = currentX + badgeSize / 2 + padding;
+            let cy = startY + badgeSize / 2;
+            let radius = badgeSize / 2;
+
+            ctx.save();
+
+            // 1. Tělo hrnečku (tvar kónického kbelíku)
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.moveTo(cx - radius * 0.45, cy - radius * 0.1);
+            ctx.lineTo(cx + radius * 0.35, cy - radius * 0.1);
+            ctx.lineTo(cx + radius * 0.25, cy + radius * 0.5);
+            ctx.lineTo(cx - radius * 0.35, cy + radius * 0.5);
+            ctx.closePath();
+            ctx.fill();
+
+            // 2. Podšálek / Talířek pod hrnkem
+            ctx.beginPath();
+            ctx.ellipse(cx - radius * 0.05, cy + radius * 0.6, radius * 0.65, radius * 0.12, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 3. Ouško hrnečku na pravé straně
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = Math.max(1.5, radius * 0.14);
+            ctx.beginPath();
+            ctx.arc(cx + radius * 0.3, cy + radius * 0.15, radius * 0.22, -Math.PI / 2, Math.PI / 2);
+            ctx.stroke();
+
+            // 4. Stoupající horká pára (dva vlnité proužky)
+            ctx.lineWidth = Math.max(1.0, radius * 0.1);
+            ctx.beginPath();
+            // Levá vlnovka
+            ctx.moveTo(cx - radius * 0.18, cy - radius * 0.25);
+            ctx.quadraticCurveTo(cx - radius * 0.28, cy - radius * 0.45, cx - radius * 0.18, cy - radius * 0.65);
+            // Pravá vlnovka
+            ctx.moveTo(cx + radius * 0.08, cy - radius * 0.25);
+            ctx.quadraticCurveTo(cx - radius * 0.02, cy - radius * 0.45, cx + radius * 0.08, cy - radius * 0.65);
+            ctx.stroke();
+
+            ctx.restore();
+
+            currentX += badgeSize + (padding * 2);
+        } 
+        else if (segment.length > 0) {
             ctx.fillText(segment, currentX, startY);
             currentX += ctx.measureText(segment).width;
         }
@@ -602,93 +691,68 @@ function drawBuseTextWithEsko(ctx, text, startX, startY, fontSize, fontFamily, c
 }
 
 /**
- * Propočítá barvu pro zhasnuté diody matice, aby korespondovaly s vybraným pozadím panelu.
- * Zajišťuje realistický hardwarový rastr.
+ * Vypočítá kontrastní barvu pro zhasnuté otvory mřížky panelu.
  */
 function calculateGridHoleColor(hexBgColor) {
     let r = parseInt(hexBgColor.slice(1, 3), 16);
     let g = parseInt(hexBgColor.slice(3, 5), 16);
     let b = parseInt(hexBgColor.slice(5, 7), 16);
-    
-    // Luminanční koeficient jasu
     let luma = 0.299 * r + 0.587 * g + 0.114 * b;
-    
-    if (luma < 110) {
-        // Tmavé pozadí -> jemně světlejší mřížka teček
-        return `rgb(${r + 15}, ${g + 15}, ${b + 15})`;
-    } else {
-        // Světlé pozadí -> stínová tmavší mřížka teček
-        return `rgb(${Math.max(0, r - 35)}, ${Math.max(0, g - 35)}, ${Math.max(0, b - 35)})`;
-    }
+    return luma < 110 ? `rgb(${r + 15}, ${g + 15}, ${b + 15})` : `rgb(${Math.max(0, r - 35)}, ${Math.max(0, g - 35)}, ${Math.max(0, b - 35)})`;
 }
 
 /**
  * PŘEDNASTAVENÉ KATEGORIE VELIKOSTÍ PÍSMA
- * Automaticky přepočítá rozvržení matice podle zvolené výšky panelu.
  */
 function applyFontPresetCategory() {
     const presetType = document.getElementById('pFontCategory').value;
     const currentPanelH = parseInt(document.getElementById('pHeight').value) || 19;
     
-    if (presetType === 'custom') return; // Ponechání uživatelských hodnot
+    if (presetType === 'custom') return;
 
     const sizeL = document.getElementById('lineSize');
     const xL = document.getElementById('lineX'); const yL = document.getElementById('lineY');
-    
     const size1 = document.getElementById('text1Size');
     const x1 = document.getElementById('text1X'); const y1 = document.getElementById('text1Y');
-    
     const size2 = document.getElementById('text2Size');
     const x2 = document.getElementById('text2X'); const y2 = document.getElementById('text2Y');
 
     switch (presetType) {
         case 'max':
-            // Pouze jeden velký hlavní text přes celou výšku, druhý řádek je deaktivován (0)
             sizeL.value = Math.floor(currentPanelH * 0.85); xL.value = 2; yL.value = 1;
             size1.value = Math.floor(currentPanelH * 0.85); x1.value = 26; y1.value = 1;
             size2.value = 0; x2.value = 26; y2.value = 0;
             break;
-            
         case 'big':
-            // Dominantní horní řádek, subtilnější doplňkový spodní řádek
             sizeL.value = Math.floor(currentPanelH * 0.85); xL.value = 2; yL.value = 1;
             size1.value = Math.floor(currentPanelH * 0.58); x1.value = 26; y1.value = 0;
             size2.value = Math.floor(currentPanelH * 0.42); x2.value = 26; y2.value = Math.floor(currentPanelH * 0.54);
             break;
-            
         case 'mid':
-            // Naprosto vyvážené rozložení obou řádků nad sebou
             sizeL.value = Math.floor(currentPanelH * 0.80); xL.value = 2; yL.value = 1;
             size1.value = Math.floor(currentPanelH * 0.48); x1.value = 26; y1.value = 0;
             size2.value = Math.floor(currentPanelH * 0.48); x2.value = 26; y2.value = Math.floor(currentPanelH * 0.49);
             break;
-            
         case 'small':
-            // Drobné písmo s mezerami pro delší trasy linky
             sizeL.value = Math.floor(currentPanelH * 0.75); xL.value = 2; yL.value = 2;
             size1.value = Math.floor(currentPanelH * 0.40); x1.value = 26; y1.value = 1;
             size2.value = Math.floor(currentPanelH * 0.40); x2.value = 26; y2.value = Math.floor(currentPanelH * 0.55);
             break;
-            
         case 'min':
-            // Extrémně nahuštěný styl zobrazení pro komplexní řetězce
             sizeL.value = Math.floor(currentPanelH * 0.65); xL.value = 2; yL.value = 3;
             size1.value = Math.floor(currentPanelH * 0.35); x1.value = 26; y1.value = 1;
             size2.value = Math.floor(currentPanelH * 0.35); x2.value = 26; y2.value = Math.floor(currentPanelH * 0.61);
             break;
     }
-    
     drawBuse();
 }
 
 /**
  * RE-RENDER STRUKTURY BOČNÍHO PANELU (SEZNAM VRSTEV)
- * Aktualizuje seznam vytvořených výplní a přiřadí jim ID pro mazání.
  */
 function updateSidebarLayerList() {
     const container = document.getElementById('layerListContainer');
     const counter = document.getElementById('layerCount');
-    
     counter.innerText = customRectsArray.length;
     container.innerHTML = '';
     
@@ -705,15 +769,12 @@ function updateSidebarLayerList() {
                 <div class="layer-color-indicator" style="background:${rect.color}"></div>
                 <span><strong>Výplň #${index + 1}</strong> [${rect.xMin},${rect.yMin}]➔[${rect.xMax},${rect.yMax}]</span>
             </div>
-            <button class="btn-delete-layer" onclick="deleteSpecificLayer(${index})" title="Odebrat tuto výplň">×</button>
+            <button class="btn-delete-layer" onclick="deleteSpecificLayer(${index})" title="Odebrat">×</button>
         `;
         container.appendChild(item);
     });
 }
 
-/**
- * Odstraní vybraný index obdélníku ze seznamu vrstev.
- */
 function deleteSpecificLayer(index) {
     customRectsArray.splice(index, 1);
     updateSidebarLayerList();
@@ -722,7 +783,6 @@ function deleteSpecificLayer(index) {
 
 /**
  * HLAVNÍ GRAFICKÁ RE-RASTERIZAČNÍ FUNKCE MATICE
- * Kreslí vrstvy v přísném pořadí: Pozadí -> Mřížka -> Ruční výplně -> Texty a Esko
  */
 function drawBuse() {
     const pWidth = parseInt(document.getElementById('pWidth').value) || 140;
@@ -731,45 +791,45 @@ function drawBuse() {
     const fillColor = document.getElementById('pFill').value;
     const alphaThreshold = parseInt(document.getElementById('pAlphaThreshold').value) || 25;
     
-    // Zobrazení aktuální hodnoty citlivosti v UI
     document.getElementById('alphaValDisplay').innerText = alphaThreshold;
-
-    // Synchronizace hlavní CSS proměnné pro vizuální prvky stránky
     document.documentElement.style.setProperty('--buse-color', globalLedColor === '#000000' ? '#ff9d00' : globalLedColor);
 
-    // Načtení dat, barev a konfigurace fontů pro Linku
-    const lineVal = document.getElementById('lineIn').value;
-    const lineFontFamily = document.getElementById('lineFont').value;
-    const lineSize = parseInt(document.getElementById('lineSize').value) || 0;
-    const lineX = parseInt(document.getElementById('lineX').value) || 0;
-    const lineY = parseInt(document.getElementById('lineY').value) || 0;
-    const lineColor = document.getElementById('lineColor').value;
+    // Načtení dat a konfigurace jednotlivých vrstev
+    const layersData = [
+        {
+            val: document.getElementById('lineIn').value,
+            font: document.getElementById('lineFont').value,
+            size: parseInt(document.getElementById('lineSize').value) || 0,
+            x: parseInt(document.getElementById('lineX').value) || 0,
+            y: parseInt(document.getElementById('lineY').value) || 0,
+            color: document.getElementById('lineColor').value
+        },
+        {
+            val: document.getElementById('textIn1').value,
+            font: document.getElementById('text1Font').value,
+            size: parseInt(document.getElementById('text1Size').value) || 0,
+            x: parseInt(document.getElementById('text1X').value) || 0,
+            y: parseInt(document.getElementById('text1Y').value) || 0,
+            color: document.getElementById('text1Color').value
+        },
+        {
+            val: document.getElementById('textIn2').value,
+            font: document.getElementById('text2Font').value,
+            size: parseInt(document.getElementById('text2Size').value) || 0,
+            x: parseInt(document.getElementById('text2X').value) || 0,
+            y: parseInt(document.getElementById('text2Y').value) || 0,
+            color: document.getElementById('text2Color').value
+        }
+    ];
 
-    // Načtení dat, barev a konfigurace pro 1. Řádek
-    const text1Val = document.getElementById('textIn1').value;
-    const text1FontFamily = document.getElementById('text1Font').value;
-    const text1Size = parseInt(document.getElementById('text1Size').value) || 0;
-    const text1X = parseInt(document.getElementById('text1X').value) || 0;
-    const text1Y = parseInt(document.getElementById('text1Y').value) || 0;
-    const text1Color = document.getElementById('text1Color').value;
-
-    // Načtení dat, barev a konfigurace pro 2. Řádek
-    const text2Val = document.getElementById('textIn2').value;
-    const text2FontFamily = document.getElementById('text2Font').value;
-    const text2Size = parseInt(document.getElementById('text2Size').value) || 0;
-    const text2X = parseInt(document.getElementById('text2X').value) || 0;
-    const text2Y = parseInt(document.getElementById('text2Y').value) || 0;
-    const text2Color = document.getElementById('text2Color').value;
-
-    // Kalibrace šířky hlavního vykreslovacího plátna
     mainCanvas.width = pWidth * DOT_RENDER_SIZE;
     mainCanvas.height = pHeight * DOT_RENDER_SIZE;
 
-    // VRSTVA 1: Celoplošné barevné pozadí panelu (Fill)
+    // VRSTVA 1: Celoplošné barevné pozadí panelu
     mainCtx.fillStyle = fillColor;
     mainCtx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
     
-    // VRSTVA 2: Inicializační rastr zhasnutých LED diod (Hardwarová mřížka)
+    // VRSTVA 2: Inicializační rastr zhasnutých LED diod
     mainCtx.fillStyle = calculateGridHoleColor(fillColor);
     for (let x = 0; x < pWidth; x++) {
         for (let y = 0; y < pHeight; y++) {
@@ -777,49 +837,50 @@ function drawBuse() {
         }
     }
 
-    // VRSTVA 3: Příprava textového bufferu (1:1 poměr k bodům matice)
+    // VRSTVA 3: Příprava textového bufferu (sloučení všech ošetřených offscreen vrstev)
     memoryBuffer.width = pWidth;
     memoryBuffer.height = pHeight;
     memCtx.clearRect(0, 0, pWidth, pHeight);
 
-    // Vykreslení Linkové vrstvy s její kustomizovanou barvou
-    if (lineVal.trim() !== "" && lineSize > 0) {
-        drawBuseTextWithEsko(memCtx, lineVal, lineX, lineY, lineSize, lineFontFamily, lineColor);
-    }
+    layerCanvas.width = pWidth;
+    layerCanvas.height = pHeight;
 
-    // Vykreslení 1. řádku s jeho kustomizovanou barvou
-    if (text1Val.trim() !== "" && text1Size > 0) {
-        drawBuseTextWithEsko(memCtx, text1Val, text1X, text1Y, text1Size, text1FontFamily, text1Color);
-    }
+    // Postupné kreslení, maskování a slití všech tří textových vrstev
+    layersData.forEach((layer) => {
+        if (layer.val.trim() !== "" && layer.size > 0) {
+            lCtx.clearRect(0, 0, pWidth, pHeight);
+            
+            // 1. Nakreslíme text / symbol / emoji bílou barvou
+            drawBuseTextWithCustomSymbols(lCtx, layer.val, layer.x, layer.y, layer.size, layer.font);
+            
+            // 2. Překryjeme jej vybranou barvou řádku pomocí kompozitního filtru (přebarví i barevná emoji!)
+            lCtx.globalCompositeOperation = 'source-in';
+            lCtx.fillStyle = layer.color;
+            lCtx.fillRect(0, 0, pWidth, pHeight);
+            lCtx.globalCompositeOperation = 'source-over'; // Reset
+            
+            // 3. Vykreslíme výsledek do finálního paměťového bufferu
+            memCtx.drawImage(layerCanvas, 0, 0);
+        }
+    });
 
-    // Vykreslení 2. řádku s jeho kustomizovanou barvou
-    if (text2Val.trim() !== "" && text2Size > 0) {
-        drawBuseTextWithEsko(memCtx, text2Val, text2X, text2Y, text2Size, text2FontFamily, text2Color);
-    }
-
-    // Načtení surových obrazových pixelů z masky textu/emoji/loga
     const imgData = memCtx.getImageData(0, 0, pWidth, pHeight).data;
     
-    // VRSTVA 4: Procházení každého bodu matice a vyhodnocení finálního rozsvícení podle priorit
+    // VRSTVA 4: Procházení každého bodu matice a vyhodnocení finálního rozsvícení
     for (let x = 0; x < pWidth; x++) {
         for (let y = 0; y < pHeight; y++) {
-            
             const pixelIndex = (y * pWidth + x) * 4;
             const alphaComponent = imgData[pixelIndex + 3];
 
-            // 🌟 PRIORITA 1: HORNÍ VRSTVA - TEXTY A ESKO
-            // Pokud alfa kanál překročí mez citlivosti, bod obsahuje grafiku.
+            // 🌟 PRIORITA 1: HORNÍ VRSTVA - TEXTY, ESKO, VÝLUKA, KAFE A EMOJI
             if (alphaComponent > alphaThreshold) {
                 const r = imgData[pixelIndex];
                 const g = imgData[pixelIndex + 1];
                 const b = imgData[pixelIndex + 2];
-                
-                // Přímé převzetí barvy namíchané v paměťovém bufferu
                 let finalColor = `rgb(${r},${g},${b})`;
 
                 mainCtx.fillStyle = finalColor;
                 
-                // Přidání jemné luminiscenční LED záře
                 if (finalColor !== "#000000" && finalColor !== fillColor) {
                     mainCtx.shadowBlur = DOT_RENDER_SIZE * 0.9;
                     mainCtx.shadowColor = finalColor;
@@ -827,11 +888,9 @@ function drawBuse() {
                 mainCtx.fillRect(x * DOT_RENDER_SIZE, y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
                 mainCtx.shadowBlur = 0;
             } 
-            // 🟥 PRIORITA 2: SPODNÍ VRSTVA - RUČNÍ VÝPLNĚ
+            // 🟥 PRIORITA 2: SPODNÍ VRSTVA - RUČNÍ VÝPLNĚ POD TEXTY
             else {
                 let currentActiveRect = null;
-                
-                // Procházení od nejnověji přidaných obdélníků k nejstarším
                 for (let i = customRectsArray.length - 1; i >= 0; i--) {
                     let rce = customRectsArray[i];
                     if (x >= rce.xMin && x <= rce.xMax && y >= rce.yMin && y <= rce.yMax) {
@@ -853,7 +912,7 @@ function drawBuse() {
         }
     }
 
-    // Pomocná vrstva: Vykreslení zaměřovače, pokud uživatel vybral pouze první roh
+    // Pomocná vrstva zaměřovače (při definici zón)
     if (firstCornerCoords !== null) {
         mainCtx.fillStyle = "#00ffcc";
         mainCtx.fillRect(firstCornerCoords.x * DOT_RENDER_SIZE, firstCornerCoords.y * DOT_RENDER_SIZE, DOT_RENDER_SIZE - 1, DOT_RENDER_SIZE - 1);
@@ -877,26 +936,19 @@ mainCanvas.addEventListener('click', function(e) {
     const matrixGridX = Math.floor(calculatedCanvasX / DOT_RENDER_SIZE);
     const matrixGridY = Math.floor(calculatedCanvasY / DOT_RENDER_SIZE);
 
-    // Ověření validity souřadnic uvnitř aktivního pole matice
     if (matrixGridX >= 0 && matrixGridX < pWidth && matrixGridY >= 0 && matrixGridY < pHeight) {
         if (firstCornerCoords === null) {
-            // Zachycení prvního bodu
             firstCornerCoords = { x: matrixGridX, y: matrixGridY };
             document.getElementById('toolStatus').innerText = `📍 Roh 1 uložen [${matrixGridX}, ${matrixGridY}]. Klikni pro protilehlý Roh 2!`;
             drawBuse();
         } else {
-            // Zachycení druhého bodu a výpočet matematického rozsahu obdélníku
             const xMin = Math.min(firstCornerCoords.x, matrixGridX);
             const xMax = Math.max(firstCornerCoords.x, matrixGridX);
             const yMin = Math.min(firstCornerCoords.y, matrixGridY);
             const yMax = Math.max(firstCornerCoords.y, matrixGridY);
-            
             const selectedFillColor = document.getElementById('pRectColor').value;
 
-            // Vložení obdélníku do globálního pole vrstev
             customRectsArray.push({ xMin, xMax, yMin, yMax, color: selectedFillColor });
-            
-            // Resetování kurzoru
             firstCornerCoords = null;
             document.getElementById('toolStatus').innerText = `✅ Výplň od [${xMin},${yMin}] do [${xMax},${yMax}] uložena pod text.`;
             
@@ -906,9 +958,6 @@ mainCanvas.addEventListener('click', function(e) {
     }
 });
 
-/**
- * Kompletně vymaže celou paměť ručně naklikaných obdélníků.
- */
 function clearCustomRects() {
     customRectsArray = [];
     firstCornerCoords = null;
@@ -917,9 +966,6 @@ function clearCustomRects() {
     drawBuse();
 }
 
-/**
- * Vyexportuje hotový panel jako čistý PNG soubor ke stažení.
- */
 function exportPNG() {
     const w = document.getElementById('pWidth').value;
     const h = document.getElementById('pHeight').value;
@@ -929,7 +975,7 @@ function exportPNG() {
     anchor.click();
 }
 
-// --- REGISTRACE EVENT LISTENEROŮ PRO ŽIVOU AKTUALIZACI PANELU (LIVE FEED) ---
+// --- REGISTRACE EVENT LISTENEROŮ PRO ŽIVOU AKTUALIZACI PANELU ---
 const interactiveInputSelectors = [
     'pWidth', 'pHeight', 'pColor', 'pFill', 'pAlphaThreshold', 'pRectColor',
     'lineIn', 'lineFont', 'lineSize', 'lineX', 'lineY', 'lineColor',
@@ -939,7 +985,6 @@ const interactiveInputSelectors = [
 
 interactiveInputSelectors.forEach(function(inputId) {
     document.getElementById(inputId).addEventListener('input', function() {
-        // Pokud dojde k ruční editaci pozic či velikostí textu, přepneme dropdown kategorií na vlastní režim
         if (inputId.includes('Size') || inputId.includes('X') || inputId.includes('Y') || inputId.includes('Font')) {
             document.getElementById('pFontCategory').value = 'custom';
         }
@@ -947,7 +992,6 @@ interactiveInputSelectors.forEach(function(inputId) {
     });
 });
 
-// Propojení globálního rychlo-měniče barev pro pohodlné hromadné obarvení
 document.getElementById('pColor').addEventListener('input', function() {
     const val = this.value;
     document.getElementById('lineColor').value = val;
@@ -956,10 +1000,8 @@ document.getElementById('pColor').addEventListener('input', function() {
     drawBuse();
 });
 
-// Propojení posuvníku pro zobrazení kategorií velikostí písma
 document.getElementById('pFontCategory').addEventListener('change', applyFontPresetCategory);
 
-// Spuštění inicializačního vykreslení matice ihned po načtení DOM prvků
 window.onload = function() {
     drawBuse();
 };
