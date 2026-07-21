@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SIMT BUSE Professional Developer Station - Edition 2026</title>
+    <title>SIMT BUSE Professional Developer Station - Graphic Logos Edition</title>
     <style>
-        /* --- DESIGN SYSTÉM A KARETNÍ ROZVRŽENÍ --- */
         :root {
             --buse-color: #ff9d00;
             --ui-bg: #141414;
@@ -34,7 +33,6 @@
             user-select: none;
         }
 
-        /* --- HLAVNÍ NAVIGAČNÍ A OVLÁDACÍ LIŠTA --- */
         header {
             background: #1a1a1a;
             padding: 12px 20px;
@@ -96,7 +94,7 @@
             gap: 6px;
         }
 
-        select, input[type="number"], input[type="color"], input[type="range"] {
+        select, input[type="number"], input[type="color"], input[type="range"], input[type="file"] {
             background: #000000;
             color: #ffffff;
             border: 1px solid #3c3c3c;
@@ -136,7 +134,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* --- STŘEDNÍ PRACOVNÍ PROSTOR --- */
         .main-workspace {
             flex: 1;
             display: flex;
@@ -171,7 +168,6 @@
             image-rendering: pixelated;
         }
 
-        /* --- SIDEBAR VRSTEV --- */
         .sidebar-layers {
             width: 280px;
             background: var(--sidebar-bg);
@@ -236,10 +232,6 @@
             font-weight: bold;
             font-size: 14px;
             padding: 0 4px;
-            line-height: 1;
-        }
-        .btn-delete-layer:hover {
-            color: #ff6b6b;
         }
 
         .no-layers-placeholder {
@@ -250,7 +242,6 @@
             font-size: 12px;
         }
 
-        /* --- SPODNÍ EDITAČNÍ KONZOLE --- */
         footer {
             background: var(--ui-bg);
             border-top: 2px solid var(--border-color);
@@ -286,13 +277,11 @@
             background: #000000;
             color: #ffffff;
             border: 1px solid #3a3a3a;
-            transition: border-color 0.2s, box-shadow 0.2s;
             width: 100%;
         }
         
         .editor-grid input[type="text"]:focus {
             border-color: var(--buse-color);
-            box-shadow: 0 0 8px rgba(255, 157, 0, 0.2);
             outline: none;
         }
 
@@ -341,9 +330,10 @@
             display: flex;
             gap: 12px;
             margin-top: 5px;
+            align-items: center;
         }
 
-        button.action-btn {
+        button.action-btn, label.action-btn {
             flex: 1;
             padding: 12px;
             font-weight: bold;
@@ -353,19 +343,13 @@
             text-transform: uppercase;
             font-size: 12px;
             letter-spacing: 0.5px;
-            transition: transform 0.1s, background-color 0.2s;
-        }
-
-        button.action-btn:active {
-            transform: scale(0.99);
+            text-align: center;
         }
 
         .btn-refresh { background: var(--buse-color); color: #000000; }
-        .btn-refresh:hover { background: #ffb540; }
+        .btn-upload { background: #0284c7; color: #ffffff; }
         .btn-clear { background: #4a1515; color: #ffffff; border: 1px solid #631c1c; }
-        .btn-clear:hover { background: #5c1b1b; }
         .btn-save { background: #2d3748; color: #ffffff; border: 1px solid #4a5568; }
-        .btn-save:hover { background: #3a465c; }
 
         @media (max-width: 1024px) {
             .main-workspace { flex-direction: column; }
@@ -454,7 +438,7 @@
 <footer>
     <div class="editor-grid">
         <div class="grid-header">Prvek</div>
-        <div class="grid-header">Obsah (Tagy: [S] [vyluka] [kafe] [SOR] [Karosa] [Irisbus] [Iveco] [Škoda] [Solaris])</div>
+        <div class="grid-header">Obsah (Tagy: [SOR] [Solaris] [Škoda] [Karosa] [Irisbus] [Iveco] [LOGO])</div>
         <div class="grid-header">Barva</div>
         <div class="grid-header">Styl písma</div>
         <div class="grid-header">Velikost (px)</div>
@@ -480,7 +464,7 @@
 
     <div class="editor-grid">
         <span class="label-tag">🔤 1. Řádek:</span>
-        <input type="text" id="textIn1" value="[Škoda] EXPRES [vyluka]">
+        <input type="text" id="textIn1" value="[Solaris] EXPRES [Škoda]">
         <input type="color" id="text1Color" value="#ff9d00">
         <select id="text1Font">
             <option value="sans-serif" selected>Sans-Serif Bold</option>
@@ -497,7 +481,7 @@
 
     <div class="editor-grid">
         <span class="label-tag">🔤 2. Řádek:</span>
-        <input type="text" id="textIn2" value="[Irisbus] CITYBUS [kafe]">
+        <input type="text" id="textIn2" value="[Karosa] CITYBUS [Irisbus]">
         <input type="color" id="text2Color" value="#10b981">
         <select id="text2Font">
             <option value="sans-serif" selected>Sans-Serif Bold</option>
@@ -513,17 +497,19 @@
     </div>
 
     <div class="button-group">
-        <button class="action-btn btn-refresh" onclick="drawBuse()">Kompletní real-time obnova</button>
-        <button class="action-btn btn-clear" onclick="clearCustomRects()">Smazat všechny výplně</button>
-        <button class="action-btn btn-save" onclick="exportPNG()">Exportovat čisté .PNG</button>
+        <button class="action-btn btn-refresh" onclick="drawBuse()">Obnovit matici</button>
+        
+        <label class="action-btn btn-upload">
+            📁 Nahrát PNG/JPG logo
+            <input type="file" id="uploadedLogoInput" accept="image/*" style="display:none;" onchange="handleLogoUpload(event)">
+        </label>
+        
+        <button class="action-btn btn-clear" onclick="clearCustomRects()">Smazat výplně</button>
+        <button class="action-btn btn-save" onclick="exportPNG()">Exportovat .PNG</button>
     </div>
 </footer>
 
 <script>
-/**
- * SIMT BUSE ULTIMATE MATRIX CORE ENGINE v4.0 - BRAND LOGOS EDITION
- */
-
 const mainCanvas = document.getElementById('buseCanvas');
 const mainCtx = mainCanvas.getContext('2d');
 const DOT_RENDER_SIZE = 5;
@@ -537,8 +523,28 @@ const lCtx = layerCanvas.getContext('2d');
 let customRectsArray = [];
 let firstCornerCoords = null;
 
+// Proměnná pro nahrávané obrázkové logo z PC (PNG/JPG)
+let customUploadedLogoImg = null;
+
+function handleLogoUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                customUploadedLogoImg = img;
+                document.getElementById('toolStatus').innerText = "✅ Vlastní obrázkové logo načteno! Použij tag [LOGO]";
+                drawBuse();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
 /**
- * Pokročilý renderer textů a symbolů včetně značek vozidel
+ * Místo textů vykresluje REÁLNÁ VEKTOROVÁ LOGA ZNAČEK
  */
 function drawBuseTextWithCustomSymbols(ctx, text, startX, startY, fontSize, fontFamily) {
     ctx.textBaseline = "top"; 
@@ -548,231 +554,229 @@ function drawBuseTextWithCustomSymbols(ctx, text, startX, startY, fontSize, font
 
     let currentX = startX;
     
-    // Rozdělení textu podle zkratek a tagů
-    let regex = /(\[S\]|\[vyluka\]|\[kafe\]|\[SOR\]|\[Karosa\]|\[Irisbus\]|\[Iveco\]|\[Škoda\]|\[Skoda\]|\[Solaris\])/gi;
+    let regex = /(\[S\]|\[vyluka\]|\[kafe\]|\[SOR\]|\[Karosa\]|\[Irisbus\]|\[Iveco\]|\[Škoda\]|\[Skoda\]|\[Solaris\]|\[LOGO\])/gi;
     let segments = text.split(regex);
     
     segments.forEach((segment) => {
         let tagUpper = segment.toUpperCase();
 
-        if (tagUpper === '[S]') {
-            let badgeSize = fontSize; 
-            let padding = 1; 
-            let cx = currentX + badgeSize / 2 + padding;
-            let cy = startY + badgeSize / 2;
-            let radius = badgeSize / 2;
+        /* --- GRAFICKÉ LOGO: SOLARIS --- */
+        if (tagUpper === '[SOLARIS]') {
+            let h = fontSize;
+            let w = fontSize * 1.8;
+            let cx = currentX + w / 2;
+            let cy = startY + h / 2;
 
             ctx.save();
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.font = `900 ${Math.floor(badgeSize * 0.95)}px "Arial Black", "Impact", sans-serif`;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText("S", cx, cy + (badgeSize * 0.04));
-            ctx.restore();
-
-            currentX += badgeSize + (padding * 2);
-        } 
-        else if (tagUpper === '[VYLUKA]') {
-            let badgeSize = fontSize;
-            let padding = 1;
-            let cx = currentX + badgeSize / 2 + padding;
-            let cy = startY + badgeSize / 2;
-            let radius = badgeSize / 2;
-
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(cx - radius * 0.8, cy + radius * 0.45);
-            ctx.lineTo(cx - radius * 0.35, cy + radius * 0.45);
-            ctx.lineTo(cx - radius * 0.35, cy - radius * 0.5);
-            ctx.lineTo(cx + radius * 0.35, cy - radius * 0.5);
-            ctx.lineTo(cx + radius * 0.35, cy + radius * 0.45);
-            ctx.lineTo(cx + radius * 0.70, cy + radius * 0.45);
-            
             ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = Math.max(1.5, radius * 0.28);
-            ctx.lineCap = "round";
-            ctx.lineJoin = "round";
+            ctx.fillStyle = "#ffffff";
+            ctx.lineWidth = Math.max(1.5, h * 0.15);
+
+            // Vnější ovál Solaris
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, w * 0.42, h * 0.38, -Math.PI / 8, 0, Math.PI * 2);
             ctx.stroke();
 
+            // Vnitřní geometrická dynamická úhlopříčka S
             ctx.beginPath();
-            ctx.moveTo(cx + radius * 0.50, cy + radius * 0.08);
-            ctx.lineTo(cx + radius * 0.95, cy + radius * 0.45);
-            ctx.lineTo(cx + radius * 0.50, cy + radius * 0.82);
-            ctx.closePath();
-            ctx.fillStyle = "#ffffff";
-            ctx.fill();
-
-            ctx.restore();
-            currentX += badgeSize + (padding * 2);
-        } 
-        else if (tagUpper === '[KAFE]') {
-            let badgeSize = fontSize;
-            let padding = 1;
-            let cx = currentX + badgeSize / 2 + padding;
-            let cy = startY + badgeSize / 2;
-            let radius = badgeSize / 2;
-
-            ctx.save();
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.moveTo(cx - radius * 0.45, cy - radius * 0.1);
-            ctx.lineTo(cx + radius * 0.35, cy - radius * 0.1);
-            ctx.lineTo(cx + radius * 0.25, cy + radius * 0.5);
-            ctx.lineTo(cx - radius * 0.35, cy + radius * 0.5);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.ellipse(cx - radius * 0.05, cy + radius * 0.6, radius * 0.65, radius * 0.12, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = Math.max(1.5, radius * 0.14);
-            ctx.beginPath();
-            ctx.arc(cx + radius * 0.3, cy + radius * 0.15, radius * 0.22, -Math.PI / 2, Math.PI / 2);
-            ctx.stroke();
-
-            ctx.lineWidth = Math.max(1.0, radius * 0.1);
-            ctx.beginPath();
-            ctx.moveTo(cx - radius * 0.18, cy - radius * 0.25);
-            ctx.quadraticCurveTo(cx - radius * 0.28, cy - radius * 0.45, cx - radius * 0.18, cy - radius * 0.65);
-            ctx.moveTo(cx + radius * 0.08, cy - radius * 0.25);
-            ctx.quadraticCurveTo(cx - radius * 0.02, cy - radius * 0.45, cx + radius * 0.08, cy - radius * 0.65);
+            ctx.moveTo(cx - w * 0.25, cy + h * 0.2);
+            ctx.lineTo(cx + w * 0.25, cy - h * 0.2);
+            ctx.lineWidth = Math.max(2, h * 0.22);
             ctx.stroke();
 
             ctx.restore();
-            currentX += badgeSize + (padding * 2);
+            currentX += w + 3;
         }
-        /* --- BRAND LOGO: SOR --- */
+        /* --- GRAFICKÉ LOGO: SOR --- */
         else if (tagUpper === '[SOR]') {
-            let badgeSize = fontSize;
-            ctx.save();
-            ctx.font = `italic 900 ${Math.floor(badgeSize * 0.85)}px "Arial Black", sans-serif`;
-            ctx.fillStyle = "#ffffff";
-            ctx.fillText("SOR", currentX, startY);
-            ctx.restore();
-            currentX += ctx.measureText("SOR").width + 2;
-        }
-        /* --- BRAND LOGO: KAROSA --- */
-        else if (tagUpper === '[KAROSA]') {
-            let badgeSize = fontSize;
-            let cx = currentX + badgeSize / 2;
-            let cy = startY + badgeSize / 2;
-            let r = badgeSize * 0.42;
+            let h = fontSize;
+            let w = fontSize * 1.9;
 
             ctx.save();
             ctx.fillStyle = "#ffffff";
-            // K plastický tvar
-            ctx.fillRect(cx - r, cy - r, r * 0.5, r * 2);
-            
-            ctx.beginPath();
-            ctx.moveTo(cx - r * 0.2, cy);
-            ctx.lineTo(cx + r, cy - r);
-            ctx.lineTo(cx + r * 0.4, cy - r);
-            ctx.lineTo(cx - r * 0.5, cy - r * 0.2);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(cx - r * 0.2, cy - r * 0.1);
-            ctx.lineTo(cx + r, cy + r);
-            ctx.lineTo(cx + r * 0.4, cy + r);
-            ctx.lineTo(cx - r * 0.5, cy + r * 0.2);
-            ctx.fill();
-
-            ctx.restore();
-            currentX += badgeSize + 2;
-        }
-        /* --- BRAND LOGO: IRISBUS --- */
-        else if (tagUpper === '[IRISBUS]') {
-            let badgeSize = fontSize;
-            let cx = currentX + badgeSize / 2;
-            let cy = startY + badgeSize / 2;
-            let r = badgeSize * 0.42;
-
-            ctx.save();
             ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = Math.max(1.5, badgeSize * 0.18);
+            ctx.lineWidth = Math.max(1.5, h * 0.18);
+
+            // Spojité grafické logo SOR (S, O, R spojené v jednu křivku)
             ctx.beginPath();
-            ctx.arc(cx, cy, r, 0.2 * Math.PI, 1.75 * Math.PI);
+            // S
+            ctx.moveTo(currentX + w * 0.28, startY + h * 0.2);
+            ctx.lineTo(currentX + w * 0.08, startY + h * 0.2);
+            ctx.lineTo(currentX + w * 0.08, startY + h * 0.5);
+            ctx.lineTo(currentX + w * 0.28, startY + h * 0.5);
+            ctx.lineTo(currentX + w * 0.28, startY + h * 0.82);
+            ctx.lineTo(currentX + w * 0.05, startY + h * 0.82);
             ctx.stroke();
 
-            // Hlavička a ploutev delfína
-            ctx.fillStyle = "#ffffff";
+            // Spojené O
             ctx.beginPath();
-            ctx.arc(cx + r * 0.5, cy - r * 0.5, r * 0.3, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.arc(currentX + w * 0.48, startY + h * 0.51, h * 0.32, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Spojené R
+            ctx.beginPath();
+            ctx.moveTo(currentX + w * 0.70, startY + h * 0.2);
+            ctx.lineTo(currentX + w * 0.70, startY + h * 0.82);
+            ctx.stroke();
 
             ctx.beginPath();
-            ctx.moveTo(cx + r * 0.6, cy + r * 0.1);
-            ctx.lineTo(cx + r * 0.95, cy + r * 0.5);
-            ctx.lineTo(cx + r * 0.4, cy + r * 0.7);
-            ctx.closePath();
-            ctx.fill();
+            ctx.arc(currentX + w * 0.78, startY + h * 0.38, h * 0.2, -Math.PI/2, Math.PI/2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(currentX + w * 0.72, startY + h * 0.52);
+            ctx.lineTo(currentX + w * 0.92, startY + h * 0.82);
+            ctx.stroke();
 
             ctx.restore();
-            currentX += badgeSize + 2;
+            currentX += w + 3;
         }
-        /* --- BRAND LOGO: IVECO --- */
-        else if (tagUpper === '[IVECO]') {
-            let badgeSize = fontSize;
-            ctx.save();
-            ctx.font = `900 ${Math.floor(badgeSize * 0.85)}px "Arial Black", "Impact", sans-serif`;
-            ctx.fillStyle = "#ffffff";
-            ctx.fillText("IVECO", currentX, startY);
-            ctx.restore();
-            currentX += ctx.measureText("IVECO").width + 2;
-        }
-        /* --- BRAND LOGO: ŠKODA --- */
+        /* --- GRAFICKÉ LOGO: ŠKODA --- */
         else if (tagUpper === '[ŠKODA]' || tagUpper === '[SKODA]') {
-            let badgeSize = fontSize;
-            let cx = currentX + badgeSize / 2;
-            let cy = startY + badgeSize / 2;
-            let r = badgeSize * 0.45;
+            let h = fontSize;
+            let cx = currentX + h / 2;
+            let cy = startY + h / 2;
+            let r = h * 0.45;
 
             ctx.save();
-            // Vnější kružnice
             ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = Math.max(1.2, badgeSize * 0.12);
+            ctx.fillStyle = "#ffffff";
+
+            // Vnější kruh
+            ctx.lineWidth = Math.max(1.2, h * 0.12);
             ctx.beginPath();
             ctx.arc(cx, cy, r, 0, Math.PI * 2);
             ctx.stroke();
 
             // Okřídlený šíp
-            ctx.fillStyle = "#ffffff";
             ctx.beginPath();
-            ctx.moveTo(cx - r * 0.5, cy);
-            ctx.lineTo(cx + r * 0.2, cy - r * 0.15);
-            ctx.lineTo(cx + r * 0.2, cy - r * 0.35);
-            ctx.lineTo(cx + r * 0.75, cy);
-            ctx.lineTo(cx + r * 0.2, cy + r * 0.35);
-            ctx.lineTo(cx + r * 0.2, cy + r * 0.15);
+            ctx.moveTo(cx + r * 0.75, cy);
+            ctx.lineTo(cx - r * 0.25, cy - r * 0.3);
+            ctx.lineTo(cx - r * 0.05, cy);
+            ctx.lineTo(cx - r * 0.25, cy + r * 0.3);
             ctx.closePath();
             ctx.fill();
 
-            // Křídla šípu
+            // Křídlo s pírky
             ctx.beginPath();
-            ctx.moveTo(cx - r * 0.3, cy - r * 0.1);
-            ctx.quadraticCurveTo(cx - r * 0.5, cy - r * 0.5, cx - r * 0.2, cy - r * 0.65);
-            ctx.quadraticCurveTo(cx - r * 0.1, cy - r * 0.4, cx, cy - r * 0.15);
+            ctx.ellipse(cx - r * 0.15, cy - r * 0.3, r * 0.4, r * 0.1, -0.4, 0, Math.PI * 2);
+            ctx.ellipse(cx - r * 0.25, cy - r * 0.1, r * 0.35, r * 0.09, -0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Oko šípu (otvor)
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.arc(cx + r * 0.1, cy, r * 0.14, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.restore();
-            currentX += badgeSize + 2;
+            currentX += h + 3;
         }
-        /* --- BRAND LOGO: SOLARIS --- */
-        else if (tagUpper === '[SOLARIS]') {
-            let badgeSize = fontSize;
+        /* --- GRAFICKÉ LOGO: KAROSA --- */
+        else if (tagUpper === '[KAROSA]') {
+            let h = fontSize;
+            let cx = currentX + h / 2;
+            let cy = startY + h / 2;
+            let r = h * 0.42;
+
             ctx.save();
-            ctx.font = `italic 900 ${Math.floor(badgeSize * 0.8)}px "Arial Black", sans-serif`;
             ctx.fillStyle = "#ffffff";
-            ctx.fillText("SOLARIS", currentX, startY);
+
+            // Plastické geometrické "K" Karosa
+            ctx.fillRect(cx - r, cy - r, r * 0.5, r * 2);
+            
+            ctx.beginPath();
+            ctx.moveTo(cx - r * 0.1, cy);
+            ctx.lineTo(cx + r * 0.9, cy - r);
+            ctx.lineTo(cx + r * 0.4, cy - r);
+            ctx.lineTo(cx - r * 0.4, cy - r * 0.25);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(cx - r * 0.1, cy - r * 0.1);
+            ctx.lineTo(cx + r * 0.9, cy + r);
+            ctx.lineTo(cx + r * 0.4, cy + r);
+            ctx.lineTo(cx - r * 0.4, cy + r * 0.25);
+            ctx.fill();
+
             ctx.restore();
-            currentX += ctx.measureText("SOLARIS").width + 2;
+            currentX += h + 3;
+        }
+        /* --- GRAFICKÉ LOGO: IRISBUS --- */
+        else if (tagUpper === '[IRISBUS]') {
+            let h = fontSize;
+            let cx = currentX + h / 2;
+            let cy = startY + h / 2;
+            let r = h * 0.42;
+
+            ctx.save();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = Math.max(1.5, h * 0.16);
+
+            // Kruhový profil
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0.2 * Math.PI, 1.75 * Math.PI);
+            ctx.stroke();
+
+            // Delfín
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc(cx + r * 0.45, cy - r * 0.45, r * 0.28, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(cx + r * 0.5, cy + r * 0.1);
+            ctx.lineTo(cx + r * 0.9, cy + r * 0.5);
+            ctx.lineTo(cx + r * 0.3, cy + r * 0.65);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.restore();
+            currentX += h + 3;
+        }
+        /* --- GRAFICKÉ LOGO: IVECO --- */
+        else if (tagUpper === '[IVECO]') {
+            let h = fontSize;
+            ctx.save();
+            ctx.font = `900 ${Math.floor(h * 0.85)}px "Arial Black", "Impact", sans-serif`;
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText("IVECO", currentX, startY);
+            ctx.restore();
+            currentX += ctx.measureText("IVECO").width + 3;
+        }
+        /* --- NAHRANÉ OBRÁZKOVÉ LOGO (PNG/JPG) --- */
+        else if (tagUpper === '[LOGO]') {
+            let h = fontSize;
+            if (customUploadedLogoImg) {
+                let aspect = customUploadedLogoImg.width / customUploadedLogoImg.height;
+                let w = h * aspect;
+                ctx.drawImage(customUploadedLogoImg, currentX, startY, w, h);
+                currentX += w + 3;
+            } else {
+                ctx.fillText("[Obrázek_nenahrán]", currentX, startY);
+                currentX += ctx.measureText("[Obrázek_nenahrán]").width + 2;
+            }
+        }
+        /* --- STANDARDNÍ SYMBOLY ([S], [VYLUKA], [KAFE]) --- */
+        else if (tagUpper === '[S]') {
+            let badgeSize = fontSize;
+            let cx = currentX + badgeSize / 2;
+            let cy = startY + badgeSize / 2;
+
+            ctx.save();
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc(cx, cy, badgeSize / 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.font = `900 ${Math.floor(badgeSize * 0.9)}px "Arial Black", sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("S", cx, cy + (badgeSize * 0.05));
+            ctx.restore();
+
+            currentX += badgeSize + 2;
         }
         else if (segment.length > 0) {
             ctx.fillText(segment, currentX, startY);
@@ -1034,7 +1038,7 @@ function exportPNG() {
     const w = document.getElementById('pWidth').value;
     const h = document.getElementById('pHeight').value;
     const anchor = document.createElement('a');
-    anchor.download = `SIMT_BUSE_Matrix_${w}x${h}_Pro.png`;
+    anchor.download = `SIMT_BUSE_Matrix_${w}x${h}_Logos.png`;
     anchor.href = mainCanvas.toDataURL("image/png");
     anchor.click();
 }
