@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editor zastávky</title>
+<style>
+  :root{
+    --orange:#ff6a00; --sand:#d6d1c4; --ink:#1d1d1b; --muted:#6b675d;
+    --bg:#f3f2ee; --panel:#ffffff; --line:#dedbd2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  .app{display:grid;grid-template-columns:minmax(300px,420px) 1fr;min-height:100vh}
+  @media(max-width:860px){.app{grid-template-columns:1fr}}
+
+  /* Editor */
+  .panel{background:var(--panel);border-right:1px solid var(--line);padding:18px;overflow:auto}
+  h1{font-size:20px;margin:0 0 14px}
+  h2{font-size:15px;margin:22px 0 8px}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  input[type=text]{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
+  input[type=text]:focus{outline:2px solid var(--orange);outline-offset:0;border-color:transparent}
+  .row{display:flex;gap:8px}
+  .row > *{min-width:0}
+  button{font:inherit;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 12px}
+  button:hover{border-color:var(--orange)}
+  button:focus-visible{outline:2px solid var(--orange)}
+  button.primary{background:var(--orange);color:#fff;border-color:var(--orange)}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .linecard{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:#fcfcfa}
+  .linecard .row{margin-bottom:6px}
+  .linecard .num{width:72px;flex:none;font-weight:700;text-align:center}
+  .linecard .tools{display:flex;gap:6px;justify-content:flex-end}
+  .linecard .tools button{padding:4px 9px}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px}
+
+  /* Preview area */
+  .stage{padding:18px;display:flex;flex-direction:column;gap:18px;align-items:center;overflow:auto}
+  .tabs{display:flex;gap:6px;align-self:flex-start}
+  .tabs button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+  /* Sign (obrázek 1) */
+  .sign{width:min(100%,720px);aspect-ratio:4/3;background:#fff;position:relative;box-shadow:0 2px 14px rgba(0,0,0,.18);display:flex;flex-direction:column;container-type:inline-size}
+  .sign .head{background:var(--orange);height:27%;display:flex;align-items:center;justify-content:space-between;padding:0 5cqw;color:#fff;flex:none}
+  .sign .head .name{font-size:6.4cqw;font-weight:800;line-height:1.05;letter-spacing:-.01em}
+  .sign .head img{height:62%;max-width:26%;object-fit:contain}
+  .sign .body{flex:1;padding:3cqw 5cqw;display:flex;flex-direction:column;gap:1.6cqw;overflow:hidden}
+  .sign .item{display:flex;align-items:center;gap:2.6cqw;min-height:0}
+  .sign .item .n{flex:none;min-width:8cqw;padding:.6cqw 1.6cqw;background:var(--orange);color:#fff;font-weight:800;font-size:4.2cqw;text-align:center;border-radius:1.2cqw}
+  .sign .item .t{display:flex;flex-direction:column;line-height:1.1}
+  .sign .item .d{font-weight:700;font-size:3.5cqw}
+  .sign .item .v{font-size:2.3cqw;color:#555;margin-top:.4cqw}
+  .sign .mark{position:absolute;right:4cqw;bottom:3cqw}
+
+  .badge{display:inline-flex;align-items:center;justify-content:center;border:.25cqw solid #111;border-radius:50%;font-weight:800;background:#fff;color:#111}
+  .sign .badge{width:9cqw;height:9cqw;font-size:6cqw;border-width:.35cqw}
+
+  /* Board (obrázek 2) */
+  .board{width:min(100%,720px);aspect-ratio:950/796;background:var(--sand);padding:3.3% 3.3% 0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:42% 1fr 1fr 12%;gap:1%;container-type:inline-size;box-shadow:0 2px 14px rgba(0,0,0,.18)}
+  .board > div{background:#fff;border-radius:2cqw;padding:2cqw;overflow:hidden}
+  .board .big{grid-column:1/-1;display:flex;flex-direction:column;justify-content:center;padding:3cqw 4cqw}
+  .board .big .name{font-size:7cqw;font-weight:800;line-height:1.05}
+  .board .big .sub{font-size:3cqw;color:var(--muted);margin-top:1cqw}
+  .board .cell{display:flex;flex-direction:column;justify-content:center;gap:.8cqw}
+  .board .cell .n{font-size:6.5cqw;font-weight:800;color:var(--orange);line-height:1}
+  .board .cell .d{font-size:3cqw;font-weight:600;line-height:1.1}
+  .board .cell.empty{background:#fff}
+  .board .foot-wide{grid-column:2/3;display:flex;align-items:center;font-size:2.8cqw;color:var(--muted);border-radius:2cqw 2cqw 0 0 !important}
+  .board .foot-small{grid-column:3/4;display:flex;align-items:center;justify-content:center;border-radius:2cqw 2cqw 0 0 !important}
+  .board .badge{width:8cqw;height:8cqw;font-size:5cqw;border-width:.3cqw}
+
+  @media print{
+    .panel,.tabs,.noprint{display:none !important}
+    .app{display:block} .stage{padding:0}
+    .sign,.board{box-shadow:none;width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="panel">
+    <h1>Editor zastávky</h1>
+
+    <label for="stop">Název zastávky</label>
+    <input type="text" id="stop">
+
+    <div class="row">
+      <div style="flex:1">
+        <label for="marker">Označník (písmeno)</label>
+        <input type="text" id="marker" maxlength="2">
+      </div>
+      <div style="flex:2">
+        <label for="note">Poznámka (tabule)</label>
+        <input type="text" id="note">
+      </div>
+    </div>
+
+    <label for="logo">Logo (volitelné)</label>
+    <input type="file" id="logo" accept="image/*">
+    <div class="toolbar"><button id="logoReset" type="button">Vrátit výchozí logo</button></div>
+
+    <h2>Linky</h2>
+    <div id="lines"></div>
+    <button class="primary" id="add" type="button">Přidat linku</button>
+    <div class="hint">„Přes“ se zobrazí jen na zastávkovém sloupku. Tabule má místo pro 6 linek.</div>
+
+    <h2>Data</h2>
+    <div class="toolbar">
+      <button id="export" type="button">Stáhnout JSON</button>
+      <button id="import" type="button">Načíst JSON</button>
+      <button id="exportJpg" class="primary" type="button">Export JPG</button>
+      <button id="print" type="button">Tisk</button>
+      <button id="reset" type="button">Smazat vše</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json" hidden>
+    <div class="hint">Změny se ukládají automaticky v tomto prohlížeči.</div>
+  </aside>
+
+  <main class="stage">
+    <div class="tabs">
+      <button id="tabSign" class="active" type="button">Sloupek</button>
+      <button id="tabBoard" type="button">Tabule</button>
+    </div>
+    <div id="preview" style="width:100%;display:flex;justify-content:center"></div>
+  </main>
+</div>
+
+<script>
+const KEY = "zastavka-editor-v1";
+const defaultLogo = "data:image/png;base64,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";
+
+const initial = {
+  stop: "Hlavní nádraží",
+  marker: "A",
+  note: "Platí od 1. 9.",
+  logo: null,
+  view: "sign",
+  lines: [
+    {num:"1", dest:"Sídliště", via:"Náměstí, Park"},
+    {num:"2", dest:"Nemocnice", via:"Univerzita"},
+    {num:"5", dest:"Letiště", via:""}
+  ]
+};
+
+let state;
+try { state = JSON.parse(localStorage.getItem(KEY)) || structuredClone(initial); }
+catch(e){ state = structuredClone(initial); }
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+function renderLines(){
+  $("lines").innerHTML = state.lines.map((l,i)=>`
+    <div class="linecard" data-i="${i}">
+      <div class="row">
+        <input type="text" class="num" data-f="num" value="${esc(l.num)}" placeholder="Linka" aria-label="Číslo linky">
+        <input type="text" data-f="dest" value="${esc(l.dest)}" placeholder="Zastávka / směr" aria-label="Směr">
+      </div>
+      <input type="text" data-f="via" value="${esc(l.via)}" placeholder="Přes (např. Náměstí, Park)" aria-label="Přes">
+      <div class="tools" style="margin-top:6px">
+        <button type="button" data-a="up" aria-label="Posunout nahoru">↑</button>
+        <button type="button" data-a="down" aria-label="Posunout dolů">↓</button>
+        <button type="button" data-a="del">Smazat</button>
+      </div>
+    </div>`).join("");
+}
+
+function renderPreview(){
+  const logo = state.logo || defaultLogo;
+  const tabs = {sign:$("tabSign"), board:$("tabBoard")};
+  Object.entries(tabs).forEach(([k,b])=>b.classList.toggle("active", state.view===k));
+
+  if(state.view === "sign"){
+    $("preview").innerHTML = `
+      <div class="sign" id="out">
+        <div class="head"><div class="name">${esc(state.stop)}</div><img src="${logo}" alt=""></div>
+        <div class="body">
+          ${state.lines.map(l=>`
+            <div class="item">
+              <div class="n">${esc(l.num)}</div>
+              <div class="t"><span class="d">${esc(l.dest)}</span>${l.via?`<span class="v">přes ${esc(l.via)}</span>`:""}</div>
+            </div>`).join("")}
+        </div>
+        ${state.marker?`<div class="mark"><div class="badge">${esc(state.marker)}</div></div>`:""}
+      </div>`;
+  } else {
+    const cells = Array.from({length:6},(_,i)=>{
+      const l = state.lines[i];
+      return l ? `<div class="cell"><span class="n">${esc(l.num)}</span><span class="d">${esc(l.dest)}</span></div>` : `<div class="cell empty"></div>`;
+    }).join("");
+    $("preview").innerHTML = `
+      <div class="board" id="out">
+        <div class="big"><div class="name">${esc(state.stop)}</div></div>
+        ${cells}
+        <div class="foot-wide">${esc(state.note)}</div>
+        <div class="foot-small">${state.marker?`<div class="badge">${esc(state.marker)}</div>`:""}</div>
+      </div>`;
+  }
+}
+
+function renderAll(){
+  $("stop").value = state.stop;
+  $("marker").value = state.marker;
+  $("note").value = state.note;
+  renderLines(); renderPreview();
+}
+
+// Hlavní pole
+[["stop","stop"],["marker","marker"],["note","note"]].forEach(([id,k])=>{
+  $(id).addEventListener("input", e=>{ state[k]=e.target.value; save(); renderPreview(); });
+});
+
+// Linky (delegace)
+$("lines").addEventListener("input", e=>{
+  const card = e.target.closest(".linecard"); if(!card) return;
+  state.lines[+card.dataset.i][e.target.dataset.f] = e.target.value;
+  save(); renderPreview();
+});
+$("lines").addEventListener("click", e=>{
+  const a = e.target.dataset.a; if(!a) return;
+  const i = +e.target.closest(".linecard").dataset.i;
+  if(a==="del") state.lines.splice(i,1);
+  if(a==="up" && i>0) [state.lines[i-1],state.lines[i]]=[state.lines[i],state.lines[i-1]];
+  if(a==="down" && i<state.lines.length-1) [state.lines[i+1],state.lines[i]]=[state.lines[i],state.lines[i+1]];
+  save(); renderLines(); renderPreview();
+});
+$("add").onclick = ()=>{ state.lines.push({num:"",dest:"",via:""}); save(); renderLines(); renderPreview();
+  const last = $("lines").querySelector(".linecard:last-child .num"); if(last) last.focus(); };
+
+// Přepínač náhledu
+$("tabSign").onclick = ()=>{ state.view="sign"; save(); renderPreview(); };
+$("tabBoard").onclick = ()=>{ state.view="board"; save(); renderPreview(); };
+
+// Logo
+$("logo").onchange = e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{ state.logo = r.result; save(); renderPreview(); };
+  r.readAsDataURL(f);
+};
+$("logoReset").onclick = ()=>{ state.logo=null; $("logo").value=""; save(); renderPreview(); };
+
+// Export / import / tisk / reset
+$("export").onclick = ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "zastavka.json"; a.click();
+  URL.revokeObjectURL(a.href);
+};
+$("import").onclick = ()=>$("importFile").click();
+$("importFile").onchange = e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{ state = Object.assign(structuredClone(initial), JSON.parse(r.result)); save(); renderAll(); }
+    catch(err){ alert("Soubor se nepodařilo načíst. Zkontrolujte, že je to JSON ze stažené zálohy."); }
+  };
+  r.readAsText(f);
+  e.target.value = "";
+};
+$("print").onclick = ()=>window.print();
+$("reset").onclick = ()=>{ if(confirm("Opravdu smazat všechna data?")){ state=structuredClone(initial); save(); renderAll(); } };
+
+// ---------- Export do JPG (kreslení přímo na canvas) ----------
+const FONT = '"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif';
+function rr(ctx,x,y,w,h,r,topOnly){
+  const b = topOnly?0:r;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-b); if(b) ctx.arcTo(x+w,y+h,x+w-b,y+h,b); else ctx.lineTo(x+w,y+h);
+  ctx.lineTo(x+b,y+h); if(b) ctx.arcTo(x,y+h,x,y+h-b,b); else ctx.lineTo(x,y+h);
+  ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+}
+function fitText(ctx,text,x,y,maxW,size,weight,color,align){
+  let sz=size; ctx.font=`${weight} ${sz}px ${FONT}`;
+  while(ctx.measureText(text).width>maxW && sz>size*0.4){ sz-=size*0.03; ctx.font=`${weight} ${sz}px ${FONT}`; }
+  ctx.fillStyle=color; ctx.textAlign=align||"left"; ctx.fillText(text,x,y);
+}
+function badge(ctx,cx,cy,d,text,lw,fs){
+  ctx.beginPath(); ctx.arc(cx,cy,d/2,0,Math.PI*2); ctx.fillStyle="#fff"; ctx.fill();
+  ctx.lineWidth=lw; ctx.strokeStyle="#111"; ctx.stroke();
+  ctx.fillStyle="#111"; ctx.font=`800 ${fs}px ${FONT}`; ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.fillText(text,cx,cy+fs*0.04); ctx.textBaseline="alphabetic";
+}
+function loadImg(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
+
+async function renderCanvas(){
+  const logo = await loadImg(state.logo || defaultLogo);
+  const c = document.createElement("canvas"), W = 2000, q = W/100;
+  const ctx = c.getContext("2d");
+  if(state.view==="sign"){
+    const H = W*3/4; c.width=W; c.height=H;
+    ctx.fillStyle="#fff"; ctx.fillRect(0,0,W,H);
+    const hh = H*0.27;
+    ctx.fillStyle="#ff6a00"; ctx.fillRect(0,0,W,hh);
+    ctx.textBaseline="alphabetic";
+    fitText(ctx,state.stop,5*q,hh/2+6.4*q*0.32,W*0.62,6.4*q,800,"#fff");
+    const lh=hh*0.62, lw=Math.min(lh*logo.width/logo.height, W*0.26), lh2=lw*logo.height/logo.width;
+    ctx.drawImage(logo,W-5*q-lw,(hh-lh2)/2,lw,lh2);
+    let y = hh+3*q;
+    ctx.save(); ctx.beginPath(); ctx.rect(0,hh,W,H-hh); ctx.clip();
+    for(const l of state.lines){
+      const rowH=7.2*q, cy=y+rowH/2;
+      ctx.font=`800 ${4.2*q}px ${FONT}`;
+      const bw=Math.max(8*q, ctx.measureText(l.num||" ").width+3.2*q), bh=5.6*q;
+      ctx.fillStyle="#ff6a00"; rr(ctx,5*q,cy-bh/2,bw,bh,1.2*q); ctx.fill();
+      ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(l.num||"",5*q+bw/2,cy+0.2*q);
+      ctx.textBaseline="alphabetic";
+      const tx=5*q+bw+2.6*q, maxW=W-tx-16*q;
+      if(l.via){
+        fitText(ctx,l.dest||"",tx,cy-0.3*q,maxW,3.5*q,700,"#1d1d1b");
+        fitText(ctx,"přes "+l.via,tx,cy+2.6*q,maxW,2.3*q,400,"#555");
+      } else fitText(ctx,l.dest||"",tx,cy+1.2*q,maxW,3.5*q,700,"#1d1d1b");
+      y += rowH+1.6*q;
+    }
+    ctx.restore();
+    if(state.marker) badge(ctx,W-4*q-4.5*q,H-3*q-4.5*q,9*q,state.marker,0.35*q,6*q);
+  } else {
+    const H = W*796/950; c.width=W; c.height=Math.round(H);
+    ctx.fillStyle="#d6d1c4"; ctx.fillRect(0,0,W,H);
+    const pad=3.3*q, g=1*q, cw=(W-2*pad-2*g)/3, Hc=H-pad;
+    const r1=Hc*0.42, r4=Hc*0.12, rm=(Hc-r1-r4-3*g)/2, R=2*q;
+    // velký box
+    ctx.fillStyle="#fff"; rr(ctx,pad,pad,W-2*pad,r1,R); ctx.fill();
+    fitText(ctx,state.stop,pad+4*q,pad+r1/2+7*q*0.32,W-2*pad-8*q,7*q,800,"#1d1d1b");
+    for(let i=0;i<6;i++){
+      const x=pad+(i%3)*(cw+g), y=pad+r1+g+Math.floor(i/3)*(rm+g);
+      ctx.fillStyle="#fff"; rr(ctx,x,y,cw,rm,R); ctx.fill();
+      const l=state.lines[i]; if(!l) continue;
+      ctx.save(); rr(ctx,x,y,cw,rm,R); ctx.clip();
+      fitText(ctx,l.num||"",x+2*q,y+rm/2-0.2*q,cw-4*q,6.5*q,800,"#ff6a00");
+      fitText(ctx,l.dest||"",x+2*q,y+rm/2+3.6*q,cw-4*q,3*q,600,"#1d1d1b");
+      ctx.restore();
+    }
+    const fy=pad+r1+g+2*(rm+g);
+    ctx.fillStyle="#fff"; rr(ctx,pad+cw+g,fy,cw,r4,R,true); ctx.fill();
+    fitText(ctx,state.note||"",pad+cw+g+2*q,fy+r4/2+0.9*q,cw-4*q,2.8*q,400,"#6b675d");
+    ctx.fillStyle="#fff"; rr(ctx,pad+2*(cw+g),fy,cw,r4,R,true); ctx.fill();
+    if(state.marker) badge(ctx,pad+2*(cw+g)+cw/2,fy+r4/2,Math.min(8*q,r4*0.9),state.marker,0.3*q,Math.min(5*q,r4*0.55));
+  }
+  return c;
+}
+$("exportJpg").onclick = async ()=>{
+  try{
+    const c = await renderCanvas();
+    // JPG nemá průhlednost – podklad je vždy vyplněný
+    c.toBlob(b=>{
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(b);
+      a.download=(state.view==="sign"?"sloupek-":"tabule-")+(state.stop||"zastavka").replace(/[^\w\-]+/g,"_")+".jpg";
+      a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    },"image/jpeg",0.95);
+  }catch(e){ alert("Export se nepodařil. Zkuste jiné logo."); }
+};
+
+renderAll();
+</script>
+</body>
+</html>
